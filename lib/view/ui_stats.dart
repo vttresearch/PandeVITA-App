@@ -26,7 +26,12 @@ class PlayerPointsState extends State<PlayerPoints> {
 
   @override
   Widget build(BuildContext context) {
-    return Text(pointCounter);
+    return Text(pointCounter,
+        style: TextStyle(
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+      fontSize: 25,
+    ));
   }
 
   //Update points on screen
@@ -60,7 +65,13 @@ class ImmunityLevelState extends State<ImmunityLevel> {
 
   @override
   Widget build(BuildContext context) {
-    return Text(immunityLevel);
+    return Text(immunityLevel,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontSize: 25,
+
+        ));
   }
 
   void updateImmunityLevel() async {

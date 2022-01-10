@@ -51,13 +51,22 @@ class _TabMapState extends State<TabMap> {
                 Column(
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         //POINTS
                         Image.asset("images/xp_star.png", width: 50),
+                        const SizedBox(width: 20),
                         PlayerPoints(),
                         //Vaccination
+                        const SizedBox(width: 100),
                         Image.asset("images/vaccination_icon.png", width: 50),
-                        const Text("0"), //TODO: vaccination status
+                        const SizedBox(width: 20),
+                        const Text("0",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 25,
+                            )), //TODO: vaccination status
                       ],
                     ),
                     Row(
