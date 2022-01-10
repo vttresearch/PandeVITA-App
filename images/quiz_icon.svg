@@ -1,0 +1,32 @@
+<svg version="1.2" baseProfile="tiny-ps" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112" width="112" height="112">
+	<title>Ebene 1</title>
+	<style>
+		tspan { white-space:pre }
+		.s0 { fill: #ffffff } 
+		.t1 { font-size: 95px;line-height: 177px;fill: #efaa00;font-weight: 700;font-family: "Roboto-Bold", "Roboto" } 
+		.t2 { font-size: 95px;line-height: 237px;fill: #efaa00;font-weight: 700;font-family: "Roboto-Bold", "Roboto" } 
+	</style>
+	<g id="Ebene 1">
+		<g id="&lt;Group&gt;">
+			<g id="&lt;Group&gt;">
+				<g id="&lt;Group&gt;">
+					<g id="&lt;Group&gt;">
+						<path id="&lt;Path&gt;" class="s0" d="m111.38 55.55c0 30.68-24.87 55.56-55.56 55.56c-30.68 0-55.56-24.87-55.56-55.56c0-30.68 24.87-55.56 55.56-55.56c30.68 0 55.56 24.87 55.56 55.56z" />
+					</g>
+				</g>
+				<g id="&lt;Group&gt;">
+					<text id="?
+" style="transform: matrix(.995,-0.1,.1,.995,67.911,94.94)" >
+						<tspan x="-47" y="0" class="t1">?
+</tspan>
+					</text>
+					<text id="!
+" style="transform: matrix(.988,.157,-0.157,.988,82.654,88.208)" >
+						<tspan x="-25.7" y="0" class="t2">!
+</tspan>
+					</text>
+				</g>
+			</g>
+		</g>
+	</g>
+</svg>
