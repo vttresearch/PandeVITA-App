@@ -27,7 +27,9 @@ class GameLogic {
     controller.playerInfectedStream.listen((flag) {
       if (flag == true) {
         infected = true;
-        infectedTimestamp = DateTime.now().millisecondsSinceEpoch;
+        infectedTimestamp = DateTime
+            .now()
+            .millisecondsSinceEpoch;
       } else if (flag == false) {
         infected = false;
       }
@@ -37,8 +39,7 @@ class GameLogic {
   void initGame() {
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
-    timer = Timer.periodic(Duration(seconds: 10), (Timer t) => gameLogicTick());
-
+    timer = Timer.periodic(Duration(seconds: 20), (Timer t) => gameLogicTick());
   }
 
   void stopGame() {
@@ -54,7 +55,6 @@ class GameLogic {
     print("GAMELOGICTICK 2");
     print(scanResults.toString());
     if (!infected) {
-
       //Iterate the map
       for (MapEntry<String, int> me in scanResults.entries) {
         //Infected player nearby
@@ -65,7 +65,8 @@ class GameLogic {
           infNearby = true;
           continue;
         }
-      } if (!infNearby) {
+      }
+      if (!infNearby) {
         exposureTime = 0;
         print("SAFE");
         safeTime += 1;
@@ -84,7 +85,7 @@ class GameLogic {
         print("POINTS GAINED");
       }
     }
-     //If player is not healthy, they get points by not being near other
+    //If player is not healthy, they get points by not being near other
     // players
     if (infected) {
       if (scanResults.isEmpty) {
@@ -95,12 +96,13 @@ class GameLogic {
       if (aloneTime >= 10) {
         gameStatus!.modifyPoints(1);
       }
-      var timestamp = DateTime.now().millisecondsSinceEpoch;
+      var timestamp = DateTime
+          .now()
+          .millisecondsSinceEpoch;
       //If over 3 days since infection
       if (timestamp - infectedTimestamp >= 259200000) {
         gameStatus!.cureInfectPlayer();
       }
     }
-
   }
 }

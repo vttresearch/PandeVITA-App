@@ -8,8 +8,7 @@ import 'package:get/get.dart';
 
 /** This class handles the scanning for nearby devices.
     Based on the example implementation of flutter_beacon. */
-
-class BeaconScanner{
+class BeaconScanner {
   final _regionBeacons = <Region, List<Beacon>>{};
   final _beacons = <Beacon>[];
   final controller = Get.find<RequirementStateController>();
@@ -70,7 +69,7 @@ class BeaconScanner{
       });
     }
 
-    await Future.delayed(const Duration(seconds: 3), () => _streamRanging?.pause());
+    await Future.delayed(const Duration(seconds: 10), () => _streamRanging?.pause());
    // await flutterBeacon.
     print("SCAN STOPPED");
 
