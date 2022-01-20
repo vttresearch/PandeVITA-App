@@ -42,7 +42,13 @@ dependencies:
   shared_preferences: ^2.0.11
   flutter_svg: ^1.0.0
 
+  #Needed for Android 8+
   flutter_foreground_task: ^3.5.5
+
+  flutter_osm_plugin: ^0.28.2
+
+  http: ^0.13.4
+
 
 dev_dependencies:
   flutter_test:
