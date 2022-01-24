@@ -49,6 +49,8 @@ dependencies:
 
   http: ^0.13.4
 
+  flutter_secure_storage: ^5.0.2
+
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +80,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - images/
+    - asset_files/test_credentials.txt
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
