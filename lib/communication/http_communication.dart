@@ -70,4 +70,77 @@ class PandeVITAHttpClient {
     }
     return [];
   }
+
+  //Get vaccination GPS points from the server
+  Future<List> getVaccinationPoints() async {
+    print("GETVACCINATIONPOINTS in http_comm");
+    var accessToken = await storage.read(key: 'access_token');
+    if (accessToken == null) {
+      print("token was null");
+      accessToken == await getAuthorizationToken();
+    }
+    var vaccinationUrl = Uri.parse(_url + "/vaccination-locations");
+    var response = await http.get(vaccinationUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    print('Response body: + ${response.body}');
+    print('Response code: + ${response.statusCode}');
+    if (response.statusCode == 200) {
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      var vaccinationPoints = decodedResponse[0]["locations"];
+      print("VACCINATIONPOINTS $vaccinationPoints");
+      return vaccinationPoints;
+    }
+    return [];
+  }
+
+  //Get virus points as GPS from server
+  Future<List> getVirusPoints() async {
+    print("GETVIRUSPOINTS in http_comm");
+    var accessToken = await storage.read(key: 'access_token');
+    if (accessToken == null) {
+      print("token was null");
+      accessToken == await getAuthorizationToken();
+    }
+    var virusUrl = Uri.parse(_url + "/viruses");
+    var response = await http.get(virusUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    print('Response body: + ${response.body}');
+    print('Response code: + ${response.statusCode}');
+    if (response.statusCode == 200) {
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      var virusArray = decodedResponse[0]["viruses"];
+      print("VIRUSARRAY $virusArray");
+      return virusArray;
+    }
+    return [];
+  }
+
+  Future<Map> getGameStatus() async {
+    print("GETGAMESTATUS in http_comm");
+    var accessToken = await storage.read(key: 'access_token');
+    if (accessToken == null) {
+      print("token was null");
+      accessToken == await getAuthorizationToken();
+    }
+    var gameStatusUrl = Uri.parse(_url + "/game-status");
+    var response = await http.get(gameStatusUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    print('Response body: + ${response.body}');
+    print('Response code: + ${response.statusCode}');
+    if (response.statusCode == 200) {
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      var gameStatus = decodedResponse[0];
+      print("GAMESTATUS $gameStatus");
+      return gameStatus;
+    }
+    return {};
+  }
+
+  //TODO: updatePlayerPoints, updateScoreboardPlayer, createTeam, etc.
 }

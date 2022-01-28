@@ -18,6 +18,8 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
   final GameStatus gameStatus = GameStatus();
   late MapController mapController;
   List<GeoPoint> maskPointsList = [];
+  List<GeoPoint> vaccinationPointsList = [];
+  List<GeoPoint> virusPointsList = [];
   final httpClient = PandeVITAHttpClient();
 
   @override
@@ -28,6 +30,8 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
     );
     zoomIn();
     displayMaskPointsOnMap();
+    displayVaccinationPointsOnMap();
+    displayVirusPointsOnMap();
   }
 
   @override
@@ -63,14 +67,12 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
   void displayMaskPointsOnMap() async {
     if (maskPointsList.isEmpty) {
       print("MASK: asking masks from server");
-      if (await getMaskPointsList()) {
-        for (GeoPoint maskPoint in maskPointsList) {
-          await mapController.addMarker(maskPoint, markerIcon:
-          MarkerIcon(image: AssetImage('images/mask_icon.png')));
-        }
-      }
+      await getMaskPointsList();
     }
-
+    for (GeoPoint maskPoint in maskPointsList) {
+      await mapController.addMarker(maskPoint,
+          markerIcon: MarkerIcon(image: AssetImage('images/mask_icon.png')));
+    }
   }
 
   //Get the mask points to display them on the map
@@ -89,6 +91,78 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
               latitude: double.parse(splitted[0]),
               longitude: double.parse(splitted[1]));
           maskPointsList.add(geoPointTemp);
+        } catch (e) {
+          print(e.toString());
+        }
+      }
+      return true;
+    }
+  }
+
+  void displayVaccinationPointsOnMap() async {
+    if (vaccinationPointsList.isEmpty) {
+      print("VACCINATION: asking vaccination points from server");
+      await getVaccinationPointsList();
+
+    }
+    for (GeoPoint vaccinationPoint in vaccinationPointsList) {
+      await mapController.addMarker(vaccinationPoint,
+          markerIcon:
+              MarkerIcon(image: AssetImage('images/vaccination_icon.png')));
+    }
+  }
+
+  //Get the mask points to display them on the map
+  Future<bool> getVaccinationPointsList() async {
+    List vaccinationPoints = await httpClient.getVaccinationPoints();
+    if (vaccinationPoints.isEmpty) {
+      print("Vaccination: EMPTY");
+      return false;
+    } else {
+      print("Vaccination: $vaccinationPoints");
+      for (String vaccinationPoint in vaccinationPoints) {
+        try {
+          var splitted = vaccinationPoint.split(", ");
+          GeoPoint geoPointTemp = GeoPoint(
+              latitude: double.parse(splitted[0]),
+              longitude: double.parse(splitted[1]));
+          vaccinationPointsList.add(geoPointTemp);
+        } catch (e) {
+          print(e.toString());
+        }
+      }
+      return true;
+    }
+  }
+
+  void displayVirusPointsOnMap() async {
+    if (virusPointsList.isEmpty) {
+      print("VIRUS: asking virus points from server");
+      await getVirusPointsList();
+    }
+    for (GeoPoint virusPoint in virusPointsList) {
+      await mapController.addMarker(virusPoint,
+          markerIcon:
+          MarkerIcon(image: AssetImage('images/virus_icon.png'))); //TODO: add image asset
+    }
+  }
+
+  //Get the mask points to display them on the map
+  Future<bool> getVirusPointsList() async {
+    List virusPoints = await httpClient.getVirusPoints();
+    if (virusPoints.isEmpty) {
+      print("VIRUS: EMPTY");
+      return false;
+    } else {
+      print("VIRUS: $virusPoints");
+      for (Map virusPoint in virusPoints) {
+        try {
+          var coordinate = virusPoint['coordinate'];
+          var splitted = coordinate.split(", ");
+          GeoPoint geoPointTemp = GeoPoint(
+              latitude: double.parse(splitted[0]),
+              longitude: double.parse(splitted[1]));
+          virusPointsList.add(geoPointTemp);
         } catch (e) {
           print(e.toString());
         }
