@@ -22,7 +22,13 @@ class GameLogic {
 
   final controller = Get.find<RequirementStateController>();
 
-  GameLogic() {
+  static final GameLogic _gameLogic = GameLogic._privateConstructor();
+
+  factory GameLogic() {
+    return _gameLogic;
+  }
+
+  GameLogic._privateConstructor() {
     //initGame();
     controller.playerInfectedStream.listen((flag) {
       if (flag == true) {
