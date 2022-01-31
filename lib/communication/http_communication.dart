@@ -6,16 +6,19 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:http/retry.dart';
 
 /**Singleton class that communicates with the platform server*/
 class PandeVITAHttpClient {
-  static final PandeVITAHttpClient _client = PandeVITAHttpClient._privateConstructor();
+  static final PandeVITAHttpClient _pandeVITAHttpClient = PandeVITAHttpClient._privateConstructor();
   final storage = new FlutterSecureStorage();
   final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
  // final controller = Get.find<RequirementStateController>();
 
+  final client = RetryClient(http.Client());
+
   factory PandeVITAHttpClient() {
-    return _client;
+    return _pandeVITAHttpClient;
   }
 
   PandeVITAHttpClient._privateConstructor();
@@ -25,7 +28,7 @@ class PandeVITAHttpClient {
     String credentials = await loadCredentials();
     var credentialList = credentials.split(",");
     var authUrl = Uri.parse(_url + "/auth");
-    var response = await http.post(authUrl, body: {
+    var response = await client.post(authUrl, body: {
       'client_id': credentialList[0], 'grant_type': credentialList[1],
       'username': credentialList[2], 'password': credentialList[3]
     });
@@ -55,7 +58,7 @@ class PandeVITAHttpClient {
       print("MASK TOKEN $accessToken");
     }
     var maskUrl = Uri.parse(_url + "/masks");
-    var response = await http.get(maskUrl, headers: {
+    var response = await client.get(maskUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
@@ -80,7 +83,7 @@ class PandeVITAHttpClient {
       accessToken == await getAuthorizationToken();
     }
     var vaccinationUrl = Uri.parse(_url + "/vaccination-locations");
-    var response = await http.get(vaccinationUrl, headers: {
+    var response = await client.get(vaccinationUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
@@ -104,7 +107,7 @@ class PandeVITAHttpClient {
       accessToken == await getAuthorizationToken();
     }
     var virusUrl = Uri.parse(_url + "/viruses");
-    var response = await http.get(virusUrl, headers: {
+    var response = await client.get(virusUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
@@ -119,6 +122,7 @@ class PandeVITAHttpClient {
     return [];
   }
 
+  //Returns gameStatus as string
   Future<Map> getGameStatus() async {
     print("GETGAMESTATUS in http_comm");
     var accessToken = await storage.read(key: 'access_token');
@@ -127,7 +131,7 @@ class PandeVITAHttpClient {
       accessToken == await getAuthorizationToken();
     }
     var gameStatusUrl = Uri.parse(_url + "/game-status");
-    var response = await http.get(gameStatusUrl, headers: {
+    var response = await client.get(gameStatusUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });

@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
         buttons: [
           const NotificationButton(id: 'sendButton', text: 'Send'),
-          const NotificationButton(id: 'testButton', text: 'Test'),
+          const NotificationButton(id: 'stopButton', text: 'Stop app'),
         ],
       ),
       iosNotificationOptions: const IOSNotificationOptions(
@@ -139,6 +139,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       ),
       printDevLog: true,
     );
+    startForegroundTask();
   }
 
   Future<bool> stopForegroundTask() async {
@@ -275,14 +276,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               setState(() {
                 currentIndex = index;
               });
-
               if (currentIndex == 0) {
                 controller.startScanning();
-                startForegroundTask();
               } else {
                 controller.pauseScanning();
                 controller.startBroadcasting();
-                stopForegroundTask();
               }
             },
             items: [
@@ -375,6 +373,8 @@ class NotifTaskHandler extends TaskHandler {
   @override
   void onButtonPressed(String id) {
     // Called when the notification button on the Android platform is pressed.
-    print('onButtonPressed >> $id');
+    if (id == "stopButton") {
+      FlutterForegroundTask.stopService();
+    }
   }
 }

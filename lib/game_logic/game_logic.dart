@@ -19,6 +19,11 @@ class GameLogic {
   int aloneTime = 0;
   bool infected = false;
   var infectedTimestamp = 0;
+  var contactsStartedTimestamp = 0;
+
+  bool _isGameActive = false;
+
+  var contactsSinceStarted = Set();
 
   final controller = Get.find<RequirementStateController>();
 
@@ -42,10 +47,11 @@ class GameLogic {
     });
   }
 
-  void initGame() {
+  void initGame() async {
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
     timer = Timer.periodic(Duration(seconds: 20), (Timer t) => gameLogicTick());
+    _isGameActive = await gameStatus!.isGameActive();
   }
 
   void stopGame() {
@@ -54,9 +60,16 @@ class GameLogic {
 
   //One tick of the game logic. Runs every 60 seconds
   void gameLogicTick() async {
+    if (!_isGameActive) {
+      return;
+    }
+    var timestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     bool infNearby = false;
     //Check surrounding devices
     print("GAMELOGICTICK");
+    var contacts = [];
     scanResults = await beaconScanner!.scan();
     print("GAMELOGICTICK 2");
     print(scanResults.toString());
@@ -64,6 +77,7 @@ class GameLogic {
       //Iterate the map
       for (MapEntry<String, int> me in scanResults.entries) {
         //Infected player nearby
+        contacts.add(me.key);
         if (me.value == 1) {
           exposureTime += 1;
           print("INF PLAYER");
@@ -97,18 +111,28 @@ class GameLogic {
       if (scanResults.isEmpty) {
         aloneTime += 1;
       } else {
+        for (MapEntry<String, int> me in scanResults.entries) {
+          //Infected player nearby
+          contacts.add(me.key);
+        }
         aloneTime = 0;
       }
       if (aloneTime >= 10) {
         gameStatus!.modifyPoints(1);
       }
-      var timestamp = DateTime
-          .now()
-          .millisecondsSinceEpoch;
+
       //If over 3 days since infection
       if (timestamp - infectedTimestamp >= 259200000) {
         gameStatus!.cureInfectPlayer();
       }
+    }
+    //These are gone through regardless of whether player is infected or not
+    contactsSinceStarted = contacts.toSet();
+    //if over 1 day  since started tracking contacts
+    if (timestamp - contactsStartedTimestamp >= 86400000) {
+      //TODO: Send update message to server
+      contactsStartedTimestamp = timestamp;
+      contactsSinceStarted.clear();
     }
   }
 }

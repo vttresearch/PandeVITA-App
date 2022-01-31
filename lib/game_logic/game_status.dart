@@ -1,11 +1,13 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
+import '../communication/http_communication.dart';
 /* Singleton class that contains the game data of the user*/
 
 class GameStatus {
   static final GameStatus _gameStatus = GameStatus._privateConstructor();
   final controller = Get.find<RequirementStateController>();
+  final PandeVITAHttpClient client = PandeVITAHttpClient();
   bool pointsChanged = false;
 
   factory GameStatus() {
@@ -88,5 +90,18 @@ class GameStatus {
     return immunity.toString();
   }
 
+  Future<bool> isGameActive() async {
+    Map gameActiveStatus = await client.getGameStatus();
+    if (gameActiveStatus.isEmpty) {
+      return false;
+    }
+    int level = gameActiveStatus["level"];
+    String status = gameActiveStatus["status"];
+    if (status == "active") {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
 }
