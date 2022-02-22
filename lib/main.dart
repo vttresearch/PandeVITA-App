@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pandevita_game/view/radar.dart';
 import 'controller/requirement_state_controller.dart';
 import 'view/home_page.dart';
+import 'view/landing_page.dart';
 import 'package:get/get.dart';
 
 void main() {
@@ -41,7 +43,10 @@ class MainApp extends StatelessWidget {
         brightness: Brightness.dark,
         primarySwatch: primary,
       ),
-      home: HomePage(),
+      home: LandingPage(),
+      routes: {
+        '/home': (context) => HomePage(),
+      }
     );
   }
 }

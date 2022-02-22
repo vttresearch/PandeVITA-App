@@ -47,6 +47,12 @@ dependencies:
 
   flutter_osm_plugin: ^0.28.2
 
+  flutter_map: ^0.14.0
+
+  flutter_map_marker_popup: ^2.1.1
+
+  location: ^4.2.0
+
   http: ^0.13.4
 
   flutter_secure_storage: ^5.0.2

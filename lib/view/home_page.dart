@@ -180,8 +180,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: WithForegroundTask(
+    return WithForegroundTask(
         child: Scaffold(
           appBar: AppBar(
             title: const Text('PandeVITA app dev1.0'),
@@ -295,7 +294,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ],
           ),
         )
-      )
+
     );
   }
 

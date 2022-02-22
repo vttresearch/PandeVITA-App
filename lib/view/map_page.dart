@@ -15,7 +15,7 @@ import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import '../game_logic/game_status.dart';
 import 'ui_stats.dart';
-import 'game_map.dart';
+import 'radar.dart';
 
 class TabMap extends StatefulWidget {
   @override
@@ -36,7 +36,7 @@ class _TabMapState extends State<TabMap> {
       Expanded(
           child: Row(children: [
             Expanded(
-              child: GameMap(),
+              child: Radar(),
             )
           ])),
       Expanded(

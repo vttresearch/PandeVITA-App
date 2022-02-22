@@ -9,6 +9,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:latlong2/latlong.dart';
 import '../communication/http_communication.dart';
 
@@ -34,6 +35,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
   //Virus locations for drawing the radar
   List<LatLng> virusLocations = [];
 
+  int initStateCounter = 0;
+
   @override
   void initState() {
     _controller = AnimationController(
@@ -41,7 +44,10 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
       duration: const Duration(seconds: 1),
     )
       ..repeat();
+    getVirusPointsList();
     super.initState();
+    initStateCounter++;
+    print("initStateCounter $initStateCounter");
   }
 
   @override
@@ -52,7 +58,6 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    getVirusPointsList();
     return AnimatedBuilder(
         animation: _controller,
         builder: (_, __) {
