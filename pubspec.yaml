@@ -57,6 +57,8 @@ dependencies:
 
   flutter_secure_storage: ^5.0.2
 
+  permission_handler: ^9.2.0
+
 
 dev_dependencies:
   flutter_test:

@@ -57,7 +57,7 @@ class RegisterPageState extends State<RegisterPage> {
         Text(" Registering ... Please wait")
       ],
     );
-    //TODO: tee sähköpostikenttä
+
     doRegister() async {
       final form = formKey.currentState;
       if (form!.validate()) {

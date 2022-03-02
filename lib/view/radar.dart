@@ -90,6 +90,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
 
         if (_permission) {
           location = await locationService.getLocation();
+          var bk = locationService.isBackgroundModeEnabled();
+          print('locationisbackgroundmodeenabled $bk');
           currentLocation = location;
           locationService.onLocationChanged.listen((LocationData result) async {
             if (mounted) {

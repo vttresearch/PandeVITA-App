@@ -57,7 +57,7 @@ class UserStorage {
 
   Future<String> getUserName() async {
     const storage = FlutterSecureStorage();
-    String userName = await storage.read(key: "name") as String;
+    String userName = await storage.read(key: "username") as String;
     return userName;
   }
 
@@ -71,6 +71,48 @@ class UserStorage {
     const storage = FlutterSecureStorage();
     String password = await storage.read(key: "password") as String;
     return password;
+  }
+
+  void joinTeam(String teamName) async {
+    const storage = FlutterSecureStorage();
+    await storage.write(key: 'team', value: "teamName");
+  }
+
+  Future<String?> getTeam() async {
+    const storage = FlutterSecureStorage();
+    String? team = await storage.read(key: 'team');
+    return team;
+  }
+
+  void createTeam(String teamName, String teamId) async{
+    const storage = FlutterSecureStorage();
+    await storage.write(key: 'team', value: teamName);
+    await storage.write(key: 'teamFounder', value: teamName);
+    await storage.write(key: 'teamId', value: teamId);
+  }
+
+  void deleteTeam() async {
+    const storage = FlutterSecureStorage();
+    await storage.delete(key: 'team');
+    await storage.delete(key: 'teamFounder');
+    await storage.delete(key: 'teamId');
+  }
+
+  Future<bool> isTeamFounder(String teamName) async {
+    const storage = FlutterSecureStorage();
+    String? foundedTeam = await storage.read(key: 'teamFounder');
+    if (foundedTeam != null) {
+      if (foundedTeam == teamName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<String?> getTeamId() async {
+    const storage = FlutterSecureStorage();
+    String? teamId = await storage.read(key: 'teamId');
+    return teamId;
   }
 
 }

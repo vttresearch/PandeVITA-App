@@ -151,11 +151,17 @@ class PandeVITAHttpClient {
     print('Response body: + ${response.body}');
     print('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      if (decodedResponse != []) {
-        var virusArray = decodedResponse[0]["viruses"][0];
-        print("VIRUSARRAY $virusArray");
-        return virusArray;
+      try {
+        List decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decodedResponse.isNotEmpty) {
+          print("virusarray not empty $decodedResponse");
+          var virusArray = decodedResponse[0]["viruses"][0];
+          print("VIRUSARRAY $virusArray");
+          return virusArray;
+        }
+      } catch (error) {
+        print("Error in getviruspoints " + error.toString());
+       // await storage.delete(key: 'access_token');
       }
     }
     return [];
@@ -354,13 +360,13 @@ class PandeVITAHttpClient {
     return 1;
   }
 
-  Future<int> createTeam(String teamName) async {
+  Future<List> createTeam(String teamName) async {
     print("createTeam in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
-      return 3;
+      return [3, ""];
     }
-    var playerName = userStorage.getUserName();
+    var playerName = await userStorage.getUserName();
     var teamsUrl = Uri.parse(_url + "/teams");
     var teamData = {
       'teamName': teamName,
@@ -375,9 +381,11 @@ class PandeVITAHttpClient {
     print('Response body: + ${response.body}');
     print('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
-      return 0;
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      var teamId = decodedResponse["id"];
+      return [0, teamId];
     } else {
-      return 1;
+      return [1, ""];
     }
   }
 
@@ -437,6 +445,10 @@ class PandeVITAHttpClient {
     if (response.statusCode == 204) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return 0;
+    }
+    else if (response.statusCode == 404) {
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      return 2;
     }
     return 1;
   }
@@ -521,5 +533,9 @@ class PandeVITAHttpClient {
 
   Future<Map> getQuiz() async {
     return {};
+  }
+
+  Future<int> removeUser() async {
+    return 0;
   }
 }
