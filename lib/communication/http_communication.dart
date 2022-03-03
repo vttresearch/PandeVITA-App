@@ -457,7 +457,7 @@ class PandeVITAHttpClient {
     //First get the team
     var team = await getTeam(teamId);
     var teamPlayers = team['teamPlayers'];
-    var playerName = userStorage.getUserName() as String;
+    var playerName = await userStorage.getUserName();
     var playerFoundInTeam = false;
     //Check that not already in team
     for (String player in teamPlayers) {
