@@ -98,27 +98,34 @@ class RegisterPageState extends State<RegisterPage> {
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 208, 222, 243),
         body: SingleChildScrollView(
           child: Container(
             padding: EdgeInsets.all(40.0),
             child: Form(
               key: formKey,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 215.0),
+                  const SizedBox(height: 5),
+                  Image.asset('images/pandevita_logo_large.png', height: 200, ),
+                  const SizedBox(height: 20.0),
                   usernameField,
                   const SizedBox(height: 10.0),
                   emailField,
-                  const SizedBox(height: 25.0),
+                  const SizedBox(height: 10.0),
                   passwordField,
-                  const SizedBox(height: 15.0),
+                  const SizedBox(height: 10.0),
                   confirmPasswordField,
                   const SizedBox(height: 20.0),
                   registering == true
                       ? loading
                       : TextButton(
-                          child: const Text("Register"), onPressed: doRegister),
+                          child: const Text("Register", style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 25,
+                          ),), onPressed: doRegister),
                   const SizedBox(height: 5.0)
                 ],
               ),

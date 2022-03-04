@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:pandevita_game/communication/beacon_broadcast.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pandevita_game/view/scoreboard_page.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import '../game_logic/game_logic.dart';
@@ -285,6 +286,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       body: IndexedStack(
         index: currentIndex,
         children: [
+          ScoreboardPage(),
           TabMap(), //TODO: IMPLEMENTOI ERI VÄLILEHDET (PLACEHOLDERIT)
           TabAction(),
           SettingsPage(),
@@ -305,6 +307,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         },
         items: [
           BottomNavigationBarItem(
+              icon: Image.asset('images/league_icon.png', width: 25),
+              label: 'League'),
+          BottomNavigationBarItem(
             icon: Image.asset('images/map_icon.png', width: 25),
             label: 'Map',
           ),
@@ -321,55 +326,55 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ));
   }
 
-  /**handleOpenLocationSettings() async {
+/**handleOpenLocationSettings() async {
     if (Platform.isAndroid) {
-      await flutterBeacon.openLocationSettings;
+    await flutterBeacon.openLocationSettings;
     } else if (Platform.isIOS) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Location Services Off'),
-            content: Text(
-              'Please enable Location Services on Settings > Privacy > Location Services.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+    await showDialog(
+    context: context,
+    builder: (context) {
+    return AlertDialog(
+    title: Text('Location Services Off'),
+    content: Text(
+    'Please enable Location Services on Settings > Privacy > Location Services.',
+    ),
+    actions: [
+    TextButton(
+    onPressed: () => Navigator.pop(context),
+    child: Text('OK'),
+    ),
+    ],
+    );
+    },
+    );
     }
-  }*/
+    }*/
 
-  /**handleOpenBluetooth() async {
+/**handleOpenBluetooth() async {
     if (Platform.isAndroid) {
-      try {
-        await flutterBeacon.openBluetoothSettings;
-      } on PlatformException catch (e) {
-        print(e);
-      }
-    } else if (Platform.isIOS) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Bluetooth is Off'),
-            content: Text('Please enable Bluetooth on Settings > Bluetooth.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+    try {
+    await flutterBeacon.openBluetoothSettings;
+    } on PlatformException catch (e) {
+    print(e);
     }
-  }*/
+    } else if (Platform.isIOS) {
+    await showDialog(
+    context: context,
+    builder: (context) {
+    return AlertDialog(
+    title: Text('Bluetooth is Off'),
+    content: Text('Please enable Bluetooth on Settings > Bluetooth.'),
+    actions: [
+    TextButton(
+    onPressed: () => Navigator.pop(context),
+    child: Text('OK'),
+    ),
+    ],
+    );
+    },
+    );
+    }
+    }*/
 }
 
 class NotifTaskHandler extends TaskHandler {
