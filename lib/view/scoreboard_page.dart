@@ -13,15 +13,14 @@ class ScoreboardPage extends StatefulWidget {
 class ScoreboardPageState extends State<ScoreboardPage> {
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      Expanded(
-        child: Scoreboard(),
-      ),
-      Expanded(
-          child: Row(children: [
-        Expanded(
-            child: Container(
-                //height: 25,
+    return Scaffold(
+      backgroundColor:  const Color.fromARGB(255, 36, 128, 198),
+      body: Column(
+        children: [
+      Expanded(child: Row(children: [Expanded(child: Scoreboard())])),
+      const SizedBox(height: 20),
+      Container(
+                height: 200,
                 decoration: BoxDecoration(
                     color: const Color.fromARGB(255, 36, 128, 198),
                     border: Border.all(
@@ -51,14 +50,17 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       ],
                     )),
                     Expanded(
-                        child: Row(children: [
-                      //Immunity status
-                      Image.asset("images/immunity_status_icon.png", width: 50),
-                      ImmunityLevel(),
-                    ]))
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                          //Immunity status
+                          Image.asset("images/immunity_status_icon.png",
+                              width: 50),
+                          const SizedBox(width: 20),
+                          ImmunityLevel(),
+                        ]))
                   ],
-                )))
-      ])),
-    ]);
+                )),
+    ]));
   }
 }

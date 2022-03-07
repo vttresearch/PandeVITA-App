@@ -282,14 +282,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           }),
         ],*/
       ),
+      backgroundColor: const Color.fromARGB(255, 36, 128, 198),
       //TODO: TABS HERE
       body: IndexedStack(
         index: currentIndex,
         children: [
-          ScoreboardPage(),
-          TabMap(), //TODO: IMPLEMENTOI ERI VÄLILEHDET (PLACEHOLDERIT)
-          TabAction(),
-          SettingsPage(),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: ScoreboardPage(),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: TabMap(),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: TabAction(),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: SettingsPage(),
+          )
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -307,17 +320,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         },
         items: [
           BottomNavigationBarItem(
+            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
               icon: Image.asset('images/league_icon.png', width: 25),
               label: 'League'),
           BottomNavigationBarItem(
+            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
             icon: Image.asset('images/map_icon.png', width: 25),
             label: 'Map',
           ),
           BottomNavigationBarItem(
+            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
             icon: Image.asset('images/action_icon.png', width: 25),
             label: 'Action',
           ),
           BottomNavigationBarItem(
+            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
             icon: Image.asset('images/settings_icon.png', width: 25),
             label: 'Settings',
           )
