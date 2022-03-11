@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
+import '../Utility/styles.dart';
 
 /** Team and individual scoreboards*/
 
@@ -55,21 +56,23 @@ class ScoreboardState extends State<Scoreboard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 36, 128, 198),
-          border: Border.all(
-              color: const Color.fromARGB(255, 238, 170, 0),
-              width: 6),
-          borderRadius: BorderRadius.circular(8)),
+      decoration: boxDecorationWhiteBorder,
     child: Column(
         children: [
       Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Scoreboard"),
+            const Text("Scoreboard", style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 25,
+            )
+            ),
             IconButton(
                 icon: const Icon(Icons.refresh),
-                onPressed: getScoreboardFromServer)
+                onPressed: getScoreboardFromServer,
+            color: Colors.white,
+            iconSize: 30)
           ]),
       Expanded(
         child: ListView.builder(
@@ -80,13 +83,23 @@ class ScoreboardState extends State<Scoreboard> {
               final index = i;
               if (showingIndividualStats) {
                 return ListTile(
-                    title: Text(
-                        (index + 1).toString() +
-                            '  ' +
-                            individualScoreboard[index][0] +
-                            '       ' +
-                            individualScoreboard[index][1],
-                        style: const TextStyle(fontSize: 18)));
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                            (index + 1).toString() +
+                                '  ' +
+                                individualScoreboard[index][0],
+                            style: const TextStyle(fontWeight: FontWeight.bold,
+                                color: Colors.white, fontSize: 20)),
+                        Text(
+                                individualScoreboard[index][1],
+                            style: const TextStyle(fontWeight: FontWeight.bold,
+                                color: Colors.white, fontSize: 20))
+                      ]
+                    ),
+
+                  trailing: Image.asset('images/xp_star.png', width: 25));
               }
               return const ListTile(title: Text("error"));
             }),

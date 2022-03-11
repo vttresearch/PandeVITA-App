@@ -16,6 +16,7 @@ import 'action_page.dart';
 import 'settings_page.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../Utility/styles.dart';
 
 void startCallback() {
   FlutterForegroundTask.setTaskHandler(NotifTaskHandler());
@@ -87,7 +88,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print('AUTHORIZATION $authorizationStatus');
 
     final locationServiceEnabled =
-        await flutterBeacon.checkLocationServicesIfEnabled;
+    await flutterBeacon.checkLocationServicesIfEnabled;
     controller.updateLocationService(locationServiceEnabled);
     print('LOCATION SERVICE $locationServiceEnabled');
 
@@ -95,118 +96,115 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         controller.authorizationStatusOk &&
         controller.locationServiceEnabled) {
       print('STATE READY');
-      if (currentIndex == 0) {
-        print('INITIATING GAME');
-        //controller.startScanning();
-        gameLogic.initGame();
-        print("INITIATING BROADCAST");
-        controller.startBroadcasting();
-      } else {
-        print('BROADCASTING');
-        controller.startBroadcasting();
+      print('INITIATING GAME');
+      //controller.startScanning();
+      gameLogic.initGame();
+      print("INITIATING BROADCAST");
+      controller.startBroadcasting();
+  }
+
+  else {
+    print('STATE NOT READY');
+    controller.pauseScanning();
+    controller.stopBroadcasting();
+  }
+}
+
+@override
+void didChangeAppLifecycleState(AppLifecycleState state) async {
+  print('AppLifecycleState = $state');
+  if (state == AppLifecycleState.resumed) {
+    if (_streamBluetooth != null) {
+      if (_streamBluetooth!.isPaused) {
+        _streamBluetooth?.resume();
       }
-    } else {
-      print('STATE NOT READY');
-      controller.pauseScanning();
     }
+    await checkAllRequirements();
+  } else if (state == AppLifecycleState.paused) {
+    _streamBluetooth?.pause();
   }
+}
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    print('AppLifecycleState = $state');
-    if (state == AppLifecycleState.resumed) {
-      if (_streamBluetooth != null) {
-        if (_streamBluetooth!.isPaused) {
-          _streamBluetooth?.resume();
-        }
-      }
-      await checkAllRequirements();
-    } else if (state == AppLifecycleState.paused) {
-      _streamBluetooth?.pause();
-    }
-  }
+@override
+void dispose() {
+  _streamBluetooth?.cancel();
+  _receivePort?.close();
+  super.dispose();
+}
 
-  @override
-  void dispose() {
-    _streamBluetooth?.cancel();
-    _receivePort?.close();
-    super.dispose();
-  }
+Future<void> initForegroundTask() async {
+  await FlutterForegroundTask.init(
+    androidNotificationOptions: AndroidNotificationOptions(
+      channelId: 'notification_channel_id',
+      channelName: 'Foreground Notification',
+      channelDescription:
+      'This notification appears when the foreground service is running.',
+      channelImportance: NotificationChannelImportance.LOW,
+      priority: NotificationPriority.LOW,
+      iconData: const NotificationIconData(
+        resType: ResourceType.drawable,
+        resPrefix: ResourcePrefix.img,
+        name: 'pandevita_logo_small',
+      ),
+      buttons: [
+        const NotificationButton(id: 'stopButton', text: 'Stop app'),
+      ],
+    ),
+    iosNotificationOptions: const IOSNotificationOptions(
+      showNotification: true,
+      playSound: false,
+    ),
+    foregroundTaskOptions: const ForegroundTaskOptions(
+      interval: 5000,
+      autoRunOnBoot: true,
+      allowWifiLock: true,
+    ),
+    printDevLog: true,
+  );
+  startForegroundTask();
+}
 
-  Future<void> initForegroundTask() async {
-    await FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(
-        channelId: 'notification_channel_id',
-        channelName: 'Foreground Notification',
-        channelDescription:
-            'This notification appears when the foreground service is running.',
-        channelImportance: NotificationChannelImportance.LOW,
-        priority: NotificationPriority.LOW,
-        iconData: const NotificationIconData(
-          resType: ResourceType.mipmap,
-          resPrefix: ResourcePrefix.ic,
-          name: 'launcher',
-        ),
-        buttons: [
-          const NotificationButton(id: 'sendButton', text: 'Send'),
-          const NotificationButton(id: 'stopButton', text: 'Stop app'),
-        ],
-      ),
-      iosNotificationOptions: const IOSNotificationOptions(
-        showNotification: true,
-        playSound: false,
-      ),
-      foregroundTaskOptions: const ForegroundTaskOptions(
-        interval: 5000,
-        autoRunOnBoot: true,
-        allowWifiLock: true,
-      ),
-      printDevLog: true,
+Future<bool> stopForegroundTask() async {
+  return await FlutterForegroundTask.stopService();
+}
+
+Future<bool> startForegroundTask() async {
+  // You can save data using the saveData function.
+  await FlutterForegroundTask.saveData(key: 'customData', value: 'hello');
+
+  ReceivePort? receivePort;
+  if (await FlutterForegroundTask.isRunningService) {
+    receivePort = await FlutterForegroundTask.restartService();
+  } else {
+    receivePort = await FlutterForegroundTask.startService(
+      notificationTitle: 'Foreground Service is running',
+      notificationText: 'Tap to return to the app',
+      callback: startCallback,
     );
-    startForegroundTask();
   }
 
-  Future<bool> stopForegroundTask() async {
-    return await FlutterForegroundTask.stopService();
+  if (receivePort != null) {
+    _receivePort = receivePort;
+    _receivePort?.listen((message) {
+      //if (message is DateTime) {
+      //  print('receive timestamp: $message');
+      //}
+    });
+
+    return true;
   }
 
-  Future<bool> startForegroundTask() async {
-    // You can save data using the saveData function.
-    await FlutterForegroundTask.saveData(key: 'customData', value: 'hello');
+  return false;
+}
 
-    ReceivePort? receivePort;
-    if (await FlutterForegroundTask.isRunningService) {
-      receivePort = await FlutterForegroundTask.restartService();
-    } else {
-      receivePort = await FlutterForegroundTask.startService(
-        notificationTitle: 'Foreground Service is running',
-        notificationText: 'Tap to return to the app',
-        callback: startCallback,
-      );
-    }
-
-    if (receivePort != null) {
-      _receivePort = receivePort;
-      _receivePort?.listen((message) {
-        //if (message is DateTime) {
-        //  print('receive timestamp: $message');
-        //}
-      });
-
-      return true;
-    }
-
-    return false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return WithForegroundTask(
-        child: Scaffold(
-      appBar: AppBar(
-        title: const Text('PandeVITA app dev1.0'),
-        centerTitle: false,
-        /*actions: <Widget>[
+@override
+Widget build(BuildContext context) {
+  return WithForegroundTask(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('PandeVITA app dev0.1'),
+          centerTitle: false,
+          /*actions: <Widget>[
           Obx(() {
             if (!controller.locationServiceEnabled)
               return IconButton(
@@ -281,67 +279,69 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             );
           }),
         ],*/
-      ),
-      backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-      //TODO: TABS HERE
-      body: IndexedStack(
-        index: currentIndex,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: ScoreboardPage(),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: TabMap(),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: TabAction(),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: SettingsPage(),
-          )
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-          if (currentIndex == 0) {
+        ),
+        backgroundColor: backgroundBlue,
+        //TODO: TABS HERE
+        body: Container(
+            decoration: backgroundDecoration,
+            child: IndexedStack(
+              index: currentIndex,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: ScoreboardPage(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: TabMap(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: TabAction(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: SettingsPage(),
+                )
+              ],
+            )),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: (index) {
+            setState(() {
+              currentIndex = index;
+            });
+           // if (currentIndex == 0) {
             controller.startScanning();
-          } else {
-            controller.pauseScanning();
+            //} else {
+              //controller.pauseScanning();
             controller.startBroadcasting();
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-              icon: Image.asset('images/league_icon.png', width: 25),
-              label: 'League'),
-          BottomNavigationBarItem(
-            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-            icon: Image.asset('images/map_icon.png', width: 25),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-            icon: Image.asset('images/action_icon.png', width: 25),
-            label: 'Action',
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-            icon: Image.asset('images/settings_icon.png', width: 25),
-            label: 'Settings',
-          )
-        ],
-      ),
-    ));
-  }
+            //}
+          },
+          items: [
+            BottomNavigationBarItem(
+                backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+                icon: Image.asset('images/league_icon.png', width: 25),
+                label: 'Scoreboard'),
+            BottomNavigationBarItem(
+              backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              icon: Image.asset('images/map_icon.png', width: 25),
+              label: 'Radar',
+            ),
+            BottomNavigationBarItem(
+              backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              icon: Image.asset('images/action_icon.png', width: 25),
+              label: 'Action',
+            ),
+            BottomNavigationBarItem(
+              backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              icon: Image.asset('images/settings_icon.png', width: 25),
+              label: 'Settings',
+            )
+          ],
+        ),
+      ));
+}
 
 /**handleOpenLocationSettings() async {
     if (Platform.isAndroid) {
@@ -391,16 +391,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     },
     );
     }
-    }*/
-}
+    }*/}
 
 class NotifTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, SendPort? sendPort) async {
     // You can use the getData function to get the data you saved.
     final customData =
-        await FlutterForegroundTask.getData<String>(key: 'customData');
-    print('customData: $customData');
+    await FlutterForegroundTask.getData<String>(key: 'customData');
   }
 
   @override

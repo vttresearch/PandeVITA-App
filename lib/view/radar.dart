@@ -5,13 +5,13 @@
 import 'dart:async';
 import 'dart:math';
 
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:latlong2/latlong.dart';
 import '../communication/http_communication.dart';
+import '../Utility/styles.dart';
 
 import 'package:location/location.dart';
 
@@ -42,12 +42,12 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
-    )
-      ..repeat();
+    )..repeat();
     getVirusPointsList();
     super.initState();
     initStateCounter++;
     print("initStateCounter $initStateCounter");
+    initLocationService();
   }
 
   @override
@@ -72,10 +72,10 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
    * Initialize the location service for tracking the user.
    */
   void initLocationService() async {
-    await locationService.changeSettings(
-      accuracy: LocationAccuracy.high,
-      interval: 1000,
-    );
+    /** await locationService.changeSettings(
+        accuracy: LocationAccuracy.high,
+        interval: 1000,
+        );*/
 
     LocationData? location;
     bool serviceEnabled;
@@ -83,33 +83,45 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
 
     try {
       serviceEnabled = await locationService.serviceEnabled();
-
-      if (serviceEnabled) {
-        var permission = await locationService.requestPermission();
-        _permission = permission == PermissionStatus.granted;
-
-        if (_permission) {
-          location = await locationService.getLocation();
-          var bk = locationService.isBackgroundModeEnabled();
-          print('locationisbackgroundmodeenabled $bk');
-          currentLocation = location;
-          locationService.onLocationChanged.listen((LocationData result) async {
-            if (mounted) {
-              setState(() {
-                currentLocation = result;
-                userLocation = LatLng(
-                    currentLocation!.latitude!, currentLocation!.longitude!);
-              });
-            }
-          });
-        }
-      } else {
-        serviceRequestResult = await locationService.requestService();
-        if (serviceRequestResult) {
-          initLocationService();
+      if (!serviceEnabled) {
+        serviceEnabled = await locationService.requestService();
+        if (!serviceEnabled) {
+          print("SERVICE NOT ENABLED RETURN LOCATION");
           return;
         }
       }
+
+      PermissionStatus permissionGranted;
+
+      permissionGranted = await locationService.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await locationService.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          print("PERMISSION RETURN LOCATION");
+          return;
+        }
+      }
+      print("ALL GOOD LOCATION");
+
+      location = await locationService.getLocation();
+      var bk = locationService.isBackgroundModeEnabled();
+      print('locationisbackgroundmodeenabled $bk');
+      currentLocation = location;
+      locationService.onLocationChanged.listen((LocationData result) async {
+        if (mounted) {
+          setState(() {
+            currentLocation = result;
+            userLocation =
+                LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
+          });
+          /*var snackBar = SnackBar(
+                content: Text("New location: " + userLocation.toString()),
+                duration: Duration(seconds: 1),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
+
+        }
+      });
     } on PlatformException catch (e) {
       print(e);
       if (e.code == 'PERMISSION_DENIED') {
@@ -137,7 +149,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
           var coordinate = virusPoint['coordinate'];
           var splitted = coordinate.split(", ");
           LatLng latLngTemp =
-          LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
+              LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
           virusLocations.add(latLngTemp);
         } catch (e) {
           print(e.toString());
@@ -166,13 +178,13 @@ class RadarPainter extends CustomPainter {
   List<LatLng> virusLocations;
 
   var outlinePaint = Paint()
-    ..color = Colors.black
+    ..color = Colors.white
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2.0
     ..isAntiAlias = true;
 
   var ticksPaint = Paint()
-    ..color = Colors.black
+    ..color = Colors.white
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.0
     ..isAntiAlias = true;
@@ -183,9 +195,10 @@ class RadarPainter extends CustomPainter {
     ..isAntiAlias = true;
 
   var playerPaint = Paint()
-    ..color = Colors.blueAccent
+    ..color = Colors.green
     ..style = PaintingStyle.fill
     ..isAntiAlias = true;
+
   @override
   void paint(Canvas canvas, Size size) {
     var centerX = size.width / 2.0;
@@ -196,15 +209,11 @@ class RadarPainter extends CustomPainter {
     //The ratio between the range of the radar and the size of the drawn radar
     var metersRatio = radarRange / radius;
 
-
-
     canvas.drawCircle(centerOffset, radius, outlinePaint);
 
     var ticks = [100, 200, 300];
     var tickDistance = radius / (ticks.length);
     const double tickLabelFontSize = 12;
-
-
 
     ticks.sublist(0, ticks.length - 1).asMap().forEach((index, tick) {
       var tickRadius = tickDistance * (index + 1);
@@ -215,7 +224,7 @@ class RadarPainter extends CustomPainter {
         text: TextSpan(
           text: tick.toString(),
           style:
-          const TextStyle(color: Colors.grey, fontSize: tickLabelFontSize),
+              const TextStyle(color: Colors.white, fontSize: tickLabelFontSize),
         ),
         textDirection: TextDirection.ltr,
       )
@@ -234,19 +243,18 @@ class RadarPainter extends CustomPainter {
       var yAngle = sin(angle * index - pi / 2);
 
       var featureOffset =
-      Offset(centerX + radius * xAngle, centerY + radius * yAngle);
+          Offset(centerX + radius * xAngle, centerY + radius * yAngle);
 
       canvas.drawLine(centerOffset, featureOffset, ticksPaint);
 
       var labelYOffset = yAngle < 0 ? -featureLabelFontSize : 0;
-      var labelXOffset =
-      xAngle < 0 ? -featureLabelFontWidth * feature.length : 0;
+      var labelXOffset = xAngle < 0 ? -featureLabelFontWidth * 1.3 : 0;
 
       TextPainter(
         text: TextSpan(
           text: feature,
           style: const TextStyle(
-              color: Colors.black, fontSize: featureLabelFontSize),
+              color: Colors.white, fontSize: featureLabelFontSize),
         ),
         textAlign: TextAlign.center,
         textDirection: TextDirection.ltr,
@@ -269,13 +277,13 @@ class RadarPainter extends CustomPainter {
         continue;
       }
       //Direction from the user location to the virus point
-      double direction = (distance.bearing(userLocation, virusCoordinate) -
-          90) * (pi / 180.0);
+      double direction =
+          (distance.bearing(userLocation, virusCoordinate) - 90) * (pi / 180.0);
 
       //Distance in the y direction
-      double yMeterDistance = sin(direction)*distanceFromUser;
+      double yMeterDistance = sin(direction) * distanceFromUser;
       //Distance in the x direction
-      double xMeterDistance = cos(direction)*distanceFromUser;
+      double xMeterDistance = cos(direction) * distanceFromUser;
 
       var coordinateOffset = Offset(centerX + (xMeterDistance) / metersRatio,
           centerY + (yMeterDistance) / metersRatio);

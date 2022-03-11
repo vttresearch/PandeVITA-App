@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../communication/http_communication.dart';
@@ -13,10 +15,19 @@ class RegisterPage extends StatefulWidget {
 }
 
 class RegisterPageState extends State<RegisterPage> {
+
+  var chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random random = Random();
+
+
   final formKey = GlobalKey<FormState>();
   final PandeVITAHttpClient client = PandeVITAHttpClient();
   var registering = false;
   late String username, password, confirmPassword, email;
+
+  /**Generate a random string for the email. https://stackoverflow.com/a/61929967*/
+  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+      length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +38,12 @@ class RegisterPageState extends State<RegisterPage> {
         decoration: const InputDecoration(
             icon: Icon(Icons.person), labelText: 'Enter username'));
 
-    final emailField = TextFormField(
+    /*final emailField = TextFormField(
         autofocus: false,
         onSaved: (value) => email = value as String,
         validator: (value) => value!.isEmpty ? 'Please enter email' : null,
         decoration: const InputDecoration(
-            icon: Icon(Icons.person), labelText: 'Enter email'));
+            icon: Icon(Icons.person), labelText: 'Enter email'));*/
 
     final passwordField = TextFormField(
         autofocus: false,
@@ -62,18 +73,25 @@ class RegisterPageState extends State<RegisterPage> {
       final form = formKey.currentState;
       if (form!.validate()) {
         form.save();
+        email = getRandomString(16);
         registering = true;
         int success = await client.registerUser(
             username, password, email);
         print("SUCCESS $success");
         registering = false;
         if (success == 0) {
-          var snackBar = const SnackBar(
-            content: Text("Registration succesful"),
-            duration: Duration(seconds: 5),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          Navigator.pushReplacementNamed(context, '/home');
+          int success = await client.createPlayer(username);
+          if (success == 0) {
+            var snackBar = const SnackBar(
+              content: Text("Registration succesful"),
+              duration: Duration(seconds: 5),
+            );
+            //Create a player instance on server
+
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            Navigator.pushReplacementNamed(context, '/home');
+          }
+
         } else if (success == 1) {
           var snackBar = const SnackBar(
             content: Text("Username is not available"),
@@ -111,8 +129,8 @@ class RegisterPageState extends State<RegisterPage> {
                   Image.asset('images/pandevita_logo_large.png', height: 200, ),
                   const SizedBox(height: 20.0),
                   usernameField,
-                  const SizedBox(height: 10.0),
-                  emailField,
+                  //const SizedBox(height: 10.0),
+                  //emailField,
                   const SizedBox(height: 10.0),
                   passwordField,
                   const SizedBox(height: 10.0),

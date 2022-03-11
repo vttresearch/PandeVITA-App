@@ -23,6 +23,8 @@ class GameLogic {
 
   bool _isGameActive = false;
 
+  bool isGameInitiated = false;
+
   var contactsSinceStarted = Set();
 
   final controller = Get.find<RequirementStateController>();
@@ -48,10 +50,19 @@ class GameLogic {
   }
 
   void initGame() async {
+    if (isGameInitiated) {
+      return;
+    }
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
-    timer = Timer.periodic(Duration(seconds: 20), (Timer t) => gameLogicTick());
+    timer = Timer.periodic(const Duration(seconds: 20), (Timer t) => gameLogicTick());
     _isGameActive = await gameStatus!.isGameActive();
+    isGameInitiated = true;
+    contactsStartedTimestamp = await gameStatus!.getContactTimestamp();
+    if (contactsStartedTimestamp == 0) {
+      contactsStartedTimestamp = DateTime.now().millisecondsSinceEpoch;
+      gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
+    }
   }
 
   void stopGame() {
@@ -73,6 +84,7 @@ class GameLogic {
     scanResults = await beaconScanner!.scan();
     print("GAMELOGICTICK 2");
     print(scanResults.toString());
+
     if (!infected) {
       //Iterate the map
       for (MapEntry<String, int> me in scanResults.entries) {
@@ -132,6 +144,7 @@ class GameLogic {
     if (timestamp - contactsStartedTimestamp >= 86400000) {
       //TODO: Send update message to server
       contactsStartedTimestamp = timestamp;
+      gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
       contactsSinceStarted.clear();
     }
   }

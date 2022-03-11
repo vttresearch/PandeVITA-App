@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pandevita_game/Utility/styles.dart';
 import 'ui_stats.dart';
 import 'scoreboard.dart';
 
@@ -14,19 +15,14 @@ class ScoreboardPageState extends State<ScoreboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:  const Color.fromARGB(255, 36, 128, 198),
+      backgroundColor: Colors.transparent,
       body: Column(
         children: [
       Expanded(child: Row(children: [Expanded(child: Scoreboard())])),
       const SizedBox(height: 20),
       Container(
                 height: 200,
-                decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 36, 128, 198),
-                    border: Border.all(
-                        color: const Color.fromARGB(255, 238, 170, 0),
-                        width: 6),
-                    borderRadius: BorderRadius.circular(8)),
+                decoration: boxDecorationYellowBorder,
                 child: Column(
                   children: [
                     Expanded(
@@ -37,6 +33,12 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                         Image.asset("images/xp_star.png", width: 50),
                         const SizedBox(width: 20),
                         PlayerPoints(),
+                        /*const Text("500",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 25,
+                            )),*/
                         //Vaccination
                         const SizedBox(width: 100),
                         Image.asset("images/vaccination_icon.png", width: 50),

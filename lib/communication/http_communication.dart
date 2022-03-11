@@ -59,25 +59,22 @@ class PandeVITAHttpClient {
       'password': user.password
     };*/
     //var body = json.encode(authData);
-    var response = await client.post(authUrl,
-        body: {
-          'client_id': 'pandevita-dev',
-          'grant_type': 'password',
-          'username': user.name,
-          'password': user.password
-        },
-        headers: {
-          'accept': '*/*',
-          'Content-Type': 'application/x-www-form-urlencoded'
-        });
+    var response = await client.post(authUrl, body: {
+      'client_id': 'pandevita-dev',
+      'grant_type': 'password',
+      'username': user.name,
+      'password': user.password
+    }, headers: {
+      'accept': '*/*',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
     print('auth Response status: ${response.statusCode}');
     //print('auth Response body: ${response.body}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       String accessToken = decodedResponse['access_token'];
       int expires_in = decodedResponse['expires_in'];
-      int accessTimeStamp =
-          currentTimeStamp + expires_in * 1000;
+      int accessTimeStamp = currentTimeStamp + expires_in * 1000;
       await storage.write(key: 'access_token', value: accessToken);
       await storage.write(key: 'expires', value: accessTimeStamp.toString());
       return accessToken;
@@ -161,7 +158,7 @@ class PandeVITAHttpClient {
         }
       } catch (error) {
         print("Error in getviruspoints " + error.toString());
-       // await storage.delete(key: 'access_token');
+        // await storage.delete(key: 'access_token');
       }
     }
     return [];
@@ -213,9 +210,17 @@ class PandeVITAHttpClient {
     print('Response body: + ${response.body}');
     print('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      if (decodedResponse != []) {
-        return decodedResponse[0];
+      try {
+        List decodedResponse = json.decode(utf8.decode(response.bodyBytes));
+        if (decodedResponse.isNotEmpty) {
+          var scoreboard = decodedResponse[0];
+          print("SCOREBOARD $scoreboard");
+          return scoreboard;
+        }
+        print("scoreboard was empty");
+      } catch (error) {
+        print("Error in getScoreboard " + error.toString());
+        await storage.delete(key: 'access_token');
       }
     }
     return {};
@@ -294,32 +299,52 @@ class PandeVITAHttpClient {
   }
 
   //Update player stats on the server
-  Future<int> updatePlayer(int score, int recentContacts) async {
-    print("updatePlayer in http_comm");
-    var accessToken = await getAuthorizationToken();
-    if (accessToken == "error") {
-      return 3;
-    }
-    var playerName = userStorage.getUserName() as String;
-    var playerUrl = Uri.parse(_url + "/players/" + playerName);
-    var playerData = {
-      'playerName': playerName,
-      'score': score,
-      'recentContacts': recentContacts,
-      'additionalProp1': {}
-    };
-    var body = json.encode(playerData);
-    var response = await client.put(playerUrl, body: body, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-type': 'application/json'
-    });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
-    if (response.statusCode == 204) {
-      return 0;
+  Future<int> updatePlayer(int score, {int? recentContacts}) async {
+    if (recentContacts == null) {
+      print("updatePlayer in http_comm");
+      var accessToken = await getAuthorizationToken();
+      if (accessToken == "error") {
+        return 3;
+      }
+      var playerName = await userStorage.getUserName();
+      print("playername is $playerName");
+      var playerUrl = Uri.parse(_url + "/players/" + playerName);
+      var playerData = {'playerName': playerName, 'score': score};
+      var body = json.encode(playerData);
+      var response = await client.patch(playerUrl, body: body, headers: {
+        'accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json'
+      });
+      print('Response body: + ${response.body}');
+      print('Response code: + ${response.statusCode}');
+      if (response.statusCode == 204) {
+        return 0;
+      } else {
+        return 1;
+      }
     } else {
-      return 1;
+      print("updatePlayer in http_comm, recentcontacts $recentContacts");
+      var accessToken = await getAuthorizationToken();
+      if (accessToken == "error") {
+        return 3;
+      }
+      var playerName = await userStorage.getUserName();
+      var playerUrl = Uri.parse(_url + "/players/" + playerName);
+      var playerData = {'score': score, 'recentContacts': recentContacts};
+      var body = json.encode(playerData);
+      var response = await client.patch(playerUrl, body: body, headers: {
+        'accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json'
+      });
+      print('Response body: + ${response.body}');
+      print('Response code: + ${response.statusCode}');
+      if (response.statusCode == 204) {
+        return 0;
+      } else {
+        return 1;
+      }
     }
   }
 
@@ -327,9 +352,34 @@ class PandeVITAHttpClient {
   Future<int> updateScoreboardPlayer(int score) async {
     //First get the scoreboard
     var scoreboard = await getScoreBoard();
+    //No scoreboard yet, create it
+    if (scoreboard.isEmpty) {
+      var playerName = await userStorage.getUserName();
+      Map initScoreboard = {
+        'players': [
+          {'playerName': playerName, 'score': score}
+        ],
+        'additionalProp1': {}
+      };
+      var body = json.encode(initScoreboard);
+      var accessToken = await getAuthorizationToken();
+      if (accessToken == "error") {
+        return 3;
+      }
+      var scoreboardsUrl = Uri.parse(_url + "/scoreboards");
+      var response = await client.post(scoreboardsUrl, body: body, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      });
+      if (response.statusCode == 200) {
+        return 0;
+      }
+      return 1;
+    }
     var scoreboardId = scoreboard['id'];
     List playerList = scoreboard['players'];
-    var playerName = userStorage.getUserName();
+    var playerName = await userStorage.getUserName();
     var playerFoundInScoreboard = false;
     for (Map entry in playerList) {
       if (entry["playerName"] == playerName) {
@@ -445,8 +495,7 @@ class PandeVITAHttpClient {
     if (response.statusCode == 204) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return 0;
-    }
-    else if (response.statusCode == 404) {
+    } else if (response.statusCode == 404) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return 2;
     }
@@ -491,7 +540,7 @@ class PandeVITAHttpClient {
     //First get the team
     var team = await getTeam(teamId);
     List teamPlayers = team['teamPlayers'];
-    var playerName = userStorage.getUserName() as String;
+    var playerName = await userStorage.getUserName();
     var playerFoundInTeam = false;
     //Check that player is in team
     for (String player in teamPlayers) {

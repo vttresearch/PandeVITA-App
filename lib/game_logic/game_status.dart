@@ -10,6 +10,9 @@ class GameStatus {
   final PandeVITAHttpClient client = PandeVITAHttpClient();
   bool pointsChanged = false;
 
+  var lastUpdatedServer = 0;
+
+
   factory GameStatus() {
     return _gameStatus;
   }
@@ -23,12 +26,14 @@ class GameStatus {
     print("New Player Points: $newPlayerPoints");
     await prefs.setInt('playerPoints', newPlayerPoints);
     controller.eventPlayerPointsChanged();
+    updatePlayerStatus();
   }
 
   //Get points for display
   Future<String> getPoints() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    int playerPoints = (prefs.getInt('playerPoints') ?? 0);
+    int playerPoints = prefs.getInt('playerPoints') ?? 0;
+    print("Saved Player Points: $playerPoints");
     return playerPoints.toString();
   }
 
@@ -104,4 +109,33 @@ class GameStatus {
     }
   }
 
+  Future<int> getContactTimestamp() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String contactTimestamp = (prefs.getString('contactTimestamp') ?? "0");
+    return int.parse(contactTimestamp);
+  }
+
+  void saveContactTimestamp(int timestamp) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    print("ContactTimestamp saved $timestamp");
+    await prefs.setString('contactTimestamp', timestamp.toString());
+  }
+
+  void updatePlayerStatus({int? contacts}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int score = (prefs.getInt('playerPoints') ?? 0);
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    if (contacts == null) {
+      //At least 5 minutes between updates
+      if (timestamp - lastUpdatedServer > 300000) {
+        await client.updatePlayer(score);
+        await client.updateScoreboardPlayer(score);
+        lastUpdatedServer = timestamp;
+      }
+    } else {
+      await client.updatePlayer(score, recentContacts: contacts);
+      await client.updateScoreboardPlayer(score);
+      lastUpdatedServer = timestamp;
+    }
+  }
 }
