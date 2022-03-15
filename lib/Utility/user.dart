@@ -73,9 +73,10 @@ class UserStorage {
     return password;
   }
 
-  void joinTeam(String teamName) async {
+  void joinTeam(String teamName, String teamId) async {
     const storage = FlutterSecureStorage();
-    await storage.write(key: 'team', value: "teamName");
+    await storage.write(key: 'team', value: teamName);
+    await storage.write(key: 'teamId', value: teamId);
   }
 
   Future<String?> getTeam() async {

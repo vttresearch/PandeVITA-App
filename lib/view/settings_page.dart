@@ -19,6 +19,8 @@ class SettingsPageState extends State<SettingsPage> {
   late String newTeamName;
   late String currentTeamName;
   String joinTeamName = "";
+  List<String> teamMembers = [];
+
 
   String playerName = "";
 
@@ -65,12 +67,18 @@ class SettingsPageState extends State<SettingsPage> {
       }
     }
     if (isNotMemberOfTeam) {
-      var ListOfTeams = await client.getTeams();
-      for (var team in ListOfTeams) {
+      var listOfTeams = await client.getTeams();
+      for (var team in listOfTeams) {
         var teamName = team['teamName'];
         var teamId = team["id"];
         teamsMap[teamName] = teamId;
         teamsList.add(teamName);
+      }
+    } else {
+      var teamId = await storage.getTeamId();
+      var playersTeam = await client.getTeam(teamId!);
+      if (playersTeam != {}) {
+        teamMembers = playersTeam['teamPlayers'];
       }
     }
     dropdownValue = teamsList[0];
@@ -156,7 +164,7 @@ class SettingsPageState extends State<SettingsPage> {
       int success = await client.addToTeam(playerName, teamsMap[joinTeamName]!);
       if (success == 0) {
         currentTeamName = joinTeamName;
-        storage.joinTeam(currentTeamName);
+        storage.joinTeam(currentTeamName, teamsMap[joinTeamName]!);
         isNotMemberOfTeam = false;
         updatePage();
       }
@@ -285,8 +293,9 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
               isNotMemberOfTeam == false
                   ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text("You are member of team $currentTeamName")
-                    ])
+                Flexible(
+                      child: Text("Your team members: " + teamMembers.join(","))
+                )])
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
