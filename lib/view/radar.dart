@@ -58,24 +58,59 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
+    return Stack(
+        children : [
+        AnimatedBuilder(
         animation: _controller,
         builder: (_, __) {
           return CustomPaint(
             size: const Size(double.infinity, double.infinity),
             painter: RadarPainter(userLocation, virusLocations),
           );
-        });
+        }),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: const [
+                  SizedBox(width: 10),
+                  CircleAvatar(
+                    radius: 8,
+                    backgroundColor: Colors.green,
+                  ),
+                  SizedBox(width: 5),
+                  Text("You", style: TextStyle(
+                    color: Colors.white, fontSize: 15
+                  ))
+                ]
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: const [
+                    SizedBox(width: 10),
+                    CircleAvatar(
+                      radius: 8,
+                      backgroundColor: Colors.red,
+                    ),
+                    SizedBox(width: 5),
+                    Text("Stationary virus", style: TextStyle(
+                        color: Colors.white, fontSize: 15
+                    )),
+                  ]
+              ),
+              const SizedBox(height: 3)
+            ],
+          )
+        ]);
   }
 
   /**
    * Initialize the location service for tracking the user.
    */
   void initLocationService() async {
-    /** await locationService.changeSettings(
-        accuracy: LocationAccuracy.high,
-        interval: 1000,
-        );*/
+    await locationService.changeSettings(
+        accuracy: LocationAccuracy.high, interval: 3000, distanceFilter: 5);
 
     LocationData? location;
     bool serviceEnabled;
@@ -101,11 +136,12 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
           return;
         }
       }
-      print("ALL GOOD LOCATION");
+      debugPrint("ALL GOOD LOCATION");
 
       location = await locationService.getLocation();
       var bk = locationService.isBackgroundModeEnabled();
-      print('locationisbackgroundmodeenabled $bk');
+      debugPrint('locationisbackgroundmodeenabled $bk');
+      debugPrint('currentlocation is $location');
       currentLocation = location;
       locationService.onLocationChanged.listen((LocationData result) async {
         if (mounted) {
@@ -114,12 +150,11 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
             userLocation =
                 LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
           });
-          /*var snackBar = SnackBar(
-                content: Text("New location: " + userLocation.toString()),
-                duration: Duration(seconds: 1),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
-
+          var snackBar = SnackBar(
+            content: Text("New location: " + userLocation.toString()),
+            duration: const Duration(seconds: 1),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
       });
     } on PlatformException catch (e) {
@@ -220,6 +255,8 @@ class RadarPainter extends CustomPainter {
 
       canvas.drawCircle(centerOffset, tickRadius, ticksPaint);
 
+
+
       TextPainter(
         text: TextSpan(
           text: tick.toString(),
@@ -232,6 +269,8 @@ class RadarPainter extends CustomPainter {
         ..paint(
             canvas, Offset(centerX, centerY - tickRadius - tickLabelFontSize));
     });
+
+
 
     var features = ["N", "E", "S", "W"];
     var angle = (2 * pi) / features.length;

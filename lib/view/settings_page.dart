@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/user.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
 import '../Utility/styles.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -21,7 +22,6 @@ class SettingsPageState extends State<SettingsPage> {
   String joinTeamName = "";
   List<String> teamMembers = [];
 
-
   String playerName = "";
 
   //Map of teams - name --> teamId
@@ -30,6 +30,7 @@ class SettingsPageState extends State<SettingsPage> {
   String dropDownTeam = "";
 
   String dropdownValue = "Choose team";
+
   //
   bool isNotMemberOfTeam = true;
   bool isFounderOfTeam = false;
@@ -38,7 +39,7 @@ class SettingsPageState extends State<SettingsPage> {
   bool isLocationEnabled = false;
 
   void toggleBluetooth() {
-    //TODO
+
   }
 
   void toggleLocation() {
@@ -193,220 +194,225 @@ class SettingsPageState extends State<SettingsPage> {
     }
 
     var deleteTeamRow = Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        const Text("Delete your team"),
+        Text("Delete your team", style: settingsTextStyle),
         IconButton(
-          icon: const Icon(Icons.remove),
-          onPressed: () => showDialog<String>(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text('Delete your team'),
-              content: const Text("Are you sure you want to delete your team?"),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, 'Cancel');
-                  },
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, 'Yes');
-                    doDeleteTeam();
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
+            icon: Image.asset('images/delete_button.png', width: 30),
+            onPressed: () => showDialog<String>(
+              context: context,
+              builder: (BuildContext context) => AlertDialog(
+                title: const Text('Delete your team'),
+                content: const Text("Are you sure you want to delete your team?"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, 'Cancel');
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, 'Yes');
+                      doDeleteTeam();
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+
       ],
     );
 
     return Scaffold(
-        backgroundColor: backgroundBlue,
+        backgroundColor: Colors.transparent,
         body: Container(
-            padding: const EdgeInsets.all(40.0),
+            // padding: const EdgeInsets.all(20.0),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const SizedBox(height: 215),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Name    "),
-                  Text(playerName),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Team    "),
-                  isNotMemberOfTeam == true
-                      ? const Text("")
-                      : Text(currentTeamName),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (isFounderOfTeam == true) deleteTeamRow,
-              if (isNotMemberOfTeam == true)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Create team"),
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: () => showDialog<String>(
-                        context: context,
-                        builder: (BuildContext context) => AlertDialog(
-                          title: const Text('Create a team'),
-                          content: TextField(
-                            onChanged: (value) {
-                              setState(() {
-                                newTeamName = value;
-                              });
-                            },
-                            controller: _textFieldController,
-                            decoration: const InputDecoration(
-                                hintText: "Insert team name"),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context, 'Cancel');
-                              },
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context, 'OK');
-                                doCreateTeam();
-                              },
-                              child: const Text('Yes'),
-                            ),
-                          ],
-                        ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text("Name", style: settingsTextStyle),
+              Card(
+                  child: Container(
+                      child: Text(playerName, style: settingsTextStyleAlt),
+                      padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0) ))
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text("Team", style: settingsTextStyle),
+              isNotMemberOfTeam == true
+                  ? const Text("")
+                  : Card(
+                  child: Container(
+                      child: Text(currentTeamName, style: settingsTextStyleAlt),
+                      padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0) )),
+            ],
+          ),
+          const SizedBox(height: 20),
+          if (isFounderOfTeam == true) deleteTeamRow,
+          if (isNotMemberOfTeam == true)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Create team", style: settingsTextStyle),
+                IconButton(
+                  icon: Image.asset('add_button.png', width: 30),
+                  onPressed: () => showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Create a team'),
+                      content: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            newTeamName = value;
+                          });
+                        },
+                        controller: _textFieldController,
+                        decoration:
+                            const InputDecoration(hintText: "Insert team name"),
                       ),
-                    ),
-                  ],
-                ),
-              isNotMemberOfTeam == false
-                  ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Flexible(
-                      child: Text("Your team members: " + teamMembers.join(","))
-                )])
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Choose a team to join "),
-                        DropdownButton<String>(
-                          dropdownColor: Colors.white,
-                            items: teamsList.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                if (newValue != null) {
-                                  joinTeamName = newValue;
-                                  dropdownValue =  newValue;
-                                } else {
-                                  joinTeamName = "";
-                                }
-
-                              });
-
-                            },
-                          value: dropdownValue),
-
-                        IconButton(
-                            onPressed: () => showDialog<String>(
-                                  context: context,
-                                  builder: (BuildContext context) =>
-                                      AlertDialog(
-                                    title: const Text('Join a team'),
-                                    content: Text(
-                                        'Do you really want to join the team called $joinTeamName?'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context, 'Cancel');
-                                        },
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context, 'Yes');
-                                          if (joinTeamName != null &&
-                                              joinTeamName != "") {
-                                            doJoinTeam();
-                                          }
-                                        },
-                                        child: const Text('Yes'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            icon: const Icon(Icons.group_add))
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, 'Cancel');
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, 'OK');
+                            doCreateTeam();
+                          },
+                          child: const Text('Yes'),
+                        ),
                       ],
                     ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Delete account "),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => showDialog<String>(
-                      context: context,
-                      builder: (BuildContext context) => AlertDialog(
-                        title: const Text('Delete account'),
-                        content: const Text(
-                            'Do you really want to delete your account?'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context, 'Cancel');
-                            },
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context, 'Yes');
-                              doDeleteAccount();
-                            },
-                            child: const Text('Yes'),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
-                ],
+                ),
+              ],
+            ),
+          const SizedBox(height: 20),
+          isNotMemberOfTeam == false
+              ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Flexible(
+                      child:
+                          Text("Your team members: " + teamMembers.join(","), style: settingsTextStyleAlt))
+                ])
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Choose a team to join "),
+                    DropdownButton<String>(
+                        dropdownColor: Colors.white,
+                        items: teamsList.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            if (newValue != null) {
+                              joinTeamName = newValue;
+                              dropdownValue = newValue;
+                            } else {
+                              joinTeamName = "";
+                            }
+                          });
+                        },
+                        value: dropdownValue),
+                    IconButton(
+                        onPressed: () => showDialog<String>(
+                              context: context,
+                              builder: (BuildContext context) => AlertDialog(
+                                title: const Text('Join a team'),
+                                content: Text(
+                                    'Do you really want to join the team called $joinTeamName?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context, 'Cancel');
+                                    },
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context, 'Yes');
+                                      if (joinTeamName != null &&
+                                          joinTeamName != "") {
+                                        doJoinTeam();
+                                      }
+                                    },
+                                    child: const Text('Yes'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        icon: const Icon(Icons.group_add))
+                  ],
+                ),
+        /*  Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text("Delete account "),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () => showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context) => AlertDialog(
+                    title: const Text('Delete account'),
+                    content: const Text(
+                        'Do you really want to delete your account?'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, 'Cancel');
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, 'Yes');
+                          doDeleteAccount();
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              SwitchListTile(
-                title: const Text('Bluetooth'),
-                value: isBluetoothEnabled,
-                onChanged: (bool value) {
-                  setState(() {
-                    isBluetoothEnabled = value;
-                    toggleBluetooth();
-                  });
-                },
-                secondary: const Icon(Icons.bluetooth),
-              ),
-              SwitchListTile(
-                title: const Text('Location'),
-                value: isLocationEnabled,
-                onChanged: (bool value) {
-                  setState(() {
-                    isLocationEnabled = value;
-                    toggleLocation();
-                  });
-                },
-                secondary: const Icon(Icons.map),
-              )
-            ])));
+            ],
+          ),*/
+          /*SwitchListTile(
+            title: const Text('Bluetooth'),
+            value: isBluetoothEnabled,
+            onChanged: (bool value) {
+              setState(() {
+                isBluetoothEnabled = value;
+                toggleBluetooth();
+              });
+            },
+            secondary: const Icon(Icons.bluetooth),
+          ),
+          SwitchListTile(
+            title: const Text('Location'),
+            value: isLocationEnabled,
+            onChanged: (bool value) {
+              setState(() {
+                isLocationEnabled = value;
+                toggleLocation();
+              });
+            },
+            secondary: const Icon(Icons.map),
+          )*/
+        ])));
   }
 }

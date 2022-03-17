@@ -35,3 +35,13 @@ var backgroundDecoration = const BoxDecoration(
       stops: [0.0, 1.0],
       tileMode: TileMode.clamp),
 );
+
+var settingsTextStyle =  const TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+    fontSize: 20);
+
+var settingsTextStyleAlt =  const TextStyle(
+   // fontWeight: FontWeight.bold,
+    color: Colors.black,
+    fontSize: 20);

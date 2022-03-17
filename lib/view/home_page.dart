@@ -295,10 +295,10 @@ Widget build(BuildContext context) {
                   padding: const EdgeInsets.all(8),
                   child: TabMap(),
                 ),
-                Padding(
+               /* Padding(
                   padding: const EdgeInsets.all(8),
                   child: TabAction(),
-                ),
+                ),*/
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: SettingsPage(),
@@ -306,7 +306,10 @@ Widget build(BuildContext context) {
               ],
             )),
         bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: const Color.fromARGB(255, 36, 128, 198),
           currentIndex: currentIndex,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.black,
           onTap: (index) {
             setState(() {
               currentIndex = index;
@@ -320,21 +323,21 @@ Widget build(BuildContext context) {
           },
           items: [
             BottomNavigationBarItem(
-                backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+                //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
                 icon: Image.asset('images/league_icon.png', width: 25),
                 label: 'Scoreboard'),
             BottomNavigationBarItem(
-              backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
               icon: Image.asset('images/map_icon.png', width: 25),
               label: 'Radar',
             ),
-            BottomNavigationBarItem(
+           /* BottomNavigationBarItem(
               backgroundColor: const Color.fromARGB(255, 36, 128, 198),
               icon: Image.asset('images/action_icon.png', width: 25),
               label: 'Action',
-            ),
+            ),*/
             BottomNavigationBarItem(
-              backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
               icon: Image.asset('images/settings_icon.png', width: 25),
               label: 'Settings',
             )
