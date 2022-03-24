@@ -40,16 +40,17 @@ dependencies:
   get: ^4.3.6
 
   shared_preferences: ^2.0.13
-  flutter_svg: ^1.0.0
 
   #Needed for Android 8+
   flutter_foreground_task: ^3.5.5
 
-  flutter_osm_plugin: ^0.28.2
+  #flutter_osm_plugin: ^0.28.2
 
-  flutter_map: ^0.14.0
+  #flutter_map: ^0.14.0
 
-  flutter_map_marker_popup: ^2.1.1
+  #flutter_map_marker_popup: ^2.1.1
+
+  latlong2: ^0.8.1
 
   location: ^4.2.0
 
@@ -58,8 +59,6 @@ dependencies:
   flutter_secure_storage: ^5.0.2
 
   permission_handler: ^9.2.0
-
-  geolocator: ^8.2.0
 
 
 dev_dependencies:
