@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter_beacon/flutter_beacon.dart';
+import 'package:pandevita_game/Utility/styles.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 
@@ -39,14 +40,7 @@ class _TabActionState extends State<TabAction> {
     return Scaffold(
         body: Container(
           //height: 25,
-            decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 36, 128, 198),
-                border: Border.all(
-                    color: const Color.fromARGB(255, 238, 170, 0),
-                    width: 6
-                ),
-                borderRadius: BorderRadius.circular(8)
-            ),
+            decoration: boxDecorationYellowBorder,
             child:
             Column(
               children: [

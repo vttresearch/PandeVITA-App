@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'controller/requirement_state_controller.dart';
 import 'view/home_page.dart';
+import 'view/landing_page.dart';
 import 'package:get/get.dart';
 
 void main() {
+  const bool isProduction = bool.fromEnvironment('dart.vm.product');
+  if (isProduction) {
+    // analyser does not like empty function body
+    // debugPrint = (String message, {int wrapWidth}) {};
+    // so i changed it to this:
+    debugPrint = (String? message, {int? wrapWidth}) => null;
+  }
   runApp(MainApp());
 }
 
@@ -41,7 +48,10 @@ class MainApp extends StatelessWidget {
         brightness: Brightness.dark,
         primarySwatch: primary,
       ),
-      home: HomePage(),
+      home: LandingPage(),
+      routes: {
+        '/home': (context) => HomePage(),
+      }
     );
   }
 }

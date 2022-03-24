@@ -1,6 +1,6 @@
 /**This class handles the continuous beacon broadcasting needed by the
     application. It is based on the example implementation of flutter_beacon*/
-import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
 import '../game_logic/game_status.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import '../controller/requirement_state_controller.dart';
@@ -39,11 +39,11 @@ class BeaconBroadcastClass {
 
   startBroadcastBeacon() async {
     await flutterBeacon.initializeScanning;
-    print("STARTING BROADCAST");
+    debugPrint("STARTING BROADCAST");
     String proximityUUID = await getProximityUUID();
-    print(proximityUUID);
-    print(major.toString());
-    print(minor.toString());
+    debugPrint(proximityUUID);
+    debugPrint(major.toString());
+    debugPrint(minor.toString());
     await flutterBeacon.startBroadcast(BeaconBroadcast(
       proximityUUID: proximityUUID,
       major: major!,
@@ -51,7 +51,7 @@ class BeaconBroadcastClass {
     ));
     final isBroadcasting = await flutterBeacon.isBroadcasting();
     broadcasting = isBroadcasting;
-    print("ISBROADCASTING " + isBroadcasting.toString());
+    debugPrint("ISBROADCASTING " + isBroadcasting.toString());
 
   }
 
@@ -60,9 +60,9 @@ class BeaconBroadcastClass {
   }
 
   Future<String> getProximityUUID() async {
-    print("GOTHERE1");
+    debugPrint("GOTHERE1");
     String proximityUUID = await gameStatus.getProximityUUID();
-    print("GOTHERE");
+    debugPrint("GOTHERE");
     return proximityUUID;
 }
 
