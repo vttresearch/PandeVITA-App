@@ -4,14 +4,14 @@
  */
 import 'dart:async';
 import 'dart:math';
-
+import '../controller/requirement_state_controller.dart';
+import 'package:get/get.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:latlong2/latlong.dart';
 import '../communication/http_communication.dart';
-import '../Utility/styles.dart';
+import '../game_logic/game_logic.dart';
 
 import 'package:location/location.dart';
 
@@ -25,9 +25,12 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
   final httpClient = PandeVITAHttpClient();
   final Location locationService = Location();
 
-  bool _permission = false;
+  final GameLogic gameLogic = GameLogic();
+
+  //bool _permission = false;
   String? _serviceError = '';
   late AnimationController _controller;
+
 
   //User location for drawing the radar
   LatLng userLocation = LatLng(0, 0);
@@ -46,7 +49,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
     getVirusPointsList();
     super.initState();
     initStateCounter++;
-    print("initStateCounter $initStateCounter");
+    debugPrint("initStateCounter $initStateCounter");
     initLocationService();
   }
 
@@ -114,14 +117,14 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
 
     LocationData? location;
     bool serviceEnabled;
-    bool serviceRequestResult;
+   // bool serviceRequestResult;
 
     try {
       serviceEnabled = await locationService.serviceEnabled();
       if (!serviceEnabled) {
         serviceEnabled = await locationService.requestService();
         if (!serviceEnabled) {
-          print("SERVICE NOT ENABLED RETURN LOCATION");
+          debugPrint("SERVICE NOT ENABLED RETURN LOCATION");
           return;
         }
       }
@@ -132,7 +135,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
       if (permissionGranted == PermissionStatus.denied) {
         permissionGranted = await locationService.requestPermission();
         if (permissionGranted != PermissionStatus.granted) {
-          print("PERMISSION RETURN LOCATION");
+          debugPrint("PERMISSION RETURN LOCATION");
           return;
         }
       }
@@ -150,15 +153,15 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
             userLocation =
                 LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
           });
-          var snackBar = SnackBar(
+          /*var snackBar = SnackBar(
             content: Text("New location: " + userLocation.toString()),
             duration: const Duration(seconds: 1),
           );
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
         }
       });
     } on PlatformException catch (e) {
-      print(e);
+      debugPrint(e.toString());
       if (e.code == 'PERMISSION_DENIED') {
         _serviceError = e.message;
       } else if (e.code == 'SERVICE_STATUS_ERROR') {
@@ -174,10 +177,10 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
   Future<bool> getVirusPointsList() async {
     List virusPoints = await httpClient.getVirusPoints();
     if (virusPoints.isEmpty) {
-      print("VIRUS: EMPTY");
+      debugPrint("VIRUS: EMPTY");
       return false;
     } else {
-      print("VIRUS: $virusPoints");
+      debugPrint("VIRUS: $virusPoints");
       //Add the virus points to the list supplied to the CustomPainter
       for (Map virusPoint in virusPoints) {
         try {
@@ -187,7 +190,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
               LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
           virusLocations.add(latLngTemp);
         } catch (e) {
-          print(e.toString());
+          debugPrint(e.toString());
         }
       }
       return true;
@@ -200,8 +203,14 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
  * displayed on the radar.
  */
 class RadarPainter extends CustomPainter {
+
+  final statusController = Get.find<RequirementStateController>();
+
   //Customize this value to change the range of the radar (in meters)
   final int radarRange = 300;
+
+  //Customize this
+  final int infectionDistance = 5;
 
   //Constructor
   RadarPainter(this.userLocation, this.virusLocations);
@@ -313,8 +322,14 @@ class RadarPainter extends CustomPainter {
 
       //If the virus point is further away than the range of the radar
       if (distanceFromUser > radarRange) {
-        continue;
+        statusController.playerInfected();
       }
+
+      //Player infected if too close to a static virus point
+      if (distanceFromUser < infectionDistance) {
+        statusController.playerInfected();
+      }
+
       //Direction from the user location to the virus point
       double direction =
           (distance.bearing(userLocation, virusCoordinate) - 90) * (pi / 180.0);

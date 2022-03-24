@@ -20,7 +20,7 @@ class SettingsPageState extends State<SettingsPage> {
   late String newTeamName;
   late String currentTeamName;
   String joinTeamName = "";
-  List<String> teamMembers = [];
+  List teamMembers = [];
 
   String playerName = "";
 
@@ -58,6 +58,7 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   void initializeSettings() async {
+    teamsList.clear();
     playerName = await storage.getUserName();
     var teamName = await storage.getTeam();
     if (teamName != null) {
@@ -75,15 +76,18 @@ class SettingsPageState extends State<SettingsPage> {
         teamsMap[teamName] = teamId;
         teamsList.add(teamName);
       }
+      dropdownValue = teamsList[0];
     } else {
       var teamId = await storage.getTeamId();
       var playersTeam = await client.getTeam(teamId!);
-      if (playersTeam != {}) {
+      debugPrint("playersTeam $playersTeam");
+      if (playersTeam.isNotEmpty) {
+        debugPrint("playersTeam not empty");
         teamMembers = playersTeam['teamPlayers'];
+        debugPrint("teamMembers $teamMembers");
       }
     }
-    dropdownValue = teamsList[0];
-    print("teamsList $teamsList");
+    debugPrint("teamsList $teamsList");
     updatePage();
   }
 
@@ -151,7 +155,7 @@ class SettingsPageState extends State<SettingsPage> {
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
             isNotMemberOfTeam = true;
             isFounderOfTeam = false;
-            updatePage();
+            initializeSettings();
           }
         }
         return;
@@ -264,7 +268,7 @@ class SettingsPageState extends State<SettingsPage> {
               children: [
                 Text("Create team", style: settingsTextStyle),
                 IconButton(
-                  icon: Image.asset('add_button.png', width: 30),
+                  icon: Image.asset('images/add_button.png', width: 30),
                   onPressed: () => showDialog<String>(
                     context: context,
                     builder: (BuildContext context) => AlertDialog(

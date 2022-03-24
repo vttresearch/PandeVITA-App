@@ -36,7 +36,7 @@ class PlayerPointsState extends State<PlayerPoints> {
 
   //Update points on screen
   void updatePoints() async {
-    print("EVENT: UPDATEPOINTS");
+    debugPrint("EVENT: UPDATEPOINTS");
     String points = await gameStatus.getPoints();
     setState(() {
       pointCounter = points;
@@ -75,7 +75,7 @@ class ImmunityLevelState extends State<ImmunityLevel> {
   }
 
   void updateImmunityLevel() async {
-    print("EVENT: IMMUNITY UPDATED");
+    debugPrint("EVENT: IMMUNITY UPDATED");
     String newImmunity = await gameStatus.getImmunity();
     setState(() {
       immunityLevel = newImmunity;

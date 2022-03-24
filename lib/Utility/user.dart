@@ -14,11 +14,10 @@ class User {
   User({required this.userId, required this.name, required this.email,
     required this.password});
 
-  //TODO: This is wrong, to be fixed
   factory User.fromJson(Map<String, dynamic> responseData) {
     return User(
         userId: responseData['id'],
-        name: responseData['name'],
+        name: responseData['username'],
         email: responseData['email'],
         password: responseData['credentials'][0]['value']
     );

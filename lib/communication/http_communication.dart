@@ -46,9 +46,9 @@ class PandeVITAHttpClient {
     if (user == null) {
       return "error";
     }
-    print("username ${user.name}");
-    print("password ${user.password}");
-    print("getauthorizationtoken");
+    debugPrint("username ${user.name}");
+    debugPrint("password ${user.password}");
+    debugPrint("getauthorizationtoken");
     var authUrl = Uri.parse(_url + "/auth");
     var authData =
         'client_id=pandevita-dev&grant_type=password&username=${user.name}&password=${user.password}';
@@ -68,8 +68,8 @@ class PandeVITAHttpClient {
       'accept': '*/*',
       'Content-Type': 'application/x-www-form-urlencoded'
     });
-    print('auth Response status: ${response.statusCode}');
-    //print('auth Response body: ${response.body}');
+    debugPrint('auth Response status: ${response.statusCode}');
+    //debugPrint('auth Response body: ${response.body}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       String accessToken = decodedResponse['access_token'];
@@ -89,7 +89,7 @@ class PandeVITAHttpClient {
 
   //Get mask GPS points from the server
   Future<List> getMaskPoints() async {
-    print("MASK: GETMASKPOINTS in http_comm");
+    debugPrint("MASK: GETMASKPOINTS in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return [];
@@ -99,12 +99,12 @@ class PandeVITAHttpClient {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       var maskPoints = decodedResponse[0]["masks"];
-      print("MASKPOINTS $maskPoints");
+      debugPrint("MASKPOINTS $maskPoints");
       return maskPoints;
     }
     return [];
@@ -112,7 +112,7 @@ class PandeVITAHttpClient {
 
   //Get vaccination GPS points from the server
   Future<List> getVaccinationPoints() async {
-    print("GETVACCINATIONPOINTS in http_comm");
+    debugPrint("GETVACCINATIONPOINTS in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return [];
@@ -122,12 +122,12 @@ class PandeVITAHttpClient {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       var vaccinationPoints = decodedResponse[0]["locations"];
-      print("VACCINATIONPOINTS $vaccinationPoints");
+      debugPrint("VACCINATIONPOINTS $vaccinationPoints");
       return vaccinationPoints;
     }
     return [];
@@ -135,7 +135,7 @@ class PandeVITAHttpClient {
 
   //Get virus points as GPS from server
   Future<List> getVirusPoints() async {
-    print("GETVIRUSPOINTS in http_comm");
+    debugPrint("GETVIRUSPOINTS in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return [];
@@ -145,19 +145,19 @@ class PandeVITAHttpClient {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       try {
         List decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (decodedResponse.isNotEmpty) {
-          print("virusarray not empty $decodedResponse");
+          debugPrint("virusarray not empty $decodedResponse");
           var virusArray = decodedResponse[0]["viruses"][0];
-          print("VIRUSARRAY $virusArray");
+          debugPrint("VIRUSARRAY $virusArray");
           return virusArray;
         }
       } catch (error) {
-        print("Error in getviruspoints " + error.toString());
+        debugPrint("Error in getviruspoints " + error.toString());
         // await storage.delete(key: 'access_token');
       }
     }
@@ -166,30 +166,30 @@ class PandeVITAHttpClient {
 
   //Returns gameStatus as string
   Future<Map> getGameStatus() async {
-    print("GETGAMESTATUS in http_comm");
+    debugPrint("GETGAMESTATUS in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return {};
     }
-    print("ACCESSTOKEN IS $accessToken");
+    debugPrint("ACCESSTOKEN IS $accessToken");
     var gameStatusUrl = Uri.parse(_url + "/game-status");
     var response = await client.get(gameStatusUrl, headers: {
       'accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       try {
         List decodedResponse = json.decode(utf8.decode(response.bodyBytes));
         if (decodedResponse.isNotEmpty) {
           var gameStatus = decodedResponse[0];
-          print("GAMESTATUS $gameStatus");
+          debugPrint("GAMESTATUS $gameStatus");
           return gameStatus;
         }
-        print("gamestatus was empty");
+        debugPrint("gamestatus was empty");
       } catch (error) {
-        print("Error in getGameStatus " + error.toString());
+        debugPrint("Error in getGameStatus " + error.toString());
         await storage.delete(key: 'access_token');
       }
     }
@@ -197,7 +197,7 @@ class PandeVITAHttpClient {
   }
 
   Future<Map> getScoreBoard() async {
-    print("getScoreBoard() in http_comm");
+    debugPrint("getScoreBoard() in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return {};
@@ -207,19 +207,19 @@ class PandeVITAHttpClient {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       try {
         List decodedResponse = json.decode(utf8.decode(response.bodyBytes));
         if (decodedResponse.isNotEmpty) {
           var scoreboard = decodedResponse[0];
-          print("SCOREBOARD $scoreboard");
+          debugPrint("SCOREBOARD $scoreboard");
           return scoreboard;
         }
-        print("scoreboard was empty");
+        debugPrint("scoreboard was empty");
       } catch (error) {
-        print("Error in getScoreboard " + error.toString());
+        debugPrint("Error in getScoreboard " + error.toString());
         await storage.delete(key: 'access_token');
       }
     }
@@ -233,11 +233,11 @@ class PandeVITAHttpClient {
     var checkUserNameAvailabilityUrl =
         Uri.parse(_url + "/users?username=" + userName.toLowerCase());
     var response = await client.get(checkUserNameAvailabilityUrl);
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
     var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
     if (decodedResponse["userExists"] == true) {
-      print("error registering user: username already exists");
+      debugPrint("error registering user: username already exists");
       return 1;
     }
     var registrationData = {
@@ -253,11 +253,11 @@ class PandeVITAHttpClient {
     var response2 = await client.post(registerUrl,
         body: body,
         headers: {'Accept': '*/*', 'Content-Type': 'application/json'});
-    print('Response status: ${response2.statusCode}');
-    print('Response body: ${response2.body}');
+    debugPrint('Response status: ${response2.statusCode}');
+    debugPrint('Response body: ${response2.body}');
     var decodedResponse2 = jsonDecode(utf8.decode(response2.bodyBytes));
     if (decodedResponse2["created"] == false || response2.statusCode != 200) {
-      print("error registering user: something went wrong");
+      debugPrint("error registering user: something went wrong");
       return 2;
     }
 
@@ -271,7 +271,7 @@ class PandeVITAHttpClient {
 
   //Create a player on the server side
   Future<int> createPlayer(String playerName) async {
-    print("createPlayer in http_comm");
+    debugPrint("createPlayer in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return 3;
@@ -289,8 +289,8 @@ class PandeVITAHttpClient {
       'Authorization': 'Bearer $accessToken',
       'Content-type': 'application/json'
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       return 0;
     } else {
@@ -301,13 +301,13 @@ class PandeVITAHttpClient {
   //Update player stats on the server
   Future<int> updatePlayer(int score, {int? recentContacts}) async {
     if (recentContacts == null) {
-      print("updatePlayer in http_comm");
+      debugPrint("updatePlayer in http_comm");
       var accessToken = await getAuthorizationToken();
       if (accessToken == "error") {
         return 3;
       }
       var playerName = await userStorage.getUserName();
-      print("playername is $playerName");
+      debugPrint("playername is $playerName");
       var playerUrl = Uri.parse(_url + "/players/" + playerName);
       var playerData = {'playerName': playerName, 'score': score};
       var body = json.encode(playerData);
@@ -316,15 +316,15 @@ class PandeVITAHttpClient {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json'
       });
-      print('Response body: + ${response.body}');
-      print('Response code: + ${response.statusCode}');
+      debugPrint('Response body: + ${response.body}');
+      debugPrint('Response code: + ${response.statusCode}');
       if (response.statusCode == 204) {
         return 0;
       } else {
         return 1;
       }
     } else {
-      print("updatePlayer in http_comm, recentcontacts $recentContacts");
+      debugPrint("updatePlayer in http_comm, recentcontacts $recentContacts");
       var accessToken = await getAuthorizationToken();
       if (accessToken == "error") {
         return 3;
@@ -338,8 +338,8 @@ class PandeVITAHttpClient {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json'
       });
-      print('Response body: + ${response.body}');
-      print('Response code: + ${response.statusCode}');
+      debugPrint('Response body: + ${response.body}');
+      debugPrint('Response code: + ${response.statusCode}');
       if (response.statusCode == 204) {
         return 0;
       } else {
@@ -411,7 +411,7 @@ class PandeVITAHttpClient {
   }
 
   Future<List> createTeam(String teamName) async {
-    print("createTeam in http_comm");
+    debugPrint("createTeam in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return [3, ""];
@@ -428,8 +428,8 @@ class PandeVITAHttpClient {
       'Authorization': 'Bearer $accessToken',
       'Content-type': 'application/json'
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       var teamId = decodedResponse["id"];
@@ -440,7 +440,7 @@ class PandeVITAHttpClient {
   }
 
   Future<List> getTeams() async {
-    print("getTeams() in http_comm");
+    debugPrint("getTeams() in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return [];
@@ -450,8 +450,8 @@ class PandeVITAHttpClient {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return decodedResponse;
@@ -460,7 +460,7 @@ class PandeVITAHttpClient {
   }
 
   Future<Map> getTeam(String teamId) async {
-    print("getTeam() in http_comm");
+    debugPrint("getTeam() in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return {};
@@ -470,17 +470,18 @@ class PandeVITAHttpClient {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      debugPrint("players team response decoded succsefully");
       return decodedResponse;
     }
     return {};
   }
 
   Future<int> deleteTeam(String teamId) async {
-    print("deleteTeam() in http_comm");
+    debugPrint("deleteTeam() in http_comm");
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {
       return 2;
@@ -490,10 +491,10 @@ class PandeVITAHttpClient {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
-    print('Response body: + ${response.body}');
-    print('Response code: + ${response.statusCode}');
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 204) {
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+     // var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return 0;
     } else if (response.statusCode == 404) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));

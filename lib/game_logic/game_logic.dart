@@ -1,10 +1,8 @@
 /** This file contains the game logic of the PandeVITA app. **/
 import 'dart:async';
+
 import 'game_status.dart';
 import 'package:flutter/material.dart';
-
-import 'package:flutter/services.dart';
-import 'package:flutter_beacon/flutter_beacon.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import '../communication/beacon_scanner.dart';
@@ -31,6 +29,7 @@ class GameLogic {
 
   static final GameLogic _gameLogic = GameLogic._privateConstructor();
 
+
   factory GameLogic() {
     return _gameLogic;
   }
@@ -50,18 +49,36 @@ class GameLogic {
   }
 
   void initGame() async {
+    debugPrint("initGame call");
     if (isGameInitiated) {
+      debugPrint("isgameinitiated true");
       return;
     }
+    isGameInitiated = true;
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
-    timer = Timer.periodic(const Duration(seconds: 20), (Timer t) => gameLogicTick());
+    timer = Timer.periodic(const Duration(seconds: 60), (Timer t) => gameLogicTick());
+    debugPrint("hello1");
     _isGameActive = await gameStatus!.isGameActive();
-    isGameInitiated = true;
+    debugPrint("hello2");
+
     contactsStartedTimestamp = await gameStatus!.getContactTimestamp();
     if (contactsStartedTimestamp == 0) {
       contactsStartedTimestamp = DateTime.now().millisecondsSinceEpoch;
       gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
+    }
+    var playerInfectedTimestamp = await gameStatus!.getPlayerInfectedTimestamp();
+    debugPrint("playerInfectedTimestamp $playerInfectedTimestamp");
+    if (playerInfectedTimestamp != 0) {
+      debugPrint("playerinfectedtimestamp is not 0");
+      var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+      //If over 3 days since infection
+      if (currentTimestamp - infectedTimestamp >= 259200000) {
+        gameStatus!.cureInfectPlayer();
+      } else {
+        infectedTimestamp = playerInfectedTimestamp;
+        controller.playerInfected();
+      }
     }
   }
 
@@ -71,6 +88,7 @@ class GameLogic {
 
   //One tick of the game logic. Runs every 60 seconds
   void gameLogicTick() async {
+    debugPrint("infected $infected");
     if (!_isGameActive) {
       return;
     }
@@ -79,11 +97,11 @@ class GameLogic {
         .millisecondsSinceEpoch;
     bool infNearby = false;
     //Check surrounding devices
-    print("GAMELOGICTICK");
+
     var contacts = [];
     scanResults = await beaconScanner!.scan();
-    print("GAMELOGICTICK 2");
-    print(scanResults.toString());
+
+    debugPrint(scanResults.toString());
 
     if (!infected) {
       //Iterate the map
@@ -92,7 +110,7 @@ class GameLogic {
         contacts.add(me.key);
         if (me.value == 1) {
           exposureTime += 1;
-          print("INF PLAYER");
+          debugPrint("INF PLAYER");
           safeTime = 0;
           infNearby = true;
           continue;
@@ -100,7 +118,7 @@ class GameLogic {
       }
       if (!infNearby) {
         exposureTime = 0;
-        print("SAFE");
+        debugPrint("SAFE");
         safeTime += 1;
       }
       //Point logic
@@ -114,7 +132,7 @@ class GameLogic {
       if (safeTime >= 5) {
         gameStatus!.modifyPoints(1);
         safeTime = 0;
-        print("POINTS GAINED");
+        debugPrint("POINTS GAINED");
       }
     }
     //If player is not healthy, they get points by not being near other
@@ -130,6 +148,7 @@ class GameLogic {
         aloneTime = 0;
       }
       if (aloneTime >= 10) {
+        aloneTime = 0;
         gameStatus!.modifyPoints(1);
       }
 
@@ -142,7 +161,7 @@ class GameLogic {
     contactsSinceStarted = contacts.toSet();
     //if over 1 day  since started tracking contacts
     if (timestamp - contactsStartedTimestamp >= 86400000) {
-      //TODO: Send update message to server
+      gameStatus!.updatePlayerStatus(contacts: contactsSinceStarted.length);
       contactsStartedTimestamp = timestamp;
       gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
       contactsSinceStarted.clear();

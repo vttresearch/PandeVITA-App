@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter_beacon/flutter_beacon.dart';
-import 'package:get/get_connect/http/src/status/http_status.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 
@@ -21,13 +20,13 @@ class BeaconScanner {
 
   //Called by other classes to perform scan
   Future<Map<String, int>> scan() async {
-    print("SCAN STARTED");
+    debugPrint("SCAN STARTED");
     Map<String, int> scanResults = {};
     await flutterBeacon.initializeScanning;
     if (!controller.authorizationStatusOk ||
         !controller.locationServiceEnabled ||
         !controller.bluetoothEnabled) {
-      print(
+      debugPrint(
           'RETURNED, authorizationStatusOk=${controller.authorizationStatusOk}, '
               'locationServiceEnabled=${controller.locationServiceEnabled}, '
               'bluetoothEnabled=${controller.bluetoothEnabled}');
@@ -50,14 +49,14 @@ class BeaconScanner {
       }
     } else {
       _streamRanging = flutterBeacon.ranging(regions).listen((RangingResult result) {
-        print("RESULT " + result.toString());
+        debugPrint("RESULT " + result.toString());
         _regionBeacons[result.region] = result.beacons;
         _beacons.clear();
         _regionBeacons.values.forEach((list) {
           _beacons.addAll(list);
         });
         for (Beacon foundBeacon in _beacons) {
-          print(foundBeacon.toString());
+          debugPrint(foundBeacon.toString());
           int inf = 0;
           if (foundBeacon.proximityUUID ==
               'CB10023F-A318-3394-4199-A8730C7C1AED') {
@@ -71,7 +70,7 @@ class BeaconScanner {
 
     await Future.delayed(const Duration(seconds: 10), () => _streamRanging?.pause());
    // await flutterBeacon.
-    print("SCAN STOPPED");
+    debugPrint("SCAN STOPPED");
 
 
     return scanResults;

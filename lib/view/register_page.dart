@@ -77,7 +77,7 @@ class RegisterPageState extends State<RegisterPage> {
         registering = true;
         int success = await client.registerUser(
             username, password, email);
-        print("SUCCESS $success");
+        debugPrint("SUCCESS $success");
         registering = false;
         if (success == 0) {
           int success = await client.createPlayer(username);

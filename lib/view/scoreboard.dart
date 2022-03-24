@@ -46,8 +46,8 @@ class ScoreboardState extends State<Scoreboard> {
 
   void getScoreboardFromServer() async {
     var currentTimeStamp = DateTime.now().millisecondsSinceEpoch;
-    //At least 10 mins between updates to prevent spamming updates
-    if ((currentTimeStamp - lastUpdatedScoreboard) < 600000) {
+    //At least 1 minute between updates to prevent spamming updates
+    if ((currentTimeStamp - lastUpdatedScoreboard) < 60000) {
       return;
     }
     lastUpdatedScoreboard = currentTimeStamp;
@@ -75,8 +75,8 @@ class ScoreboardState extends State<Scoreboard> {
       teamScoreboard.add([teamName, teamScore]);
     }
     teamScoreboard.sort((a, b) => b[1].compareTo(a[1]));
-    print("individualscoreboard $individualScoreboard");
-    print("teamscoreboard $teamScoreboard");
+    debugPrint("individualscoreboard $individualScoreboard");
+    debugPrint("teamscoreboard $teamScoreboard");
     setState(() {});
   }
 

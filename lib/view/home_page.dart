@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:pandevita_game/communication/beacon_broadcast.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pandevita_game/view/scoreboard_page.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
@@ -69,7 +66,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   listeningState() async {
-    print('Listening to bluetooth state');
+    debugPrint('Listening to bluetooth state');
     _streamBluetooth = flutterBeacon
         .bluetoothStateChanged()
         .listen((BluetoothState state) async {
@@ -81,30 +78,30 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   checkAllRequirements() async {
     final bluetoothState = await flutterBeacon.bluetoothState;
     controller.updateBluetoothState(bluetoothState);
-    print('BLUETOOTH $bluetoothState');
+    debugPrint('BLUETOOTH $bluetoothState');
 
     final authorizationStatus = await flutterBeacon.authorizationStatus;
     controller.updateAuthorizationStatus(authorizationStatus);
-    print('AUTHORIZATION $authorizationStatus');
+    debugPrint('AUTHORIZATION $authorizationStatus');
 
     final locationServiceEnabled =
     await flutterBeacon.checkLocationServicesIfEnabled;
     controller.updateLocationService(locationServiceEnabled);
-    print('LOCATION SERVICE $locationServiceEnabled');
+    debugPrint('LOCATION SERVICE $locationServiceEnabled');
 
     if (controller.bluetoothEnabled &&
         controller.authorizationStatusOk &&
         controller.locationServiceEnabled) {
-      print('STATE READY');
-      print('INITIATING GAME');
+      debugPrint('STATE READY');
+      debugPrint('INITIATING GAME');
       //controller.startScanning();
       gameLogic.initGame();
-      print("INITIATING BROADCAST");
+      debugPrint("INITIATING BROADCAST");
       controller.startBroadcasting();
   }
 
   else {
-    print('STATE NOT READY');
+    debugPrint('STATE NOT READY');
     controller.pauseScanning();
     controller.stopBroadcasting();
   }
@@ -112,7 +109,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
 @override
 void didChangeAppLifecycleState(AppLifecycleState state) async {
-  print('AppLifecycleState = $state');
+  debugPrint('AppLifecycleState = $state');
   if (state == AppLifecycleState.resumed) {
     if (_streamBluetooth != null) {
       if (_streamBluetooth!.isPaused) {
@@ -122,6 +119,8 @@ void didChangeAppLifecycleState(AppLifecycleState state) async {
     await checkAllRequirements();
   } else if (state == AppLifecycleState.paused) {
     _streamBluetooth?.pause();
+  } else if (state == AppLifecycleState.detached) {
+    FlutterForegroundTask.stopService();
   }
 }
 
@@ -141,6 +140,7 @@ Future<void> initForegroundTask() async {
       'This notification appears when the foreground service is running.',
       channelImportance: NotificationChannelImportance.LOW,
       priority: NotificationPriority.LOW,
+      isSticky: false,
       iconData: const NotificationIconData(
         resType: ResourceType.drawable,
         resPrefix: ResourcePrefix.img,
@@ -187,7 +187,7 @@ Future<bool> startForegroundTask() async {
     _receivePort = receivePort;
     _receivePort?.listen((message) {
       //if (message is DateTime) {
-      //  print('receive timestamp: $message');
+      //  debugPrint('receive timestamp: $message');
       //}
     });
 
@@ -281,7 +281,6 @@ Widget build(BuildContext context) {
         ],*/
         ),
         backgroundColor: backgroundBlue,
-        //TODO: TABS HERE
         body: Container(
             decoration: backgroundDecoration,
             child: IndexedStack(
@@ -375,7 +374,7 @@ Widget build(BuildContext context) {
     try {
     await flutterBeacon.openBluetoothSettings;
     } on PlatformException catch (e) {
-    print(e);
+    debugPrint(e);
     }
     } else if (Platform.isIOS) {
     await showDialog(

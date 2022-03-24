@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import '../communication/http_communication.dart';
+import 'package:flutter/material.dart';
 /* Singleton class that contains the game data of the user*/
 
 class GameStatus {
@@ -23,7 +24,7 @@ class GameStatus {
   void modifyPoints(int amount) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int newPlayerPoints = (prefs.getInt('playerPoints') ?? 0) + amount;
-    print("New Player Points: $newPlayerPoints");
+    debugPrint("New Player Points: $newPlayerPoints");
     await prefs.setInt('playerPoints', newPlayerPoints);
     controller.eventPlayerPointsChanged();
     updatePlayerStatus();
@@ -33,7 +34,7 @@ class GameStatus {
   Future<String> getPoints() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int playerPoints = prefs.getInt('playerPoints') ?? 0;
-    print("Saved Player Points: $playerPoints");
+    debugPrint("Saved Player Points: $playerPoints");
     return playerPoints.toString();
   }
 
@@ -42,6 +43,8 @@ class GameStatus {
   void infectPlayer() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('playerInfected', true);
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    await prefs.setString('playerInfectedTimestamp', timestamp.toString());
     controller.playerInfected();
   }
 
@@ -59,7 +62,16 @@ class GameStatus {
   void cureInfectPlayer() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('playerInfected', false);
+    await prefs.setString('playerInfectedTimestamp', '0');
     controller.playerCured();
+  }
+
+  Future<int> getPlayerInfectedTimestamp() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    debugPrint("getplayerinfectedtimestamp got here");
+    var timestamp = (prefs.getString('playerInfectedTimestamp') ?? '0');
+    debugPrint("getplayerinfectedtimestamp @timestamp");
+    return int.parse(timestamp);
   }
 
   //Check whether player gets infected or not
@@ -117,7 +129,7 @@ class GameStatus {
 
   void saveContactTimestamp(int timestamp) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    print("ContactTimestamp saved $timestamp");
+    debugPrint("ContactTimestamp saved $timestamp");
     await prefs.setString('contactTimestamp', timestamp.toString());
   }
 
@@ -126,8 +138,8 @@ class GameStatus {
     int score = (prefs.getInt('playerPoints') ?? 0);
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     if (contacts == null) {
-      //At least 5 minutes between updates
-      if (timestamp - lastUpdatedServer > 300000) {
+      //At least 1 minute between updates
+      if (timestamp - lastUpdatedServer > 60000) {
         await client.updatePlayer(score);
         await client.updateScoreboardPlayer(score);
         lastUpdatedServer = timestamp;
