@@ -147,7 +147,7 @@ Future<void> initForegroundTask() async {
         name: 'pandevita_logo_small',
       ),
       buttons: [
-        const NotificationButton(id: 'stopButton', text: 'Stop app'),
+        const NotificationButton(id: 'stopButton', text: 'Stop foreground task'),
       ],
     ),
     iosNotificationOptions: const IOSNotificationOptions(
@@ -202,7 +202,7 @@ Widget build(BuildContext context) {
   return WithForegroundTask(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('PandeVITA app dev0.1'),
+          title: const Text('PandeVITA app 0.1'),
           centerTitle: false,
           /*actions: <Widget>[
           Obx(() {
