@@ -20,7 +20,7 @@ class Radar extends StatefulWidget {
   RadarState createState() => RadarState();
 }
 
-class RadarState extends State<Radar> with TickerProviderStateMixin {
+class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBindingObserver {
   LocationData? currentLocation;
   final httpClient = PandeVITAHttpClient();
   final Location locationService = Location();
@@ -35,6 +35,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
   //User location for drawing the radar
   LatLng userLocation = LatLng(0, 0);
 
+  StreamSubscription<LocationData>? locationSubscription;
+
   //Virus locations for drawing the radar
   List<LatLng> virusLocations = [];
 
@@ -42,6 +44,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    WidgetsBinding.instance?.addObserver(this);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -56,7 +59,22 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
   @override
   void dispose() {
     _controller.dispose();
+    locationSubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    debugPrint('AppLifecycleState radar = $state');
+    if (state == AppLifecycleState.resumed) {
+      if (locationSubscription != null) {
+        if (locationSubscription!.isPaused) {
+          locationSubscription?.resume();
+        }
+      }
+    } else if (state == AppLifecycleState.paused) {
+      locationSubscription?.cancel();
+    }
   }
 
   @override
@@ -112,13 +130,11 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
    * Initialize the location service for tracking the user.
    */
   void initLocationService() async {
-    await locationService.changeSettings(
-        accuracy: LocationAccuracy.high, interval: 3000, distanceFilter: 5);
+
 
     LocationData? location;
     bool serviceEnabled;
    // bool serviceRequestResult;
-
     try {
       serviceEnabled = await locationService.serviceEnabled();
       if (!serviceEnabled) {
@@ -128,6 +144,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
           return;
         }
       }
+
 
       PermissionStatus permissionGranted;
 
@@ -139,6 +156,9 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
           return;
         }
       }
+      await locationService.changeSettings(
+          accuracy: LocationAccuracy.high, interval: 3000, distanceFilter: 5);
+
       debugPrint("ALL GOOD LOCATION");
 
       location = await locationService.getLocation();
@@ -146,7 +166,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin {
       debugPrint('locationisbackgroundmodeenabled $bk');
       debugPrint('currentlocation is $location');
       currentLocation = location;
-      locationService.onLocationChanged.listen((LocationData result) async {
+      locationSubscription = locationService.onLocationChanged.listen((LocationData result) async {
+        debugPrint("newlocation ${result.latitude}");
         if (mounted) {
           setState(() {
             currentLocation = result;
