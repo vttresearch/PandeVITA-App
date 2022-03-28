@@ -58,9 +58,10 @@ class GameLogic {
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
     timer = Timer.periodic(const Duration(seconds: 60), (Timer t) => gameLogicTick());
-    debugPrint("hello1");
-    _isGameActive = await gameStatus!.isGameActive();
-    debugPrint("hello2");
+
+    //Julius: Changed this for debugging the iOS side
+   // _isGameActive = await gameStatus!.isGameActive();
+    _isGameActive = true;
 
     contactsStartedTimestamp = await gameStatus!.getContactTimestamp();
     if (contactsStartedTimestamp == 0) {
