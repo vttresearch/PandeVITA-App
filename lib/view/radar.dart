@@ -343,7 +343,7 @@ class RadarPainter extends CustomPainter {
 
       //If the virus point is further away than the range of the radar
       if (distanceFromUser > radarRange) {
-        statusController.playerInfected();
+        continue;
       }
 
       //Player infected if too close to a static virus point
