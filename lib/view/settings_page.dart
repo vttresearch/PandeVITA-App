@@ -67,6 +67,15 @@ class SettingsPageState extends State<SettingsPage> {
       if (await storage.isTeamFounder(teamName)) {
         isFounderOfTeam = true;
       }
+      //Check if team has been deleted by the team founder
+      var teamId = await storage.getTeamId();
+      Map team = await client.getTeam(teamId!);
+      if (team.containsKey('notfound_error')) {
+        currentTeamName = '';
+        isNotMemberOfTeam = true;
+        isFounderOfTeam = false;
+        storage.deleteTeam();
+      }
     }
     if (isNotMemberOfTeam) {
       var listOfTeams = await client.getTeams();
@@ -76,14 +85,24 @@ class SettingsPageState extends State<SettingsPage> {
         teamsMap[teamName] = teamId;
         teamsList.add(teamName);
       }
-      dropdownValue = teamsList[0];
+      if (teamsList.isNotEmpty) {
+        dropdownValue = teamsList[0];
+      }
+
     } else {
       var teamId = await storage.getTeamId();
       var playersTeam = await client.getTeam(teamId!);
       debugPrint("playersTeam $playersTeam");
       if (playersTeam.isNotEmpty) {
         debugPrint("playersTeam not empty");
-        teamMembers = playersTeam['teamPlayers'];
+        List teamPlayers = playersTeam['teamPlayers'];
+        teamMembers.clear();
+        for (var player in teamPlayers) {
+          if (player != playerName) {
+            teamMembers.add(player);
+          }
+        }
+
         debugPrint("teamMembers $teamMembers");
       }
     }
@@ -146,7 +165,7 @@ class SettingsPageState extends State<SettingsPage> {
           int success = await client.deleteTeam(teamId);
           if (success == 0 || success == 2) {
             //Remove team from local storage
-            storage.deleteTeam();
+            await storage.deleteTeam();
             currentTeamName = "";
             var snackBar = const SnackBar(
               content: Text("Successfully deleted the team"),
@@ -169,11 +188,37 @@ class SettingsPageState extends State<SettingsPage> {
       int success = await client.addToTeam(playerName, teamsMap[joinTeamName]!);
       if (success == 0) {
         currentTeamName = joinTeamName;
-        storage.joinTeam(currentTeamName, teamsMap[joinTeamName]!);
+        await storage.joinTeam(currentTeamName, teamsMap[joinTeamName]!);
         isNotMemberOfTeam = false;
-        updatePage();
+        initializeSettings();
+        var snackBar = const SnackBar(
+          content: Text("Successfully joined a team"),
+          duration: Duration(seconds: 5),
+        );
       }
     }
+
+    //TODO: doLeaveTeam AND Handling if team is deleted
+    doLeaveTeam() async {
+      debugPrint("leavingteam");
+      if (currentTeamName == null) {
+        return;
+      }
+      var teamId = await storage.getTeamId();
+      int success =
+      await client.removeFromTeam(playerName, teamId!);
+      if (success == 0) {
+        await storage.deleteTeam();
+        currentTeamName = '';
+        isNotMemberOfTeam = true;
+        isFounderOfTeam = false;
+        initializeSettings();
+      }
+    }
+
+
+
+
 
     doChangeTeam() async {
       if (currentTeamName == null || joinTeamName == null) {
@@ -294,6 +339,38 @@ class SettingsPageState extends State<SettingsPage> {
                           onPressed: () {
                             Navigator.pop(context, 'OK');
                             doCreateTeam();
+                          },
+                          child: const Text('Yes'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          if (isNotMemberOfTeam == false && isFounderOfTeam == false)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Leave team", style: settingsTextStyle),
+                IconButton(
+                  icon: Image.asset('images/delete_button.png', width: 30),
+                  onPressed: () => showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Leave your team'),
+                      content: const Text('Do you really want to leave your current team?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, 'Cancel');
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, 'OK');
+                            doLeaveTeam();
                           },
                           child: const Text('Yes'),
                         ),

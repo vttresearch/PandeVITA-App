@@ -477,6 +477,9 @@ class PandeVITAHttpClient {
       debugPrint("players team response decoded succsefully");
       return decodedResponse;
     }
+    if (response.statusCode == 404) {
+      return {'notfound_error': 'notFound'};
+    }
     return {};
   }
 
@@ -553,7 +556,7 @@ class PandeVITAHttpClient {
     if (playerFoundInTeam) {
       teamPlayers.remove(playerName);
     } else {
-      return 2;
+      return 0;
     }
     var accessToken = await getAuthorizationToken();
     if (accessToken == "error") {

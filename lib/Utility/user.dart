@@ -72,10 +72,11 @@ class UserStorage {
     return password;
   }
 
-  void joinTeam(String teamName, String teamId) async {
+  Future<int> joinTeam(String teamName, String teamId) async {
     const storage = FlutterSecureStorage();
     await storage.write(key: 'team', value: teamName);
     await storage.write(key: 'teamId', value: teamId);
+    return 0;
   }
 
   Future<String?> getTeam() async {
@@ -91,11 +92,12 @@ class UserStorage {
     await storage.write(key: 'teamId', value: teamId);
   }
 
-  void deleteTeam() async {
+  Future<int> deleteTeam() async {
     const storage = FlutterSecureStorage();
     await storage.delete(key: 'team');
     await storage.delete(key: 'teamFounder');
     await storage.delete(key: 'teamId');
+    return 0;
   }
 
   Future<bool> isTeamFounder(String teamName) async {
