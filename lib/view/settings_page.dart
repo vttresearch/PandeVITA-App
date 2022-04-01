@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/user.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
 import '../Utility/styles.dart';
+import 'package:get/get.dart';
+import '../controller/requirement_state_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -22,6 +24,8 @@ class SettingsPageState extends State<SettingsPage> {
   String joinTeamName = "";
   List teamMembers = [];
 
+  final controller = Get.find<RequirementStateController>();
+
   String playerName = "";
 
   //Map of teams - name --> teamId
@@ -31,6 +35,8 @@ class SettingsPageState extends State<SettingsPage> {
 
   String dropdownValue = "Choose team";
 
+  String playerStatus = "Healthy";
+
   //
   bool isNotMemberOfTeam = true;
   bool isFounderOfTeam = false;
@@ -38,9 +44,7 @@ class SettingsPageState extends State<SettingsPage> {
   bool isBluetoothEnabled = false;
   bool isLocationEnabled = false;
 
-  void toggleBluetooth() {
-
-  }
+  void toggleBluetooth() {}
 
   void toggleLocation() {
     //TODO
@@ -54,6 +58,14 @@ class SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     initializeSettings();
+    controller.playerInfectedStream.listen((flag) {
+      if (flag == true) {
+        playerStatus = "Infected";
+      } else if (flag == false) {
+        playerStatus = "Healthy";
+      }
+      updatePage();
+    });
     super.initState();
   }
 
@@ -88,7 +100,6 @@ class SettingsPageState extends State<SettingsPage> {
       if (teamsList.isNotEmpty) {
         dropdownValue = teamsList[0];
       }
-
     } else {
       var teamId = await storage.getTeamId();
       var playersTeam = await client.getTeam(teamId!);
@@ -205,8 +216,7 @@ class SettingsPageState extends State<SettingsPage> {
         return;
       }
       var teamId = await storage.getTeamId();
-      int success =
-      await client.removeFromTeam(playerName, teamId!);
+      int success = await client.removeFromTeam(playerName, teamId!);
       if (success == 0) {
         await storage.deleteTeam();
         currentTeamName = '';
@@ -215,10 +225,6 @@ class SettingsPageState extends State<SettingsPage> {
         initializeSettings();
       }
     }
-
-
-
-
 
     doChangeTeam() async {
       if (currentTeamName == null || joinTeamName == null) {
@@ -247,31 +253,30 @@ class SettingsPageState extends State<SettingsPage> {
       children: [
         Text("Delete your team", style: settingsTextStyle),
         IconButton(
-            icon: Image.asset('images/delete_button.png', width: 30),
-            onPressed: () => showDialog<String>(
-              context: context,
-              builder: (BuildContext context) => AlertDialog(
-                title: const Text('Delete your team'),
-                content: const Text("Are you sure you want to delete your team?"),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, 'Cancel');
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, 'Yes');
-                      doDeleteTeam();
-                    },
-                    child: const Text('OK'),
-                  ),
-                ],
-              ),
+          icon: Image.asset('images/delete_button.png', width: 30),
+          onPressed: () => showDialog<String>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: const Text('Delete your team'),
+              content: const Text("Are you sure you want to delete your team?"),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context, 'Cancel');
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context, 'Yes');
+                    doDeleteTeam();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
             ),
           ),
-
+        ),
       ],
     );
 
@@ -289,9 +294,19 @@ class SettingsPageState extends State<SettingsPage> {
               Card(
                   child: Container(
                       child: Text(playerName, style: settingsTextStyleAlt),
-                      padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0) ))
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 3.0, horizontal: 10.0)))
             ],
           ),
+          const SizedBox(height: 20),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+            Text("Your status", style: settingsTextStyle),
+            Card(
+                child: Container(
+                    child: Text(playerStatus, style: settingsTextStyleAlt),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 3.0, horizontal: 10.0)))
+          ]),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -300,9 +315,11 @@ class SettingsPageState extends State<SettingsPage> {
               isNotMemberOfTeam == true
                   ? const Text("")
                   : Card(
-                  child: Container(
-                      child: Text(currentTeamName, style: settingsTextStyleAlt),
-                      padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0) )),
+                      child: Container(
+                          child: Text(currentTeamName,
+                              style: settingsTextStyleAlt),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 3.0, horizontal: 10.0))),
             ],
           ),
           const SizedBox(height: 20),
@@ -359,7 +376,8 @@ class SettingsPageState extends State<SettingsPage> {
                     context: context,
                     builder: (BuildContext context) => AlertDialog(
                       title: const Text('Leave your team'),
-                      content: const Text('Do you really want to leave your current team?'),
+                      content: const Text(
+                          'Do you really want to leave your current team?'),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
@@ -384,8 +402,8 @@ class SettingsPageState extends State<SettingsPage> {
           isNotMemberOfTeam == false
               ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Flexible(
-                      child:
-                          Text("Your team members: " + teamMembers.join(","), style: settingsTextStyleAlt))
+                      child: Text("Your team members: " + teamMembers.join(","),
+                          style: settingsTextStyleAlt))
                 ])
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -440,7 +458,7 @@ class SettingsPageState extends State<SettingsPage> {
                         icon: const Icon(Icons.group_add))
                   ],
                 ),
-        /*  Row(
+          /*  Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text("Delete account "),
