@@ -99,6 +99,7 @@ class GameStatus {
       immunity = 0;
     }
     await prefs.setInt('playerImmunity', immunity);
+    controller.eventImmunityLevelChanged();
   }
 
   Future<String> getImmunity() async {
@@ -150,4 +151,39 @@ class GameStatus {
       lastUpdatedServer = timestamp;
     }
   }
+
+  /**
+   * Save the ID of the answered quiz to the list of answered quizzes
+   * and save the score of the last answered quiz
+   */
+  void saveQuizScore(String quizId, int score) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> answeredQuizzes = (prefs.getStringList('quizzes') ?? []);
+    answeredQuizzes.add(quizId);
+    await prefs.setStringList('quizzes', answeredQuizzes);
+    await prefs.setInt('lastQuizScore', score);
+  }
+
+/**
+ * Check if the quiz is already answered. Returns true, if quiz is already
+ * answered, false, if not.
+ */
+  Future<bool> isQuizAnswered(String quizId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> answeredQuizzes = (prefs.getStringList('quizzes') ?? []);
+    if (answeredQuizzes.contains(quizId)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get the score of the last quiz answered.
+   */
+  Future<int> getLastQuizScore() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int lastScore = (prefs.getInt('lastQuizScore') ?? 0);
+    return lastScore;
+  }
+
 }

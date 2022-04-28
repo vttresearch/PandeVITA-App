@@ -231,7 +231,7 @@ class RadarPainter extends CustomPainter {
   final int radarRange = 300;
 
   //Customize this
-  final int infectionDistance = 5;
+  final int infectionDistance = 1;
 
   //Constructor
   RadarPainter(this.userLocation, this.virusLocations);
@@ -348,7 +348,7 @@ class RadarPainter extends CustomPainter {
 
       //Player infected if too close to a static virus point
       if (distanceFromUser < infectionDistance) {
-        statusController.playerInfected();
+        statusController.staticVirusNearby();
       }
 
       //Direction from the user location to the virus point

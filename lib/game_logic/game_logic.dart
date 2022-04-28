@@ -25,6 +25,9 @@ class GameLogic {
 
   var contactsSinceStarted = Set();
 
+  var staticVirusNearby = false;
+  var staticExposureTime = 0;
+
   final controller = Get.find<RequirementStateController>();
 
   static final GameLogic _gameLogic = GameLogic._privateConstructor();
@@ -44,6 +47,13 @@ class GameLogic {
             .millisecondsSinceEpoch;
       } else if (flag == false) {
         infected = false;
+      }
+    });
+    controller.staticVirusNearbyStream.listen((flag) {
+      if (flag == true) {
+        staticVirusNearby = true;
+      } else if (flag == false) {
+        staticVirusNearby = false;
       }
     });
   }
@@ -126,9 +136,22 @@ class GameLogic {
       if (exposureTime >= 10) {
         gameStatus!.checkInfection(100);
         exposureTime = 0;
-      } //If no exposure for 5 minutes
-      //If player is healthy
+      }
+      //If the player is near a static virus
+      if (staticVirusNearby) {
+        staticExposureTime += 1;
+        safeTime = 0;
+        if (staticExposureTime >= 5) {
+          gameStatus!.checkInfection(100);
+          staticExposureTime = 0;
+          controller.staticVirusNearbyCleared();
+        }
+      } else {
+        staticExposureTime = 0;
+      }
 
+      //If no exposure for 5 minutes
+      //If player is healthy
       if (safeTime >= 5) {
         gameStatus!.modifyPoints(1);
         safeTime = 0;

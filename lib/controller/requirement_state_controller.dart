@@ -13,6 +13,7 @@ class RequirementStateController extends GetxController {
   var _playerInfected = false.obs;
   var _playerPointsChanged = false.obs;
   var _immunityLevelChanged = false.obs;
+  var _staticVirusNearby = false.obs;
 
   bool get bluetoothEnabled => bluetoothState.value == BluetoothState.stateOn;
   bool get authorizationStatusOk =>
@@ -66,6 +67,14 @@ class RequirementStateController extends GetxController {
     _immunityLevelChanged.value = !_immunityLevelChanged.value;
   }
 
+  staticVirusNearby() {
+    _staticVirusNearby.value = true;
+  }
+
+  staticVirusNearbyCleared() {
+    _staticVirusNearby.value = false;
+  }
+
   Stream<bool> get startBroadcastStream {
     return _startBroadcasting.stream;
   }
@@ -89,4 +98,9 @@ class RequirementStateController extends GetxController {
   Stream<bool> get immunityLevelChangedStream {
     return _immunityLevelChanged.stream;
   }
+
+  Stream<bool> get staticVirusNearbyStream {
+    return _staticVirusNearby.stream;
+  }
+
 }
