@@ -3,6 +3,8 @@ import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import '../communication/http_communication.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 /* Singleton class that contains the game data of the user*/
 
 class GameStatus {
@@ -18,7 +20,11 @@ class GameStatus {
     return _gameStatus;
   }
 
-  GameStatus._privateConstructor();
+  GameStatus._privateConstructor() {
+    //Used for testing purposes
+  //  removeLastQuiz();
+  }
+
 
   //Add or remove points
   void modifyPoints(int amount) async {
@@ -156,7 +162,7 @@ class GameStatus {
    * Save the ID of the answered quiz to the list of answered quizzes
    * and save the score of the last answered quiz
    */
-  void saveQuizScore(String quizId, int score) async {
+  void  saveQuizScore(String quizId, int score) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> answeredQuizzes = (prefs.getStringList('quizzes') ?? []);
     answeredQuizzes.add(quizId);
@@ -184,6 +190,13 @@ class GameStatus {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int lastScore = (prefs.getInt('lastQuizScore') ?? 0);
     return lastScore;
+  }
+
+  /**For testing purposes*/
+  void removeLastQuiz() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('lastQuizScore');
+    prefs.remove('quizzes');
   }
 
 }

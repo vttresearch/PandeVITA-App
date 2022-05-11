@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'controller/requirement_state_controller.dart';
 import 'view/home_page.dart';
 import 'view/landing_page.dart';
 import 'package:get/get.dart';
+import 'view/register_page.dart';
+//import 'view/login_page.dart';
 
-void main() {
+void main() async {
   const bool isProduction = bool.fromEnvironment('dart.vm.product');
   if (isProduction) {
     // analyser does not like empty function body
@@ -12,6 +16,9 @@ void main() {
     // so i changed it to this:
     debugPrint = (String? message, {int? wrapWidth}) => null;
   }
+  //Hive db
+ // await Hive.initFlutter();
+ // await Hive.openBox("pandevita_box");
   runApp(MainApp());
 }
 
@@ -51,6 +58,8 @@ class MainApp extends StatelessWidget {
       home: LandingPage(),
       routes: {
         '/home': (context) => HomePage(),
+        '/register': (context) => RegisterPage(),
+       // '/login': (context) => LoginPage(),
       }
     );
   }

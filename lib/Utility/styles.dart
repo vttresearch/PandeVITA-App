@@ -23,7 +23,8 @@ var boxDecorationRadar = BoxDecoration(
         Border.all(color: const Color.fromARGB(255, 255, 255, 255), width: 2),
     borderRadius: BorderRadius.circular(8));
 
-var backgroundDecoration = const BoxDecoration(
+var backgroundDecoration =
+ const BoxDecoration(
   gradient: LinearGradient(
       colors: [
         Color.fromARGB(255, 36, 128, 198),
@@ -44,3 +45,21 @@ var settingsTextStyleAlt =  const TextStyle(
    // fontWeight: FontWeight.bold,
     color: Colors.black,
     fontSize: 20);
+
+var backgroundDecorationInfected =
+const BoxDecoration(
+  gradient: LinearGradient(
+      colors: [
+        Color.fromARGB(255, 191, 31, 31),
+        Color.fromARGB(255, 206, 96, 96)
+      ],
+      begin: Alignment.bottomRight,
+      end: Alignment.topLeft,
+      stops: [0.0, 1.0],
+      tileMode: TileMode.clamp),
+);
+
+var quizTextStyle = const TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+    fontSize: 25);

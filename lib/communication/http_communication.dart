@@ -8,7 +8,9 @@ import 'package:http/http.dart' as client;
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/retry.dart';
+import 'package:synchronized/synchronized.dart';
 import '../Utility/user.dart';
+
 
 /**Singleton class that communicates with the platform server*/
 class PandeVITAHttpClient {
@@ -17,6 +19,8 @@ class PandeVITAHttpClient {
   final storage = const FlutterSecureStorage();
   final userStorage = UserStorage();
   final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
+
+  final lock = Lock();
 
   // final controller = Get.find<RequirementStateController>();
 
@@ -87,10 +91,11 @@ class PandeVITAHttpClient {
     return await rootBundle.loadString('asset_files/test_credentials.txt');
   }
 
+  //TODO: FIX
   //Get mask GPS points from the server
   Future<List> getMaskPoints() async {
     debugPrint("MASK: GETMASKPOINTS in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return [];
     }
@@ -102,18 +107,27 @@ class PandeVITAHttpClient {
     debugPrint('Response body: + ${response.body}');
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      var maskPoints = decodedResponse[0]["masks"];
-      debugPrint("MASKPOINTS $maskPoints");
-      return maskPoints;
+      try {
+        List decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decodedResponse.isNotEmpty) {
+          debugPrint("maskarray not empty $decodedResponse");
+          var maskArray = decodedResponse[0]["masks"];
+          debugPrint("maskArray $maskArray");
+          return maskArray;
+        }
+      } catch (error) {
+        debugPrint("Error in getviruspoints " + error.toString());
+        // await storage.delete(key: 'access_token');
+      }
     }
     return [];
   }
 
+  //TODO: FIX
   //Get vaccination GPS points from the server
   Future<List> getVaccinationPoints() async {
     debugPrint("GETVACCINATIONPOINTS in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return [];
     }
@@ -125,10 +139,18 @@ class PandeVITAHttpClient {
     debugPrint('Response body: + ${response.body}');
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      var vaccinationPoints = decodedResponse[0]["locations"];
-      debugPrint("VACCINATIONPOINTS $vaccinationPoints");
-      return vaccinationPoints;
+      try {
+        List decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decodedResponse.isNotEmpty) {
+          debugPrint("vaccinationarray not empty $decodedResponse");
+          var vaccinationArray = decodedResponse[0]["locations"];
+          debugPrint("vaccinationArray $vaccinationArray");
+          return vaccinationArray;
+        }
+      } catch (error) {
+        debugPrint("Error in getvaccinationpoints " + error.toString());
+        // await storage.delete(key: 'access_token');
+      }
     }
     return [];
   }
@@ -136,7 +158,7 @@ class PandeVITAHttpClient {
   //Get virus points as GPS from server
   Future<List> getVirusPoints() async {
     debugPrint("GETVIRUSPOINTS in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return [];
     }
@@ -167,7 +189,7 @@ class PandeVITAHttpClient {
   //Returns gameStatus as string
   Future<Map> getGameStatus() async {
     debugPrint("GETGAMESTATUS in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return {};
     }
@@ -198,7 +220,7 @@ class PandeVITAHttpClient {
 
   Future<Map> getScoreBoard() async {
     debugPrint("getScoreBoard() in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return {};
     }
@@ -261,6 +283,8 @@ class PandeVITAHttpClient {
       return 2;
     }
 
+
+
     //Everything went ok, save the user
     var userId = decodedResponse2['user_id'];
     User user =
@@ -268,11 +292,10 @@ class PandeVITAHttpClient {
     userStorage.saveUser(user);
     return 0;
   }
-
   //Create a player on the server side
   Future<int> createPlayer(String playerName) async {
     debugPrint("createPlayer in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return 3;
     }
@@ -302,7 +325,7 @@ class PandeVITAHttpClient {
   Future<int> updatePlayer(int score, {int? recentContacts}) async {
     if (recentContacts == null) {
       debugPrint("updatePlayer in http_comm");
-      var accessToken = await getAuthorizationToken();
+      var accessToken = await lock.synchronized(getAuthorizationToken);
       if (accessToken == "error") {
         return 3;
       }
@@ -325,7 +348,7 @@ class PandeVITAHttpClient {
       }
     } else {
       debugPrint("updatePlayer in http_comm, recentcontacts $recentContacts");
-      var accessToken = await getAuthorizationToken();
+      var accessToken = await lock.synchronized(getAuthorizationToken);
       if (accessToken == "error") {
         return 3;
       }
@@ -362,7 +385,7 @@ class PandeVITAHttpClient {
         'additionalProp1': {}
       };
       var body = json.encode(initScoreboard);
-      var accessToken = await getAuthorizationToken();
+      var accessToken = await lock.synchronized(getAuthorizationToken);
       if (accessToken == "error") {
         return 3;
       }
@@ -391,7 +414,7 @@ class PandeVITAHttpClient {
     if (!playerFoundInScoreboard) {
       playerList.add({'playerName': playerName, 'score': score});
     }
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return 3;
     }
@@ -412,7 +435,7 @@ class PandeVITAHttpClient {
 
   Future<List> createTeam(String teamName) async {
     debugPrint("createTeam in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return [3, ""];
     }
@@ -441,7 +464,7 @@ class PandeVITAHttpClient {
 
   Future<List> getTeams() async {
     debugPrint("getTeams() in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return [];
     }
@@ -461,7 +484,7 @@ class PandeVITAHttpClient {
 
   Future<Map> getTeam(String teamId) async {
     debugPrint("getTeam() in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return {};
     }
@@ -485,7 +508,7 @@ class PandeVITAHttpClient {
 
   Future<int> deleteTeam(String teamId) async {
     debugPrint("deleteTeam() in http_comm");
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return 2;
     }
@@ -522,7 +545,7 @@ class PandeVITAHttpClient {
     if (!playerFoundInTeam) {
       teamPlayers.add(playerName);
     }
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return 3;
     }
@@ -558,7 +581,7 @@ class PandeVITAHttpClient {
     } else {
       return 0;
     }
-    var accessToken = await getAuthorizationToken();
+    var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == "error") {
       return 3;
     }
@@ -584,8 +607,32 @@ class PandeVITAHttpClient {
     return 0;
   }
 
+
+  /**
+   * Get a quiz from the server
+   */
   Future<Map> getQuiz() async {
-    return {};
+    debugPrint("getQuiz() in http_comm");
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    if (accessToken == "error") {
+      return {'error': 'authTokenError'};
+    }
+    var quizUrl = Uri.parse(_url + "/quizzes");
+    var response = await client.get(quizUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (response.statusCode == 200) {
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      debugPrint("quiz response decoded succsefully");
+      return decodedResponse[0];
+    }
+    if (response.statusCode == 404) {
+      return {'error': 'notFound'};
+    }
+    return {'error': 'other'};
   }
 
   Future<int> removeUser() async {

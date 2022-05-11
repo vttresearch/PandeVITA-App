@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:pandevita_game/communication/beacon_broadcast.dart';
+import 'package:pandevita_game/view/quiz_page.dart';
 import 'package:pandevita_game/view/scoreboard_page.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
@@ -32,6 +33,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final BeaconBroadcastClass beaconBroadcastClass = BeaconBroadcastClass();
   ReceivePort? _receivePort;
 
+  var infected = false;
+
   @override
   void initState() {
     WidgetsBinding.instance?.addObserver(this);
@@ -39,6 +42,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     checkPermissions();
     listeningState();
+    controller.playerInfectedStream.listen((flag) {
+      if (flag == true) {
+        infected = true;
+      } else if (flag == false) {
+        infected = false;
+      }
+      setState(() {
+
+      });
+    });
 
     initForegroundTask();
 
@@ -282,7 +295,7 @@ Widget build(BuildContext context) {
         ),
         backgroundColor: backgroundBlue,
         body: Container(
-            decoration: backgroundDecoration,
+            decoration: infected == true ? backgroundDecorationInfected : backgroundDecoration,
             child: IndexedStack(
               index: currentIndex,
               children: [
@@ -294,10 +307,10 @@ Widget build(BuildContext context) {
                   padding: const EdgeInsets.all(8),
                   child: TabMap(),
                 ),
-               /* Padding(
+                Padding(
                   padding: const EdgeInsets.all(8),
-                  child: TabAction(),
-                ),*/
+                  child: QuizPage(),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: SettingsPage(),
@@ -330,11 +343,11 @@ Widget build(BuildContext context) {
               icon: Image.asset('images/map_icon.png', width: 25),
               label: 'Radar',
             ),
-           /* BottomNavigationBarItem(
-              backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-              icon: Image.asset('images/action_icon.png', width: 25),
-              label: 'Action',
-            ),*/
+           BottomNavigationBarItem(
+             // backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              icon: Image.asset('images/quiz_icon.png', width: 25),
+              label: 'Quiz',
+            ),
             BottomNavigationBarItem(
               //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
               icon: Image.asset('images/settings_icon.png', width: 25),
