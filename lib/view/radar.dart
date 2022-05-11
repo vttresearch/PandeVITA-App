@@ -129,7 +129,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
                     SizedBox(width: 10),
                     CircleAvatar(
                       radius: 8,
-                      backgroundColor: Colors.pink,
+                      backgroundColor: Colors.lightBlueAccent,
                     ),
                     SizedBox(width: 5),
                     Text("Mask", style: TextStyle(
@@ -342,7 +342,7 @@ class RadarPainter extends CustomPainter {
     ..isAntiAlias = true;
 
   var maskPaint = Paint()
-    ..color = Colors.pink
+    ..color = Colors.lightBlueAccent
     ..style = PaintingStyle.fill
     ..isAntiAlias = true;
 

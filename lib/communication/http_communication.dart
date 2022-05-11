@@ -278,7 +278,7 @@ class PandeVITAHttpClient {
     debugPrint('Response status: ${response2.statusCode}');
     debugPrint('Response body: ${response2.body}');
     var decodedResponse2 = jsonDecode(utf8.decode(response2.bodyBytes));
-    if (decodedResponse2["created"] == false || response2.statusCode != 200) {
+    if (decodedResponse2["created"] == false || response2.statusCode != 201) {
       debugPrint("error registering user: something went wrong");
       return 2;
     }
