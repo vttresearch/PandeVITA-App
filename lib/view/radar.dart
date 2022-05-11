@@ -1,7 +1,6 @@
-/** This file contains the necessary functionality for the PandeVITA
- * radar. The radar implementation is heavily based on
- * https://medium.com/@d.panaite92/building-a-radar-chart-with-flutter-and-custom-painter-384c005002f9
- */
+/// This file contains the necessary functionality for the PandeVITA
+/// radar. The radar implementation is heavily based on
+/// https://medium.com/@d.panaite92/building-a-radar-chart-with-flutter-and-custom-painter-384c005002f9
 import 'dart:async';
 import 'dart:math';
 import '../controller/requirement_state_controller.dart';
@@ -39,6 +38,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
 
   //Virus locations for drawing the radar
   List<LatLng> virusLocations = [];
+  List<LatLng> maskLocations = [];
+  List<LatLng> vaccinationLocations = [];
 
   int initStateCounter = 0;
 
@@ -50,6 +51,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
       duration: const Duration(seconds: 1),
     )..repeat();
     getVirusPointsList();
+    getMaskPointsList();
+    getVaccinationPointsList();
     super.initState();
     initStateCounter++;
     debugPrint("initStateCounter $initStateCounter");
@@ -86,7 +89,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
         builder: (_, __) {
           return CustomPaint(
             size: const Size(double.infinity, double.infinity),
-            painter: RadarPainter(userLocation, virusLocations),
+            painter: RadarPainter(userLocation, virusLocations, maskLocations, vaccinationLocations),
           );
         }),
           Column(
@@ -120,15 +123,42 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
                     )),
                   ]
               ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: const [
+                    SizedBox(width: 10),
+                    CircleAvatar(
+                      radius: 8,
+                      backgroundColor: Colors.pink,
+                    ),
+                    SizedBox(width: 5),
+                    Text("Mask", style: TextStyle(
+                        color: Colors.white, fontSize: 15
+                    )),
+                  ]
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: const [
+                    SizedBox(width: 10),
+                    CircleAvatar(
+                      radius: 8,
+                      backgroundColor: Colors.limeAccent,
+                    ),
+                    SizedBox(width: 5),
+                    Text("Vaccine", style: TextStyle(
+                        color: Colors.white, fontSize: 15
+                    )),
+                  ]
+              ),
+
               const SizedBox(height: 3)
             ],
           )
         ]);
   }
 
-  /**
-   * Initialize the location service for tracking the user.
-   */
+  /// Initialize the location service for tracking the user.
   void initLocationService() async {
 
 
@@ -192,9 +222,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
     }
   }
 
-  /**
-   * Get the stationary virus locations from the platform.
-   */
+  /// Get the stationary virus locations from the platform.
   Future<bool> getVirusPointsList() async {
     List virusPoints = await httpClient.getVirusPoints();
     if (virusPoints.isEmpty) {
@@ -217,12 +245,57 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
       return true;
     }
   }
-}
+/**
+  Get the mask points to display them on the radar
+ */
+  Future<bool> getMaskPointsList() async {
+    List maskPoints = await httpClient.getMaskPoints();
+    if (maskPoints.isEmpty) {
+      debugPrint("Mask: EMPTY");
+      return false;
+    } else {
+      debugPrint("Mask: $maskPoints");
+      for (String maskPoint in maskPoints) {
+        try {
+          var splitted = maskPoint.split(", ");
+          LatLng latLngTemp = LatLng(double.parse(splitted[0]),
+              double.parse(splitted[1]));
+          maskLocations.add(latLngTemp);
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+      }
+      return true;
+    }
+  }
 
 /**
- * Draws the radar and the virus points near enough the user to be
- * displayed on the radar.
+  *Get the vaccination points to display them on the radar
  */
+  Future<bool> getVaccinationPointsList() async {
+    List vaccinationPoints = await httpClient.getVaccinationPoints();
+    if (vaccinationPoints.isEmpty) {
+      debugPrint("Vaccination: EMPTY");
+      return false;
+    } else {
+      debugPrint("Vaccination: $vaccinationPoints");
+      for (String vaccinationPoint in vaccinationPoints) {
+        try {
+          var splitted = vaccinationPoint.split(", ");
+          LatLng latLngTemp = LatLng(double.parse(splitted[0]),
+              double.parse(splitted[1]));
+          vaccinationLocations.add(latLngTemp);
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+      }
+      return true;
+    }
+  }
+}
+
+/// Draws the radar and the virus points near enough the user to be
+/// displayed on the radar.
 class RadarPainter extends CustomPainter {
 
   final statusController = Get.find<RequirementStateController>();
@@ -230,17 +303,21 @@ class RadarPainter extends CustomPainter {
   //Customize this value to change the range of the radar (in meters)
   final int radarRange = 300;
 
-  //Customize this
+  //Customize these
   final int infectionDistance = 1;
+  final int maskDistance = 1;
+  final int vaccinationDistance = 1;
 
   //Constructor
-  RadarPainter(this.userLocation, this.virusLocations);
+  RadarPainter(this.userLocation, this.virusLocations, this.maskLocations, this.vaccinationLocations);
 
   //For calculating distance between two coordinates
   final Distance distance = Distance();
 
   LatLng userLocation;
   List<LatLng> virusLocations;
+  List<LatLng> maskLocations;
+  List<LatLng> vaccinationLocations;
 
   var outlinePaint = Paint()
     ..color = Colors.white
@@ -261,6 +338,16 @@ class RadarPainter extends CustomPainter {
 
   var playerPaint = Paint()
     ..color = Colors.green
+    ..style = PaintingStyle.fill
+    ..isAntiAlias = true;
+
+  var maskPaint = Paint()
+    ..color = Colors.pink
+    ..style = PaintingStyle.fill
+    ..isAntiAlias = true;
+
+  var vaccinationPaint = Paint()
+    ..color = Colors.limeAccent
     ..style = PaintingStyle.fill
     ..isAntiAlias = true;
 
@@ -337,10 +424,10 @@ class RadarPainter extends CustomPainter {
 
     canvas.drawCircle(centerOffset, 10, playerPaint);
 
+    //Virus coordinate logic
     for (LatLng virusCoordinate in virusLocations) {
       //distance from the user
       double distanceFromUser = distance(userLocation, virusCoordinate);
-
       //If the virus point is further away than the range of the radar
       if (distanceFromUser > radarRange) {
         continue;
@@ -364,6 +451,68 @@ class RadarPainter extends CustomPainter {
           centerY + (yMeterDistance) / metersRatio);
 
       canvas.drawCircle(coordinateOffset, 8, virusPaint);
+    }
+
+    //Vaccination coordinate logic
+    for (LatLng vaccinationCoordinate in vaccinationLocations) {
+      //distance from the user
+      double distanceFromUser = distance(userLocation, vaccinationCoordinate);
+
+      //If the vaccination point is further away than the range of the radar
+      if (distanceFromUser > radarRange) {
+        continue;
+      }
+
+
+      //Logic when getting vaccinated
+      if (distanceFromUser < vaccinationDistance) {
+        //TODO: vaccination logic here
+      }
+
+      //Direction from the user location to the vaccination point
+      double direction =
+          (distance.bearing(userLocation, vaccinationCoordinate) - 90) * (pi / 180.0);
+
+      //Distance in the y direction
+      double yMeterDistance = sin(direction) * distanceFromUser;
+      //Distance in the x direction
+      double xMeterDistance = cos(direction) * distanceFromUser;
+
+      var coordinateOffset = Offset(centerX + (xMeterDistance) / metersRatio,
+          centerY + (yMeterDistance) / metersRatio);
+
+      canvas.drawCircle(coordinateOffset, 8, vaccinationPaint);
+    }
+
+    //Mask coordinate logic
+    for (LatLng maskCoordinate in maskLocations) {
+      //distance from the user
+      double distanceFromUser = distance(userLocation, maskCoordinate);
+
+      //If the mask point is further away than the range of the radar
+      if (distanceFromUser > radarRange) {
+        continue;
+      }
+
+
+      //Logic when getting a mask
+      if (distanceFromUser < maskDistance) {
+        //TODO: mask logic here
+      }
+
+      //Direction from the user location to the mask point
+      double direction =
+          (distance.bearing(userLocation, maskCoordinate) - 90) * (pi / 180.0);
+
+      //Distance in the y direction
+      double yMeterDistance = sin(direction) * distanceFromUser;
+      //Distance in the x direction
+      double xMeterDistance = cos(direction) * distanceFromUser;
+
+      var coordinateOffset = Offset(centerX + (xMeterDistance) / metersRatio,
+          centerY + (yMeterDistance) / metersRatio);
+
+      canvas.drawCircle(coordinateOffset, 8, maskPaint);
     }
   }
 
