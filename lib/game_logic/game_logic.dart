@@ -42,10 +42,14 @@ class GameLogic {
     controller.playerInfectedStream.listen((flag) {
       if (flag == true) {
         infected = true;
-        infectedTimestamp = DateTime
-            .now()
-            .millisecondsSinceEpoch;
+        //Bug fix: correct timestamps now not overridden
+        if (infectedTimestamp == 0) {
+          infectedTimestamp = DateTime
+              .now()
+              .millisecondsSinceEpoch;
+        }
       } else if (flag == false) {
+        infectedTimestamp = 0;
         infected = false;
       }
     });
