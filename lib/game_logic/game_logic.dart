@@ -9,6 +9,7 @@ import '../communication/beacon_scanner.dart';
 
 class GameLogic {
   Timer? timer;
+  Timer? timer2;
   GameStatus? gameStatus;
   BeaconScanner? beaconScanner;
   Map<String, int> scanResults = {};
@@ -18,6 +19,8 @@ class GameLogic {
   bool infected = false;
   var infectedTimestamp = 0;
   var contactsStartedTimestamp = 0;
+
+  var lastGameLogicTimestamp = 0;
 
   bool _isGameActive = false;
 
@@ -71,21 +74,29 @@ class GameLogic {
     isGameInitiated = true;
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
-    timer = Timer.periodic(const Duration(seconds: 60), (Timer t) => gameLogicTick());
-    debugPrint("hello1");
+    timer = Timer.periodic(
+        const Duration(seconds: 20), (Timer t) => gameLogicTick());
+    DateTime now = DateTime.now();
+    DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
+    timer2 = Timer(endOfDay.difference(now), immunityReset);
     _isGameActive = await gameStatus!.isGameActive();
-    debugPrint("hello2");
+
 
     contactsStartedTimestamp = await gameStatus!.getContactTimestamp();
     if (contactsStartedTimestamp == 0) {
-      contactsStartedTimestamp = DateTime.now().millisecondsSinceEpoch;
+      contactsStartedTimestamp = DateTime
+          .now()
+          .millisecondsSinceEpoch;
       gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
     }
-    var playerInfectedTimestamp = await gameStatus!.getPlayerInfectedTimestamp();
+    var playerInfectedTimestamp = await gameStatus!
+        .getPlayerInfectedTimestamp();
     debugPrint("playerInfectedTimestamp $playerInfectedTimestamp");
     if (playerInfectedTimestamp != 0) {
       debugPrint("playerinfectedtimestamp is not 0");
-      var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+      var currentTimestamp = DateTime
+          .now()
+          .millisecondsSinceEpoch;
       //If over 3 days since infection
       if (currentTimestamp - infectedTimestamp >= 259200000) {
         gameStatus!.cureInfectPlayer();
@@ -98,6 +109,7 @@ class GameLogic {
 
   void stopGame() {
     timer?.cancel();
+    timer2?.cancel();
   }
 
   //One tick of the game logic. Runs every 60 seconds
@@ -109,89 +121,124 @@ class GameLogic {
     var timestamp = DateTime
         .now()
         .millisecondsSinceEpoch;
+    var checking = timestamp - lastGameLogicTimestamp;
+    debugPrint("time since last game logic tick $checking");
+    lastGameLogicTimestamp = timestamp;
     bool infNearby = false;
     //Check surrounding devices
 
     var contacts = [];
-    scanResults = await beaconScanner!.scan();
 
-    debugPrint(scanResults.toString());
+    ///changed to use then instead of await for optimization
+    beaconScanner!.scan().then((scanResults) {
+      debugPrint(scanResults.toString());
 
-    if (!infected) {
-      //Iterate the map
-      for (MapEntry<String, int> me in scanResults.entries) {
-        //Infected player nearby
-        contacts.add(me.key);
-        if (me.value == 1) {
-          exposureTime += 1;
-          debugPrint("INF PLAYER");
-          safeTime = 0;
-          infNearby = true;
-          continue;
-        }
-      }
-      if (!infNearby) {
-        exposureTime = 0;
-        debugPrint("SAFE");
-        safeTime += 1;
-      }
-      //Point logic
-      //If exposure to infected player has been longer than 10 minutes
-      if (exposureTime >= 10) {
-        gameStatus!.checkInfection(100);
-        exposureTime = 0;
-      }
-      //If the player is near a static virus
-      if (staticVirusNearby) {
-        staticExposureTime += 1;
-        safeTime = 0;
-        if (staticExposureTime >= 5) {
-          gameStatus!.checkInfection(100);
-          staticExposureTime = 0;
-          controller.staticVirusNearbyCleared();
-        }
-      } else {
-        staticExposureTime = 0;
-      }
-
-      //If no exposure for 5 minutes
-      //If player is healthy
-      if (safeTime >= 5) {
-        gameStatus!.modifyPoints(1);
-        safeTime = 0;
-        debugPrint("POINTS GAINED");
-      }
-    }
-    //If player is not healthy, they get points by not being near other
-    // players
-    if (infected) {
-      if (scanResults.isEmpty) {
-        aloneTime += 1;
-      } else {
+      if (!infected) {
+        //Iterate the map
         for (MapEntry<String, int> me in scanResults.entries) {
           //Infected player nearby
           contacts.add(me.key);
+          if (me.value == 1) {
+            exposureTime += 1;
+            debugPrint("INF PLAYER");
+            safeTime = 0;
+            infNearby = true;
+            continue;
+          }
         }
-        aloneTime = 0;
-      }
-      if (aloneTime >= 10) {
-        aloneTime = 0;
-        gameStatus!.modifyPoints(1);
-      }
+        if (!infNearby) {
+          exposureTime = 0;
+          debugPrint("SAFE");
+          safeTime += 1;
+        }
+        //Point logic
+        //If exposure to infected player has been longer than 10 minutes
+        if (exposureTime >= 10) {
+          gameStatus!.checkInfection(100);
+          exposureTime = 0;
+        }
+        //If the player is near a static virus
+        if (staticVirusNearby) {
+          staticExposureTime += 1;
+          safeTime = 0;
+          if (staticExposureTime >= 5) {
+            gameStatus!.checkInfection(100);
+            staticExposureTime = 0;
+            controller.staticVirusNearbyCleared();
+          }
+        } else {
+          staticExposureTime = 0;
+        }
 
-      //If over 3 days since infection
-      if (timestamp - infectedTimestamp >= 259200000) {
-        gameStatus!.cureInfectPlayer();
+        //If no exposure for 5 minutes
+        //If player is healthy
+        if (safeTime >= 5) {
+          gameStatus!.modifyPoints(1);
+          safeTime = 0;
+          debugPrint("POINTS GAINED");
+        }
       }
-    }
+      //If player is not healthy, they get points by not being near other
+      // players
+      if (infected) {
+        if (scanResults.isEmpty) {
+          aloneTime += 1;
+        } else {
+          for (MapEntry<String, int> me in scanResults.entries) {
+            //Infected player nearby
+            contacts.add(me.key);
+          }
+          aloneTime = 0;
+        }
+        if (aloneTime >= 10) {
+          aloneTime = 0;
+          gameStatus!.modifyPoints(1);
+        }
+
+        //If over 3 days since infection
+        if (timestamp - infectedTimestamp >= 259200000) {
+          gameStatus!.cureInfectPlayer();
+        }
+      }
+    });
     //These are gone through regardless of whether player is infected or not
     contactsSinceStarted = contacts.toSet();
     //if over 1 day  since started tracking contacts
-    if (timestamp - contactsStartedTimestamp >= 86400000) {
+    /*  if (timestamp - contactsStartedTimestamp >= 86400000) {
       gameStatus!.updatePlayerStatus(contacts: contactsSinceStarted.length);
       contactsStartedTimestamp = timestamp;
       gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
       contactsSinceStarted.clear();
+    }*/
+    //Vaccines
+    debugPrint("Immunity logic: vaccines");
+    List<String> vaccineTimestamps = await gameStatus!.getVaccineTimestamps();
+    for (String vaccineTimestamp in vaccineTimestamps) {
+      //Vaccine dose grants immunity for two days
+      var vaccineTimestampInt = int.parse(vaccineTimestamp);
+      if (timestamp - vaccineTimestampInt > 172800000) {
+        gameStatus!.vaccineExpired(vaccineTimestamp);
+      }
     }
+    //Masks
+    debugPrint("Immunity logic: masks");
+    List<String> maskTimestamps = await gameStatus!.getMaskTimestamps();
+    for (String maskTimestamp in maskTimestamps) {
+      //A collected mask grants immunity for one day
+      var maskTimestampInt = int.parse(maskTimestamp);
+      if (timestamp - maskTimestampInt > 86400000) {
+        gameStatus!.maskExpired(maskTimestamp);
+      }
+    }
+  }
+
+  ///Remove 40 immunity at the end of each day
+  void immunityReset() {
+    gameStatus!.modifyImmunity(-40);
+    //New timer
+    DateTime now = DateTime.now();
+    DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
+    timer2 = Timer(endOfDay.difference(now), immunityReset);
+
   }
 }

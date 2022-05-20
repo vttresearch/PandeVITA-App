@@ -14,6 +14,7 @@ class RequirementStateController extends GetxController {
   var _playerPointsChanged = false.obs;
   var _immunityLevelChanged = false.obs;
   var _staticVirusNearby = false.obs;
+  var _vaccinationAmountChanged = false.obs;
 
   bool get bluetoothEnabled => bluetoothState.value == BluetoothState.stateOn;
   bool get authorizationStatusOk =>
@@ -67,6 +68,10 @@ class RequirementStateController extends GetxController {
     _immunityLevelChanged.value = !_immunityLevelChanged.value;
   }
 
+  eventVaccinationAmountChanged() {
+    _vaccinationAmountChanged.value = !_vaccinationAmountChanged.value;
+  }
+
   staticVirusNearby() {
     _staticVirusNearby.value = true;
   }
@@ -101,6 +106,10 @@ class RequirementStateController extends GetxController {
 
   Stream<bool> get staticVirusNearbyStream {
     return _staticVirusNearby.stream;
+  }
+
+  Stream<bool> get vaccinationAmountChangedStream {
+    return _vaccinationAmountChanged.stream;
   }
 
 }

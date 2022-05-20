@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 import '../communication/http_communication.dart';
 import '../game_logic/game_logic.dart';
+import '../game_logic/game_status.dart';
 
 import 'package:location/location.dart';
 
@@ -19,17 +20,17 @@ class Radar extends StatefulWidget {
   RadarState createState() => RadarState();
 }
 
-class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBindingObserver {
+class RadarState extends State<Radar>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   LocationData? currentLocation;
   final httpClient = PandeVITAHttpClient();
   final Location locationService = Location();
 
-  final GameLogic gameLogic = GameLogic();
+  final GameStatus gameStatus = GameStatus();
 
   //bool _permission = false;
   String? _serviceError = '';
   late AnimationController _controller;
-
 
   //User location for drawing the radar
   LatLng userLocation = LatLng(0, 0);
@@ -40,6 +41,9 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
   List<LatLng> virusLocations = [];
   List<LatLng> maskLocations = [];
   List<LatLng> vaccinationLocations = [];
+
+  List<LatLng> collectedMasks = [];
+  List<LatLng> collectedVaccines = [];
 
   int initStateCounter = 0;
 
@@ -80,91 +84,100 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
     }
   }
 
+  ///When the user collects a mask
+  void onMaskCollected(LatLng coordinate) async {
+    String coordinateString = coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
+    bool newMask = await gameStatus.checkMask(coordinateString);
+    if (newMask) {
+      collectedMasks.add(coordinate);
+      maskLocations.remove(coordinate);
+      var snackBar = const SnackBar(
+        content: Text("You collected a mask and got 20 immunity for a day"),
+        duration: Duration(seconds: 5),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  ///When the user collects a vaccine
+  void onVaccineCollected(LatLng coordinate) async {
+    String coordinateString = coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
+    bool newVaccine = await gameStatus.checkVaccination(coordinateString);
+    if (newVaccine) {
+      collectedVaccines.add(coordinate);
+      vaccinationLocations.remove(coordinate);
+      var snackBar = const SnackBar(
+        content: Text("You collected a vaccine and got 50 immunity for two days"),
+        duration: Duration(seconds: 5),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-        children : [
-        AnimatedBuilder(
-        animation: _controller,
-        builder: (_, __) {
-          return CustomPaint(
-            size: const Size(double.infinity, double.infinity),
-            painter: RadarPainter(userLocation, virusLocations, maskLocations, vaccinationLocations),
-          );
-        }),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: const [
-                  SizedBox(width: 10),
-                  CircleAvatar(
-                    radius: 8,
-                    backgroundColor: Colors.green,
-                  ),
-                  SizedBox(width: 5),
-                  Text("You", style: TextStyle(
-                    color: Colors.white, fontSize: 15
-                  ))
-                ]
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: const [
-                    SizedBox(width: 10),
-                    CircleAvatar(
-                      radius: 8,
-                      backgroundColor: Colors.red,
-                    ),
-                    SizedBox(width: 5),
-                    Text("Stationary virus", style: TextStyle(
-                        color: Colors.white, fontSize: 15
-                    )),
-                  ]
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: const [
-                    SizedBox(width: 10),
-                    CircleAvatar(
-                      radius: 8,
-                      backgroundColor: Colors.lightBlueAccent,
-                    ),
-                    SizedBox(width: 5),
-                    Text("Mask", style: TextStyle(
-                        color: Colors.white, fontSize: 15
-                    )),
-                  ]
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: const [
-                    SizedBox(width: 10),
-                    CircleAvatar(
-                      radius: 8,
-                      backgroundColor: Colors.limeAccent,
-                    ),
-                    SizedBox(width: 5),
-                    Text("Vaccine", style: TextStyle(
-                        color: Colors.white, fontSize: 15
-                    )),
-                  ]
-              ),
-
-              const SizedBox(height: 3)
-            ],
-          )
-        ]);
+    return Stack(children: [
+      AnimatedBuilder(
+          animation: _controller,
+          builder: (_, __) {
+            return CustomPaint(
+              size: const Size(double.infinity, double.infinity),
+              painter: RadarPainter(userLocation, virusLocations, maskLocations,
+                  vaccinationLocations, onMaskCollected, onVaccineCollected),
+            );
+          }),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+            SizedBox(width: 10),
+            CircleAvatar(
+              radius: 8,
+              backgroundColor: Colors.green,
+            ),
+            SizedBox(width: 5),
+            Text("You", style: TextStyle(color: Colors.white, fontSize: 15))
+          ]),
+          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+            SizedBox(width: 10),
+            CircleAvatar(
+              radius: 8,
+              backgroundColor: Colors.red,
+            ),
+            SizedBox(width: 5),
+            Text("Stationary virus",
+                style: TextStyle(color: Colors.white, fontSize: 15)),
+          ]),
+          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+            SizedBox(width: 10),
+            CircleAvatar(
+              radius: 8,
+              backgroundColor: Colors.lightBlueAccent,
+            ),
+            SizedBox(width: 5),
+            Text("Mask", style: TextStyle(color: Colors.white, fontSize: 15)),
+          ]),
+          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+            SizedBox(width: 10),
+            CircleAvatar(
+              radius: 8,
+              backgroundColor: Colors.limeAccent,
+            ),
+            SizedBox(width: 5),
+            Text("Vaccine",
+                style: TextStyle(color: Colors.white, fontSize: 15)),
+          ]),
+          const SizedBox(height: 3)
+        ],
+      )
+    ]);
   }
 
   /// Initialize the location service for tracking the user.
   void initLocationService() async {
-
-
     LocationData? location;
     bool serviceEnabled;
-   // bool serviceRequestResult;
+    // bool serviceRequestResult;
     try {
       serviceEnabled = await locationService.serviceEnabled();
       if (!serviceEnabled) {
@@ -174,7 +187,6 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
           return;
         }
       }
-
 
       PermissionStatus permissionGranted;
 
@@ -196,7 +208,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
       debugPrint('locationisbackgroundmodeenabled $bk');
       debugPrint('currentlocation is $location');
       currentLocation = location;
-      locationSubscription = locationService.onLocationChanged.listen((LocationData result) async {
+      locationSubscription =
+          locationService.onLocationChanged.listen((LocationData result) async {
         debugPrint("newlocation ${result.latitude}");
         if (mounted) {
           setState(() {
@@ -245,9 +258,10 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
       return true;
     }
   }
-/**
-  Get the mask points to display them on the radar
- */
+
+  /**
+      Get the mask points to display them on the radar
+   */
   Future<bool> getMaskPointsList() async {
     List maskPoints = await httpClient.getMaskPoints();
     if (maskPoints.isEmpty) {
@@ -258,20 +272,34 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
       for (String maskPoint in maskPoints) {
         try {
           var splitted = maskPoint.split(", ");
-          LatLng latLngTemp = LatLng(double.parse(splitted[0]),
-              double.parse(splitted[1]));
+          LatLng latLngTemp =
+              LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
           maskLocations.add(latLngTemp);
         } catch (e) {
           debugPrint(e.toString());
+        }
+      }
+      //Get already collected masks from local memory
+
+      List<String> collectedMasksStrings = await gameStatus.getCollectedMasks();
+      for (String coordinateString in collectedMasksStrings) {
+        var splitted = coordinateString.split(", ");
+        LatLng latLngTemp =
+        LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
+        collectedMasks.add(latLngTemp);
+      }
+      for (LatLng coordinate in collectedMasks) {
+        if (maskLocations.contains(coordinate)) {
+          maskLocations.remove(coordinate);
         }
       }
       return true;
     }
   }
 
-/**
-  *Get the vaccination points to display them on the radar
- */
+  /**
+   *Get the vaccination points to display them on the radar
+   */
   Future<bool> getVaccinationPointsList() async {
     List vaccinationPoints = await httpClient.getVaccinationPoints();
     if (vaccinationPoints.isEmpty) {
@@ -282,8 +310,8 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
       for (String vaccinationPoint in vaccinationPoints) {
         try {
           var splitted = vaccinationPoint.split(", ");
-          LatLng latLngTemp = LatLng(double.parse(splitted[0]),
-              double.parse(splitted[1]));
+          LatLng latLngTemp =
+              LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
           vaccinationLocations.add(latLngTemp);
         } catch (e) {
           debugPrint(e.toString());
@@ -297,6 +325,7 @@ class RadarState extends State<Radar> with TickerProviderStateMixin, WidgetsBind
 /// Draws the radar and the virus points near enough the user to be
 /// displayed on the radar.
 class RadarPainter extends CustomPainter {
+  final GameStatus gameStatus = GameStatus();
 
   final statusController = Get.find<RequirementStateController>();
 
@@ -305,11 +334,15 @@ class RadarPainter extends CustomPainter {
 
   //Customize these
   final int infectionDistance = 1;
-  final int maskDistance = 1;
-  final int vaccinationDistance = 1;
+  final int maskDistance = 5;
+  final int vaccinationDistance = 5;
+
+  //Control variable
+  int framesNearStaticVirus = 0;
 
   //Constructor
-  RadarPainter(this.userLocation, this.virusLocations, this.maskLocations, this.vaccinationLocations);
+  RadarPainter(this.userLocation, this.virusLocations, this.maskLocations,
+      this.vaccinationLocations, this.onMaskCollected, this.onVaccineCollected);
 
   //For calculating distance between two coordinates
   final Distance distance = Distance();
@@ -318,6 +351,10 @@ class RadarPainter extends CustomPainter {
   List<LatLng> virusLocations;
   List<LatLng> maskLocations;
   List<LatLng> vaccinationLocations;
+
+  //Callbacks
+  final Function(LatLng) onMaskCollected;
+  final Function(LatLng) onVaccineCollected;
 
   var outlinePaint = Paint()
     ..color = Colors.white
@@ -372,8 +409,6 @@ class RadarPainter extends CustomPainter {
 
       canvas.drawCircle(centerOffset, tickRadius, ticksPaint);
 
-
-
       TextPainter(
         text: TextSpan(
           text: tick.toString(),
@@ -386,8 +421,6 @@ class RadarPainter extends CustomPainter {
         ..paint(
             canvas, Offset(centerX, centerY - tickRadius - tickLabelFontSize));
     });
-
-
 
     var features = ["N", "E", "S", "W"];
     var angle = (2 * pi) / features.length;
@@ -425,6 +458,7 @@ class RadarPainter extends CustomPainter {
     canvas.drawCircle(centerOffset, 10, playerPaint);
 
     //Virus coordinate logic
+    int framesNearStaticVirusLast = framesNearStaticVirus;
     for (LatLng virusCoordinate in virusLocations) {
       //distance from the user
       double distanceFromUser = distance(userLocation, virusCoordinate);
@@ -435,7 +469,11 @@ class RadarPainter extends CustomPainter {
 
       //Player infected if too close to a static virus point
       if (distanceFromUser < infectionDistance) {
-        statusController.staticVirusNearby();
+        framesNearStaticVirus += 1;
+        if (framesNearStaticVirus > 60) {
+          statusController.staticVirusNearby();
+          framesNearStaticVirus = 0;
+        }
       }
 
       //Direction from the user location to the virus point
@@ -452,6 +490,10 @@ class RadarPainter extends CustomPainter {
 
       canvas.drawCircle(coordinateOffset, 8, virusPaint);
     }
+    //If not near a static virus anymore
+    if (framesNearStaticVirusLast == framesNearStaticVirus) {
+      framesNearStaticVirus = 0;
+    }
 
     //Vaccination coordinate logic
     for (LatLng vaccinationCoordinate in vaccinationLocations) {
@@ -463,15 +505,15 @@ class RadarPainter extends CustomPainter {
         continue;
       }
 
-
       //Logic when getting vaccinated
       if (distanceFromUser < vaccinationDistance) {
-        //TODO: vaccination logic here
+        onVaccineCollected(vaccinationCoordinate);
       }
 
       //Direction from the user location to the vaccination point
       double direction =
-          (distance.bearing(userLocation, vaccinationCoordinate) - 90) * (pi / 180.0);
+          (distance.bearing(userLocation, vaccinationCoordinate) - 90) *
+              (pi / 180.0);
 
       //Distance in the y direction
       double yMeterDistance = sin(direction) * distanceFromUser;
@@ -494,10 +536,9 @@ class RadarPainter extends CustomPainter {
         continue;
       }
 
-
       //Logic when getting a mask
       if (distanceFromUser < maskDistance) {
-        //TODO: mask logic here
+        onMaskCollected(maskCoordinate);
       }
 
       //Direction from the user location to the mask point
@@ -520,4 +561,5 @@ class RadarPainter extends CustomPainter {
   bool shouldRepaint(RadarPainter oldDelegate) {
     return true;
   }
+
 }

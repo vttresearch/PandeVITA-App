@@ -8,6 +8,7 @@ import 'package:pandevita_game/communication/http_communication.dart';
 import '../Utility/styles.dart';
 import 'package:get/get.dart';
 import '../controller/requirement_state_controller.dart';
+import '../game_logic/game_status.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -242,9 +243,35 @@ class SettingsPageState extends State<SettingsPage> {
       }
     }
 
+    ///Deletes the user account on the server and application memory
     doDeleteAccount() async {
-      //TODO
+      //Delete the user account on the server side first
       int success = await client.removeUser();
+      if (success != 0) {
+        var snackBar = const SnackBar(
+          content: Text("User deletion was unsuccessful."),
+          duration: Duration(seconds: 5),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        return;
+      }
+
+      var snackBar = const SnackBar(
+        content: Text("User deletion was successful. The app will return to "
+            "registration screen shortly."),
+        duration: Duration(seconds: 5),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      //If serverside deletion successful, clear local data
+      GameStatus gameStatus = GameStatus();
+      controller.stopBroadcasting();
+      await gameStatus.deleteAllData();
+      await storage.deleteUser();
+      //Back to the landing screen
+
+      Navigator.pushReplacementNamed(context, '/landing');
+
+
       return;
     }
 
@@ -458,7 +485,8 @@ class SettingsPageState extends State<SettingsPage> {
                         icon: const Icon(Icons.group_add))
                   ],
                 ),
-          /*  Row(
+          const SizedBox(height: 20),
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text("Delete account "),
@@ -469,7 +497,7 @@ class SettingsPageState extends State<SettingsPage> {
                   builder: (BuildContext context) => AlertDialog(
                     title: const Text('Delete account'),
                     content: const Text(
-                        'Do you really want to delete your account?'),
+                        'Do you really want to delete your account? This action cannot be reverted.'),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () {
@@ -489,7 +517,7 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ],
-          ),*/
+          ),
           /*SwitchListTile(
             title: const Text('Bluetooth'),
             value: isBluetoothEnabled,

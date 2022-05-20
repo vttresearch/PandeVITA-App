@@ -84,3 +84,44 @@ class ImmunityLevelState extends State<ImmunityLevel> {
 
 
 }
+
+class VaccinationAmount extends StatefulWidget {
+  @override
+  VaccinationAmountState createState() => VaccinationAmountState();
+}
+
+class VaccinationAmountState extends State<VaccinationAmount> {
+  final GameStatus gameStatus = GameStatus();
+  final controller = Get.find<RequirementStateController>();
+  String vaccinationAmount = "0";
+
+  @override
+  void initState() {
+    super.initState();
+    updateVaccinationAmount();
+    controller.vaccinationAmountChangedStream.listen((flag) {
+      updateVaccinationAmount();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(vaccinationAmount,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontSize: 25,
+
+        ));
+  }
+
+  void updateVaccinationAmount() async {
+    debugPrint("EVENT: Vaccination amount UPDATED");
+    List<String> vaccines = await gameStatus.getVaccineTimestamps();
+    setState(() {
+      vaccinationAmount = vaccines.length.toString();
+    });
+  }
+
+
+}

@@ -63,12 +63,7 @@ class _TabMapState extends State<TabMap> {
                   const SizedBox(width: 100),
                   Image.asset("images/vaccination_icon.png", width: 50),
                   const SizedBox(width: 20),
-                  const Text("0",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 25,
-                      )), //TODO: vaccination status
+                  VaccinationAmount(), //TODO: vaccination status
                 ],
               )),
               Expanded(

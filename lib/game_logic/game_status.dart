@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+import 'package:pandevita_game/communication/beacon_broadcast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
@@ -45,7 +47,7 @@ class GameStatus {
   }
 
 
-  //Infect the player
+  ///Infect the player
   void infectPlayer() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('playerInfected', true);
@@ -64,7 +66,7 @@ class GameStatus {
     return proximityUUID;
   }
 
-  //Clear infection
+  ///Clear infection
   void cureInfectPlayer() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('playerInfected', false);
@@ -197,6 +199,79 @@ class GameStatus {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.remove('lastQuizScore');
     prefs.remove('quizzes');
+  }
+
+  Future<void> deleteAllData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
+  Future<bool> checkVaccination(String coordinate) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> collectedVaccines = (prefs.getStringList('collectedVaccines') ?? []);
+    if (collectedVaccines.contains(coordinate)) {
+      return false;
+    }
+    collectedVaccines.add(coordinate);
+    await prefs.setStringList('collectedVaccines', collectedVaccines);
+    modifyImmunity(50);
+    //Set timestamp
+    List<String> vaccineTimestamps = (prefs.getStringList('vaccineTimestamps') ?? []);
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    vaccineTimestamps.add(timestamp.toString());
+    await prefs.setStringList('vaccineTimestamps', vaccineTimestamps);
+    controller.eventVaccinationAmountChanged();
+    return true;
+  }
+
+  Future<bool> checkMask(String coordinate) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> collectedMasks = (prefs.getStringList('collectedMasks') ?? []);
+    if (collectedMasks.contains(coordinate)) {
+      return false;
+    }
+    collectedMasks.add(coordinate);
+    await prefs.setStringList('collectedMasks', collectedMasks);
+    modifyImmunity(20);
+    //Set timestamp
+    List<String> maskTimestamps = (prefs.getStringList('maskTimestamps') ?? []);
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    maskTimestamps.add(timestamp.toString());
+    await prefs.setStringList('maskTimestamps', maskTimestamps);
+    return true;
+  }
+
+  Future<List<String>> getCollectedMasks() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> collectedMasks = (prefs.getStringList('collectedMasks') ?? []);
+    return collectedMasks;
+  }
+
+  Future<List<String>> getMaskTimestamps() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> maskTimestamps = (prefs.getStringList('maskTimestamps') ?? []);
+    return maskTimestamps;
+  }
+
+  Future<void> maskExpired(String timestamp) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> maskTimestamps = (prefs.getStringList('maskTimestamps') ?? []);
+    maskTimestamps.remove(timestamp);
+    await prefs.setStringList('maskTimestamps', maskTimestamps);
+  }
+
+  Future<List<String>> getVaccineTimestamps() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> vaccineTimestamps = (prefs.getStringList('vaccineTimestamps') ?? []);
+    return vaccineTimestamps;
+  }
+
+  Future<void> vaccineExpired(String timestamp) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> vaccineTimestamps = (prefs.getStringList('vaccineTimestamps') ?? []);
+    vaccineTimestamps.remove(timestamp);
+    await prefs.setStringList('vaccineTimestamps', vaccineTimestamps);
+    controller.eventVaccinationAmountChanged();
   }
 
 }
