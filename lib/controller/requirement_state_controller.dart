@@ -16,6 +16,8 @@ class RequirementStateController extends GetxController {
   var _staticVirusNearby = false.obs;
   var _vaccinationAmountChanged = false.obs;
 
+  var _backgroundColor = "blue".obs;
+
   bool get bluetoothEnabled => bluetoothState.value == BluetoothState.stateOn;
   bool get authorizationStatusOk =>
       authorizationStatus.value == AuthorizationStatus.allowed ||
@@ -54,10 +56,12 @@ class RequirementStateController extends GetxController {
 
   playerInfected() {
     _playerInfected.value = true;
+    _backgroundColor = "red".obs;
   }
 
   playerCured() {
     _playerInfected.value = false;
+    _backgroundColor = "blue".obs;
   }
 
   eventPlayerPointsChanged() {
@@ -70,6 +74,14 @@ class RequirementStateController extends GetxController {
 
   eventVaccinationAmountChanged() {
     _vaccinationAmountChanged.value = !_vaccinationAmountChanged.value;
+  }
+
+  eventBackgroundChanged1day() {
+    _backgroundColor = "orange".obs;
+  }
+
+  eventBackgroundChanged2days() {
+    _backgroundColor = "green".obs;
   }
 
   staticVirusNearby() {
@@ -110,6 +122,10 @@ class RequirementStateController extends GetxController {
 
   Stream<bool> get vaccinationAmountChangedStream {
     return _vaccinationAmountChanged.stream;
+  }
+
+  Stream<String> get backgroundColorChangeStream {
+    return _backgroundColor.stream;
   }
 
 }

@@ -17,6 +17,12 @@ class GameLogic {
   int safeTime = 0;
   int aloneTime = 0;
   bool infected = false;
+
+  //Control variables for UI
+  bool infected3days = false;
+  bool infected2days = false;
+  bool infected1day = false;
+
   var infectedTimestamp = 0;
   var contactsStartedTimestamp = 0;
 
@@ -45,6 +51,7 @@ class GameLogic {
     controller.playerInfectedStream.listen((flag) {
       if (flag == true) {
         infected = true;
+        infected3days = true;
         //Bug fix: correct timestamps now not overridden
         if (infectedTimestamp == 0) {
           infectedTimestamp = DateTime
@@ -75,7 +82,7 @@ class GameLogic {
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
     timer = Timer.periodic(
-        const Duration(seconds: 20), (Timer t) => gameLogicTick());
+        const Duration(seconds: 60), (Timer t) => gameLogicTick());
     DateTime now = DateTime.now();
     DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
     timer2 = Timer(endOfDay.difference(now), immunityReset);
@@ -107,12 +114,13 @@ class GameLogic {
     }
   }
 
+  ///Stops the timers that keep the game logic running
   void stopGame() {
     timer?.cancel();
     timer2?.cancel();
   }
 
-  //One tick of the game logic. Runs every 60 seconds
+  ///One tick of the game logic. Runs every 60 seconds
   void gameLogicTick() async {
     debugPrint("infected $infected");
     if (!_isGameActive) {
@@ -161,7 +169,8 @@ class GameLogic {
         if (staticVirusNearby) {
           staticExposureTime += 1;
           safeTime = 0;
-          if (staticExposureTime >= 5) {
+          //edit this to edit time needed to infect from static virus
+          if (staticExposureTime >= 1) {
             gameStatus!.checkInfection(100);
             staticExposureTime = 0;
             controller.staticVirusNearbyCleared();
@@ -194,11 +203,22 @@ class GameLogic {
           aloneTime = 0;
           gameStatus!.modifyPoints(1);
         }
-
         //If over 3 days since infection
         if (timestamp - infectedTimestamp >= 259200000) {
           gameStatus!.cureInfectPlayer();
+        } //if over 2 days since infection
+        else if (timestamp - infectedTimestamp >= 172800000 && infected1day == false) {
+          controller.eventBackgroundChanged2days();
+          infected1day = true;
+          infected2days = false;
+        } //if over 1 day since infection
+        else if (timestamp - infectedTimestamp >= 86400000 && infected2days == false) {
+          controller.eventBackgroundChanged1day();
+          infected3days = false;
+          infected2days = true;
         }
+
+
       }
     });
     //These are gone through regardless of whether player is infected or not

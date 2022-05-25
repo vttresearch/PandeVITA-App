@@ -62,6 +62,8 @@ class LandingPageState extends State<LandingPage> {
         ),
         routes: {
           '/home': (context) => HomePage(),
+          '/register': (context) => RegisterPage(),
+          '/landing': (context) => LandingPage(),
         }
     );
   }

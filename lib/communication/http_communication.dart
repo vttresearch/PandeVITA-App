@@ -91,7 +91,6 @@ class PandeVITAHttpClient {
     return await rootBundle.loadString('asset_files/test_credentials.txt');
   }
 
-  //TODO: FIX
   //Get mask GPS points from the server
   Future<List> getMaskPoints() async {
     debugPrint("MASK: GETMASKPOINTS in http_comm");
@@ -248,6 +247,7 @@ class PandeVITAHttpClient {
     return {};
   }
 
+  //TODO: handle user id
   Future<int> registerUser(
       String userName, String password, String email) async {
     var registerUrl = Uri.parse(_url + "/users");
@@ -635,7 +635,74 @@ class PandeVITAHttpClient {
     return {'error': 'other'};
   }
 
+  ///Remove user data from the server. Irreversible. Returns 0, if deletion
+  ///successful.
   Future<int> removeUser() async {
+    //Delete player instance
+    debugPrint("deleting player in removeUser in http_comm");
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    if (accessToken == "error") {
+      return 3;
+    }
+    var playerName = await userStorage.getUserName();
+    debugPrint("playername is $playerName");
+    var playerUrl = Uri.parse(_url + "/players/" + playerName);
+    var response = await client.delete(playerUrl, headers: {
+      'accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (response.statusCode != 204 && response.statusCode != 404) {
+      return 1;
+    }
+    //Delete scoreboard instance of player
+    //First get the scoreboard
+    var scoreboard = await getScoreBoard();
+    //No scoreboard yet, create it
+    if (scoreboard.isNotEmpty) {
+      var scoreboardId = scoreboard['id'];
+      List playerList = scoreboard['players'];
+      var playerName = await userStorage.getUserName();
+      for (Map entry in playerList) {
+        if (entry["playerName"] == playerName) {
+          playerList.remove(entry);
+          break;
+        }
+      }
+      var scoreboardsUrl =
+      Uri.parse(_url + "/scoreboards/" + scoreboardId.toString());
+      var scoreBoardData = {'players': playerList};
+      var body = json.encode(scoreBoardData);
+      var response = await client.patch(scoreboardsUrl, body: body, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+        'Content-type': 'application/json'
+      });
+      if (response.statusCode != 204) {
+        return 2;
+      }
+    }
+    //Remove user from team, if user is in one
+    var teamId = await userStorage.getTeamId();
+    if (teamId != null) {
+      removeFromTeam(playerName, teamId);
+    }
+    //Delete the user
+    var userId = await userStorage.getUserId();
+    var usersUrl =
+    Uri.parse(_url + "/users/" + userId);
+    var deletionResponse = await client.delete(usersUrl, headers: {
+      'accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (deletionResponse.statusCode != 204) {
+      return 1;
+    }
     return 0;
+
+
   }
 }

@@ -27,7 +27,6 @@ class User {
 class UserStorage {
   Future<bool> saveUser(User user) async {
     const storage = FlutterSecureStorage();
-
     await storage.write(key: "userId", value: user.userId);
     await storage.write(key: "username", value: user.name);
     await storage.write(key: "email", value: user.email);
@@ -54,10 +53,21 @@ class UserStorage {
 
   }
 
+  Future<void> deleteUser() async {
+    const storage = FlutterSecureStorage();
+    await storage.deleteAll();
+  }
+
   Future<String> getUserName() async {
     const storage = FlutterSecureStorage();
     String userName = await storage.read(key: "username") as String;
     return userName;
+  }
+
+  Future<String> getUserId() async {
+    const storage = FlutterSecureStorage();
+    String userId = await storage.read(key: "userId") as String;
+    return userId;
   }
 
   Future<String> getToken() async {

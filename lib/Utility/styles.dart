@@ -46,12 +46,38 @@ var settingsTextStyleAlt =  const TextStyle(
     color: Colors.black,
     fontSize: 20);
 
-var backgroundDecorationInfected =
+var backgroundDecorationInfected3days =
 const BoxDecoration(
   gradient: LinearGradient(
       colors: [
-        Color.fromARGB(255, 191, 31, 31),
-        Color.fromARGB(255, 206, 96, 96)
+        Color.fromARGB(255, 212, 24, 0),
+        Color.fromARGB(255, 216, 116, 101)
+      ],
+      begin: Alignment.bottomRight,
+      end: Alignment.topLeft,
+      stops: [0.0, 1.0],
+      tileMode: TileMode.clamp),
+);
+
+var backgroundDecorationInfected2days =
+const BoxDecoration(
+  gradient: LinearGradient(
+      colors: [
+        Color.fromARGB(255, 212, 96, 0),
+        Color.fromARGB(255, 216, 167, 101)
+      ],
+      begin: Alignment.bottomRight,
+      end: Alignment.topLeft,
+      stops: [0.0, 1.0],
+      tileMode: TileMode.clamp),
+);
+
+var backgroundDecorationInfected1days =
+const BoxDecoration(
+  gradient: LinearGradient(
+      colors: [
+        Color.fromARGB(255, 0, 212, 117),
+        Color.fromARGB(255, 101, 216, 166)
       ],
       begin: Alignment.bottomRight,
       end: Alignment.topLeft,

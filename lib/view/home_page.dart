@@ -33,6 +33,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final BeaconBroadcastClass beaconBroadcastClass = BeaconBroadcastClass();
   ReceivePort? _receivePort;
 
+  BoxDecoration PandeVITABackgroundDecoration = backgroundDecoration;
+
   var infected = false;
 
   @override
@@ -47,6 +49,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         infected = true;
       } else if (flag == false) {
         infected = false;
+      }
+      setState(() {
+
+      });
+    });
+
+    //Listen to UI color changes
+    controller.backgroundColorChangeStream.listen((color) {
+      if (color == "blue") {
+        PandeVITABackgroundDecoration = backgroundDecoration;
+      } else if (color == "red") {
+        PandeVITABackgroundDecoration = backgroundDecorationInfected3days;
+      } else if (color == "orange") {
+        PandeVITABackgroundDecoration = backgroundDecorationInfected2days;
+      } else if (color == "green") {
+        PandeVITABackgroundDecoration = backgroundDecorationInfected1days;
       }
       setState(() {
 
@@ -212,7 +230,7 @@ Future<bool> startForegroundTask() async {
 
 @override
 Widget build(BuildContext context) {
-  return WithForegroundTask(
+    return WithForegroundTask(
       child: Scaffold(
         appBar: AppBar(
           title: const Text('PandeVITA app 0.1'),
@@ -295,7 +313,7 @@ Widget build(BuildContext context) {
         ),
         backgroundColor: backgroundBlue,
         body: Container(
-            decoration: infected == true ? backgroundDecorationInfected : backgroundDecoration,
+            decoration: PandeVITABackgroundDecoration,
             child: IndexedStack(
               index: currentIndex,
               children: [

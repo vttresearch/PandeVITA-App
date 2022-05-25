@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/user.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
+import 'package:pandevita_game/game_logic/game_logic.dart';
 import '../Utility/styles.dart';
 import 'package:get/get.dart';
 import '../controller/requirement_state_controller.dart';
@@ -267,6 +268,9 @@ class SettingsPageState extends State<SettingsPage> {
       controller.stopBroadcasting();
       await gameStatus.deleteAllData();
       await storage.deleteUser();
+      //Stop the game
+      GameLogic gameLogic = GameLogic();
+      gameLogic.stopGame();
       //Back to the landing screen
 
       Navigator.pushReplacementNamed(context, '/landing');
