@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
@@ -12,6 +14,8 @@ class Scoreboard extends StatefulWidget {
 
 class ScoreboardState extends State<Scoreboard> {
   bool showingIndividualStats = true;
+
+  Timer? timer;
 
   var showIndividualScoreboard = true;
 
@@ -41,7 +45,29 @@ class ScoreboardState extends State<Scoreboard> {
   @override
   void initState() {
     getScoreboardFromServer();
+    timer = Timer.periodic(const Duration(minutes: 5), (Timer t) => getScoreboardFromServer());
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+       if (timer != null) {
+        if (!timer!.isActive) {
+          timer = Timer.periodic(const Duration(minutes: 5), (Timer t) => getScoreboardFromServer());
+        }
+      } else {
+        timer = timer = Timer.periodic(const Duration(minutes: 5), (Timer t) => getScoreboardFromServer());
+      }
+    } else if (state == AppLifecycleState.paused) {
+      timer?.cancel();
+    }
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
   }
 
   void getScoreboardFromServer() async {
@@ -92,11 +118,11 @@ class ScoreboardState extends State<Scoreboard> {
                   color: Colors.white,
                   fontSize: 25,
                 )),
-            IconButton(
+            /*IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: getScoreboardFromServer,
                 color: Colors.white,
-                iconSize: 30)
+                iconSize: 30)*/
           ]),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -144,7 +170,11 @@ class ScoreboardState extends State<Scoreboard> {
               ?
               //If showing individual scoreboard
               Expanded(
-                  child: ListView.builder(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      getScoreboardFromServer();
+                    },
+                    child: ListView.builder(
                       padding: const EdgeInsets.all(16.0),
                       itemCount: individualScoreboard.length,
                       itemBuilder: (context, i) {
@@ -172,11 +202,15 @@ class ScoreboardState extends State<Scoreboard> {
                                 ]),
                             trailing:
                                 Image.asset('images/xp_star.png', width: 25));
-                      }),
+                      })),
                   //If showing team scoreboard
                 )
               : Expanded(
-                  child: ListView.builder(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      getScoreboardFromServer();
+                    },
+                    child: ListView.builder(
                       padding: const EdgeInsets.all(16.0),
                       itemCount: teamScoreboard.length,
                       itemBuilder: (context, i) {
@@ -204,7 +238,7 @@ class ScoreboardState extends State<Scoreboard> {
                             trailing:
                                 Image.asset('images/xp_star.png', width: 25));
                       }),
-                )
+                ))
         ]));
   }
 }
