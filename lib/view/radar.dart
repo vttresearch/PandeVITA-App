@@ -27,6 +27,9 @@ class RadarState extends State<Radar>
   final Location locationService = Location();
 
   final GameStatus gameStatus = GameStatus();
+  Timer? timer;
+
+  final statusController = Get.find<RequirementStateController>();
 
   //bool _permission = false;
   String? _serviceError = '';
@@ -46,6 +49,17 @@ class RadarState extends State<Radar>
   List<LatLng> collectedVaccines = [];
 
   int initStateCounter = 0;
+
+  //Customize these
+  final int infectionDistance = 1;
+  final int maskDistance = 5;
+  final int vaccinationDistance = 5;
+
+  //Control variables
+  int ticksNearStaticVirus = 0;
+  int refreshCounter = 0;
+
+  int dataUpdateTimestamp = 0;
 
   @override
   void initState() {
@@ -67,6 +81,7 @@ class RadarState extends State<Radar>
   void dispose() {
     _controller.dispose();
     locationSubscription?.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -78,9 +93,18 @@ class RadarState extends State<Radar>
         if (locationSubscription!.isPaused) {
           locationSubscription?.resume();
         }
+      } if (timer != null) {
+        if (!timer!.isActive) {
+          timer = Timer.periodic(
+              const Duration(seconds: 10), (Timer t) => radarLogicTick());
+        }
+      } else {
+        timer = Timer.periodic(
+            const Duration(seconds: 10), (Timer t) => radarLogicTick());
       }
     } else if (state == AppLifecycleState.paused) {
       locationSubscription?.cancel();
+      timer?.cancel();
     }
   }
 
@@ -123,7 +147,7 @@ class RadarState extends State<Radar>
             return CustomPaint(
               size: const Size(double.infinity, double.infinity),
               painter: RadarPainter(userLocation, virusLocations, maskLocations,
-                  vaccinationLocations, onMaskCollected, onVaccineCollected),
+                  vaccinationLocations),
             );
           }),
       Column(
@@ -224,6 +248,8 @@ class RadarState extends State<Radar>
           ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
         }
       });
+      timer = Timer.periodic(
+          const Duration(seconds: 10), (Timer t) => radarLogicTick());
     } on PlatformException catch (e) {
       debugPrint(e.toString());
       if (e.code == 'PERMISSION_DENIED') {
@@ -320,29 +346,110 @@ class RadarState extends State<Radar>
       return true;
     }
   }
+
+  ///Radar logic tick. Runs every 10 seconds when radar is active.
+  void radarLogicTick() {
+    debugPrint("radarLogicTick");
+    const Distance distance = Distance();
+    //Virus coordinate logic
+    int ticksNearStaticVirusLast = ticksNearStaticVirus;
+    for (LatLng virusCoordinate in virusLocations) {
+      //distance from the user
+      double distanceFromUser = distance(userLocation, virusCoordinate);
+
+      //Player infected if too close to a static virus point for a minute
+      if (distanceFromUser < infectionDistance) {
+        ticksNearStaticVirus += 1;
+        var snackBar = SnackBar(
+          content: Text("Ticks near static virus $ticksNearStaticVirus"),
+          duration: const Duration(seconds: 5),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        if (ticksNearStaticVirus > 6) {
+          statusController.staticVirusNearby();
+          ticksNearStaticVirus = 0;
+        }
+      }
+      //If not near a static virus anymore
+      if (ticksNearStaticVirusLast == ticksNearStaticVirus) {
+        ticksNearStaticVirus = 0;
+      }
+    }
+    //Vaccination coordinate logic
+    for (LatLng vaccinationCoordinate in vaccinationLocations) {
+      //distance from the user
+      double distanceFromUser = distance(userLocation, vaccinationCoordinate);
+
+      //Logic when getting vaccinated
+      if (distanceFromUser < vaccinationDistance) {
+        onVaccineCollected(vaccinationCoordinate);
+      }
+    }
+
+    //Mask coordinate logic
+    for (LatLng maskCoordinate in maskLocations) {
+      //distance from the user
+      double distanceFromUser = distance(userLocation, maskCoordinate);
+
+      //Logic when getting a mask
+      if (distanceFromUser < maskDistance) {
+        onMaskCollected(maskCoordinate);
+      }
+
+
+    }
+    refreshCounter++;
+    //Get updated data from the API every 10 minutes
+    if (refreshCounter > 60) {
+      refreshCounter = 0;
+      getMostRecentData();
+      var snackBar = const SnackBar(
+        content: Text("New virus, mask and vaccine locations collected"),
+        duration: Duration(seconds: 5),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+    debugPrint("radarLogicTick end");
+  }
+
+  //Get most recent data from the API
+  getMostRecentData() async {
+    //Do not spam the server
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
+    if (timestamp - dataUpdateTimestamp < 300000) {
+      return;
+    }
+    dataUpdateTimestamp = timestamp;
+    await getMaskPointsList();
+    await getVirusPointsList();
+    await getVaccinationPointsList();
+    setState(() {});
+  }
+
 }
+
+
 
 /// Draws the radar and the virus points near enough the user to be
 /// displayed on the radar.
 class RadarPainter extends CustomPainter {
-  final GameStatus gameStatus = GameStatus();
 
-  final statusController = Get.find<RequirementStateController>();
+  var fps = 0.0;
+  List<int> frameTimes = [];
+  int lastFrameTimestamp = 0;
+  int combinedFrameTimes = 0;
+
 
   //Customize this value to change the range of the radar (in meters)
   final int radarRange = 300;
 
-  //Customize these
-  final int infectionDistance = 1;
-  final int maskDistance = 5;
-  final int vaccinationDistance = 5;
 
-  //Control variable
-  int framesNearStaticVirus = 0;
+
+
 
   //Constructor
   RadarPainter(this.userLocation, this.virusLocations, this.maskLocations,
-      this.vaccinationLocations, this.onMaskCollected, this.onVaccineCollected);
+      this.vaccinationLocations);
 
   //For calculating distance between two coordinates
   final Distance distance = Distance();
@@ -352,9 +459,7 @@ class RadarPainter extends CustomPainter {
   List<LatLng> maskLocations;
   List<LatLng> vaccinationLocations;
 
-  //Callbacks
-  final Function(LatLng) onMaskCollected;
-  final Function(LatLng) onVaccineCollected;
+
 
   var outlinePaint = Paint()
     ..color = Colors.white
@@ -390,6 +495,8 @@ class RadarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+
+
     var centerX = size.width / 2.0;
     var centerY = size.height / 2.0;
     var centerOffset = Offset(centerX, centerY);
@@ -458,22 +565,12 @@ class RadarPainter extends CustomPainter {
     canvas.drawCircle(centerOffset, 10, playerPaint);
 
     //Virus coordinate logic
-    int framesNearStaticVirusLast = framesNearStaticVirus;
     for (LatLng virusCoordinate in virusLocations) {
       //distance from the user
       double distanceFromUser = distance(userLocation, virusCoordinate);
       //If the virus point is further away than the range of the radar
       if (distanceFromUser > radarRange) {
         continue;
-      }
-
-      //Player infected if too close to a static virus point
-      if (distanceFromUser < infectionDistance) {
-        framesNearStaticVirus += 1;
-        if (framesNearStaticVirus > 60) {
-          statusController.staticVirusNearby();
-          framesNearStaticVirus = 0;
-        }
       }
 
       //Direction from the user location to the virus point
@@ -490,10 +587,6 @@ class RadarPainter extends CustomPainter {
 
       canvas.drawCircle(coordinateOffset, 8, virusPaint);
     }
-    //If not near a static virus anymore
-    if (framesNearStaticVirusLast == framesNearStaticVirus) {
-      framesNearStaticVirus = 0;
-    }
 
     //Vaccination coordinate logic
     for (LatLng vaccinationCoordinate in vaccinationLocations) {
@@ -503,11 +596,6 @@ class RadarPainter extends CustomPainter {
       //If the vaccination point is further away than the range of the radar
       if (distanceFromUser > radarRange) {
         continue;
-      }
-
-      //Logic when getting vaccinated
-      if (distanceFromUser < vaccinationDistance) {
-        onVaccineCollected(vaccinationCoordinate);
       }
 
       //Direction from the user location to the vaccination point
@@ -534,11 +622,6 @@ class RadarPainter extends CustomPainter {
       //If the mask point is further away than the range of the radar
       if (distanceFromUser > radarRange) {
         continue;
-      }
-
-      //Logic when getting a mask
-      if (distanceFromUser < maskDistance) {
-        onMaskCollected(maskCoordinate);
       }
 
       //Direction from the user location to the mask point

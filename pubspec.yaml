@@ -37,12 +37,12 @@ dependencies:
 
   #flutter_beacon
   flutter_beacon: ^0.5.1
-  get: ^4.3.6
+  get: ^4.6.5
 
   shared_preferences: ^2.0.13
 
   #Needed for Android 8+
-  flutter_foreground_task: ^3.5.5
+  flutter_foreground_task: ^3.7.3
 
   #flutter_osm_plugin: ^0.28.2
 
@@ -52,7 +52,7 @@ dependencies:
 
   latlong2: ^0.8.1
 
-  location: ^4.2.0
+  location: ^4.4.0
 
   http: ^0.13.4
 
