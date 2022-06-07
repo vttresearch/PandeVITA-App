@@ -3,6 +3,8 @@
  * on this tutorial https://www.geeksforgeeks.org/basic-quiz-app-in-flutter-api/
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
 import 'ui_stats.dart';
@@ -26,6 +28,9 @@ class QuizPageState extends State<QuizPage> {
   //Control variables
   bool isQuizAvailable = false;
   bool isQuizAlreadyAnswered = false;
+  bool isAnsweringQuiz = false;
+
+  Timer? timer;
 
   //Edit this to control the amount of immunity user gets per right answer
   var immunityPerQuestion = 5;
@@ -37,10 +42,20 @@ class QuizPageState extends State<QuizPage> {
   void initState() {
     super.initState();
     getQuizFromServer();
+    //Get a new quiz every 60 minutes from the platform
+    timer = Timer.periodic(
+        const Duration(minutes: 60), (Timer t) => getQuizFromServer());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer?.cancel();
   }
 
   ///Answer a question in the quiz
   void answerQuestion(String answer, String correctAnswer) {
+    isAnsweringQuiz = true;
     if (answer == correctAnswer) {
       totalScore += immunityPerQuestion;
     }
@@ -56,6 +71,7 @@ class QuizPageState extends State<QuizPage> {
       gameStatus.modifyImmunity(totalScore);
       gameStatus.saveQuizScore(currentQuizId, totalScore);
       debugPrint('No more questions!');
+      isAnsweringQuiz = false;
     }
 
     //Update UI
@@ -64,6 +80,10 @@ class QuizPageState extends State<QuizPage> {
 
   ///Get the most recent quiz from the server
   void getQuizFromServer() async {
+    //Don't update if the user is answering the most current quiz
+    if (isAnsweringQuiz) {
+      return;
+    }
     //Control variables
     isQuizAvailable = false;
     isQuizAlreadyAnswered = false;
