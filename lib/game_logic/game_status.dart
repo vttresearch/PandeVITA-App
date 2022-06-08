@@ -121,13 +121,19 @@ class GameStatus {
     if (gameActiveStatus.isEmpty) {
       return false;
     }
-    int level = gameActiveStatus["level"];
-    String status = gameActiveStatus["status"];
-    if (status == "active") {
-      return true;
-    } else {
+    try {
+      int level = gameActiveStatus["level"];
+      String status = gameActiveStatus["status"];
+      if (status == "active") {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      debugPrint("Error in isGameActive() in GameStatus: $error");
       return false;
     }
+
   }
 
   Future<int> getContactTimestamp() async {

@@ -37,6 +37,8 @@ class GameLogic {
   var staticVirusNearby = false;
   var staticExposureTime = 0;
 
+  var gameActiveControl = 0;
+
   final controller = Get.find<RequirementStateController>();
 
   static final GameLogic _gameLogic = GameLogic._privateConstructor();
@@ -123,6 +125,13 @@ class GameLogic {
   ///One tick of the game logic. Runs every 60 seconds
   void gameLogicTick() async {
     debugPrint("infected $infected");
+    gameActiveControl++;
+    //Check whether the game is still active every 30 minutes
+    debugPrint("gameActiveControl is $gameActiveControl");
+    if (gameActiveControl > 30) {
+      gameActiveControl = 0;
+      _isGameActive = await gameStatus!.isGameActive();
+    }
     if (!_isGameActive) {
       return;
     }
