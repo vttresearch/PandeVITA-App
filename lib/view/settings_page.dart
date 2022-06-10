@@ -230,7 +230,7 @@ class SettingsPageState extends State<SettingsPage> {
       }
     }
 
-    //TODO: doLeaveTeam AND Handling if team is deleted
+
     doLeaveTeam() async {
       debugPrint("leavingteam");
       if (currentTeamName == null) {
