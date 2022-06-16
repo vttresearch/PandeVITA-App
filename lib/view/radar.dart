@@ -52,9 +52,8 @@ class RadarState extends State<Radar>
   int initStateCounter = 0;
 
   //Customize these
-  final int infectionDistance = 5;
-  final int maskDistance = 5;
-  final int vaccinationDistance = 5;
+  final int infectionDistance = 10;
+
 
   //Control variables
   int ticksNearStaticVirus = 0;
@@ -114,15 +113,9 @@ class RadarState extends State<Radar>
           });
         }
       }
-      if (timer != null) {
-        if (!timer!.isActive) {
-          timer = Timer.periodic(
-              const Duration(seconds: 10), (Timer t) => radarLogicTick());
-        }
-      } else {
-        timer = Timer.periodic(
-            const Duration(seconds: 10), (Timer t) => radarLogicTick());
-      }
+      timer?.cancel();
+      timer = Timer.periodic(
+            const Duration(seconds: 20), (Timer t) => radarLogicTick());
     } else if (state == AppLifecycleState.paused) {
       locationSubscription?.cancel().then((_) {
         locationSubscriptionCancelled = true;
@@ -425,6 +418,11 @@ class RadarState extends State<Radar>
       return;
     }
     dataUpdateTimestamp = timestamp;
+    //Remove old data
+    maskLocations.clear();
+    virusLocations.clear();
+    vaccinationLocations.clear();
+
     await getMaskPointsList();
     await getVirusPointsList();
     await getVaccinationPointsList();
@@ -451,8 +449,8 @@ class RadarPainter extends CustomPainter {
   final Distance distance = Distance();
 
   //Customize these
-  final int maskDistance = 5;
-  final int vaccinationDistance = 5;
+  final int maskDistance = 10;
+  final int vaccinationDistance = 10;
 
   LatLng userLocation;
   List<LatLng> virusLocations;
