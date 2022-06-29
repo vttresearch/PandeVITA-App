@@ -15,7 +15,7 @@ import '../Utility/user.dart';
 /**Singleton class that communicates with the platform server*/
 class PandeVITAHttpClient {
   static final PandeVITAHttpClient _pandeVITAHttpClient =
-      PandeVITAHttpClient._privateConstructor();
+  PandeVITAHttpClient._privateConstructor();
   final storage = const FlutterSecureStorage();
   final userStorage = UserStorage();
   final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
@@ -34,10 +34,12 @@ class PandeVITAHttpClient {
   PandeVITAHttpClient._privateConstructor();
 
   //Get authorization token from the server
-  Future<String?> getAuthorizationToken() async {
+  Future<String?>  getAuthorizationToken() async {
     // String credentials = await loadCredentials();
     // var credentialList = credentials.split(",");
-    var currentTimeStamp = DateTime.now().millisecondsSinceEpoch;
+    var currentTimeStamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     var accessToken = await storage.read(key: 'access_token');
     var accessTimeStamp = await storage.read(key: 'expires');
     if (accessToken != null && accessTimeStamp != null) {
@@ -55,7 +57,8 @@ class PandeVITAHttpClient {
     debugPrint("getauthorizationtoken");
     var authUrl = Uri.parse(_url + "/auth");
     var authData =
-        'client_id=pandevita-dev&grant_type=password&username=${user.name}&password=${user.password}';
+        'client_id=pandevita-dev&grant_type=password&username=${user
+        .name}&password=${user.password}';
     /*var authData = {
       'client_id': 'pandevita-dev',
       'grant_type': 'password',
@@ -252,50 +255,78 @@ class PandeVITAHttpClient {
   }
 
   //TODO: handle user id
-  Future<int> registerUser(
-      String userName, String password, String email) async {
-    var registerUrl = Uri.parse(_url + "/users");
-    //Check first that the username is available
-    var checkUserNameAvailabilityUrl =
-        Uri.parse(_url + "/users?username=" + userName.toLowerCase());
-    var response = await client.get(checkUserNameAvailabilityUrl);
-    debugPrint('Response status: ${response.statusCode}');
-    debugPrint('Response body: ${response.body}');
-    var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-    if (decodedResponse["userExists"] == true) {
-      debugPrint("error registering user: username already exists");
-      return 1;
+  Future<int> registerUser(String userName, String password, String email,
+      String? roleSelection) async {
+    try {
+      var registerUrl = Uri.parse(_url + "/users");
+      //Check first that the username is available
+      var checkUserNameAvailabilityUrl =
+      Uri.parse(_url + "/users?username=" + userName.toLowerCase());
+      var response = await client.get(checkUserNameAvailabilityUrl);
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decodedResponse["userExists"] == true) {
+        debugPrint("error registering user: username already exists");
+        return 1;
+      }
+      String? selectedRole;
+
+      switch (roleSelection) {
+        case "Do not choose":
+          break;
+        case "Academy":
+          selectedRole = "dashboard_academy";
+          break;
+        case "Industry":
+          selectedRole = "dashboard_industry";
+          break;
+        case "Public authority":
+          selectedRole = "dashboard_public_authority";
+          break;
+        case "Other":
+          selectedRole = "dashboard_other";
+          break;
+      }
+
+      var registrationData = {
+        'username': userName,
+        'enabled': 'true',
+        'email': email,
+        'credentials': [
+          {'type': 'password', 'value': password, 'temporary': 'false'}
+        ]
+      };
+      if (selectedRole != null) {
+        registrationData['role'] = selectedRole;
+        debugPrint(registrationData.toString());
+      }
+      var body = json.encode(registrationData);
+      //If the username does not exist, register user
+      var response2 = await client.post(registerUrl,
+          body: body,
+          headers: {'Accept': '*/*', 'Content-Type': 'application/json'});
+      debugPrint('Response status: ${response2.statusCode}');
+      debugPrint('Response body: ${response2.body}');
+      var decodedResponse2 = jsonDecode(utf8.decode(response2.bodyBytes));
+      if (decodedResponse2["created"] == false || response2.statusCode != 201) {
+        debugPrint("error registering user: something went wrong");
+        return 2;
+      }
+
+
+      //Everything went ok, save the user
+      var userId = decodedResponse2['user_id'];
+      User user =
+      User(userId: userId, name: userName, email: email, password: password);
+      userStorage.saveUser(user);
+      return 0;
+    } catch (error) {
+      debugPrint("registerUser error $error");
+      return 3;
     }
-    var registrationData = {
-      'username': userName,
-      'enabled': 'true',
-      'email': email,
-      'credentials': [
-        {'type': 'password', 'value': password, 'temporary': 'false'}
-      ]
-    };
-    var body = json.encode(registrationData);
-    //If the username does not exist, register user
-    var response2 = await client.post(registerUrl,
-        body: body,
-        headers: {'Accept': '*/*', 'Content-Type': 'application/json'});
-    debugPrint('Response status: ${response2.statusCode}');
-    debugPrint('Response body: ${response2.body}');
-    var decodedResponse2 = jsonDecode(utf8.decode(response2.bodyBytes));
-    if (decodedResponse2["created"] == false || response2.statusCode != 201) {
-      debugPrint("error registering user: something went wrong");
-      return 2;
-    }
-
-
-
-    //Everything went ok, save the user
-    var userId = decodedResponse2['user_id'];
-    User user =
-        User(userId: userId, name: userName, email: email, password: password);
-    userStorage.saveUser(user);
-    return 0;
   }
+
   //Create a player on the server side
   Future<int> createPlayer(String playerName) async {
     debugPrint("createPlayer in http_comm");
@@ -423,7 +454,7 @@ class PandeVITAHttpClient {
       return 3;
     }
     var scoreboardsUrl =
-        Uri.parse(_url + "/scoreboards/" + scoreboardId.toString());
+    Uri.parse(_url + "/scoreboards/" + scoreboardId.toString());
     var scoreBoardData = {'players': playerList};
     var body = json.encode(scoreBoardData);
     var response = await client.patch(scoreboardsUrl, body: body, headers: {
@@ -524,7 +555,7 @@ class PandeVITAHttpClient {
     debugPrint('Response body: + ${response.body}');
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 204) {
-     // var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      // var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return 0;
     } else if (response.statusCode == 404) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
@@ -706,7 +737,5 @@ class PandeVITAHttpClient {
       return 1;
     }
     return 0;
-
-
   }
 }
