@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void initState() {
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
 
     checkPermissions();
@@ -49,22 +49,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         infected = true;
       } else if (flag == false) {
         infected = false;
-      }
-      setState(() {
-
-      });
-    });
-
-    //Listen to UI color changes
-    controller.backgroundColorChangeStream.listen((color) {
-      if (color == "blue") {
-        PandeVITABackgroundDecoration = backgroundDecoration;
-      } else if (color == "red") {
-        PandeVITABackgroundDecoration = backgroundDecorationInfected3days;
-      } else if (color == "orange") {
-        PandeVITABackgroundDecoration = backgroundDecorationInfected2days;
-      } else if (color == "green") {
-        PandeVITABackgroundDecoration = backgroundDecorationInfected1days;
       }
       setState(() {
 
@@ -124,11 +108,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         controller.authorizationStatusOk &&
         controller.locationServiceEnabled) {
       debugPrint('STATE READY');
-      debugPrint('INITIATING GAME');
-      //controller.startScanning();
-      gameLogic.initGame();
+      debugPrint('INITIATING SCANNING');
+      controller.startScanning();
       debugPrint("INITIATING BROADCAST");
       controller.startBroadcasting();
+      debugPrint('INITIATING GAME');
+      gameLogic.initGame();
   }
 
   else {
@@ -149,15 +134,19 @@ void didChangeAppLifecycleState(AppLifecycleState state) async {
     }
     await checkAllRequirements();
   } else if (state == AppLifecycleState.paused) {
-    _streamBluetooth?.pause();
+
+    _streamBluetooth?.cancel();
   } else if (state == AppLifecycleState.detached) {
-    FlutterForegroundTask.stopService();
+   // await _streamBluetooth?.cancel();
+    await beaconBroadcastClass.stopBroadcastBeacon();
+    await stopForegroundTask();
+
   }
 }
 
 @override
 void dispose() {
-  _streamBluetooth?.cancel();
+  WidgetsBinding.instance.removeObserver(this);
   _receivePort?.close();
   super.dispose();
 }
@@ -196,6 +185,7 @@ Future<void> initForegroundTask() async {
 }
 
 Future<bool> stopForegroundTask() async {
+    debugPrint("stoppingForegroundTask");
   return await FlutterForegroundTask.stopService();
 }
 
@@ -336,6 +326,7 @@ Widget build(BuildContext context) {
               ],
             )),
         bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           backgroundColor: const Color.fromARGB(255, 36, 128, 198),
           currentIndex: currentIndex,
           selectedItemColor: Colors.white,
@@ -344,12 +335,6 @@ Widget build(BuildContext context) {
             setState(() {
               currentIndex = index;
             });
-           // if (currentIndex == 0) {
-            controller.startScanning();
-            //} else {
-              //controller.pauseScanning();
-            controller.startBroadcasting();
-            //}
           },
           items: [
             BottomNavigationBarItem(
@@ -362,12 +347,12 @@ Widget build(BuildContext context) {
               label: 'Radar',
             ),
            BottomNavigationBarItem(
-             // backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
               icon: Image.asset('images/quiz_icon.png', width: 25),
               label: 'Quiz',
             ),
             BottomNavigationBarItem(
-              //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+             // backgroundColor: const Color.fromARGB(255, 36, 128, 198),
               icon: Image.asset('images/settings_icon.png', width: 25),
               label: 'Settings',
             )

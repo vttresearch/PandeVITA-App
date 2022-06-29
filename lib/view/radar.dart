@@ -63,7 +63,7 @@ class RadarState extends State<Radar>
 
   @override
   void initState() {
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -82,6 +82,7 @@ class RadarState extends State<Radar>
     _controller.dispose();
     locationSubscription?.cancel();
     timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

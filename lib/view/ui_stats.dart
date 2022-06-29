@@ -1,9 +1,11 @@
 /**This file contains classes to help displaying the correct stats
     to the player in the PandeVITA app UI*/
 import 'package:flutter/material.dart';
+import '../Utility/styles.dart';
 import '../game_logic/game_status.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 class PlayerPoints extends StatefulWidget {
   @override
@@ -28,10 +30,10 @@ class PlayerPointsState extends State<PlayerPoints> {
   Widget build(BuildContext context) {
     return Text(pointCounter,
         style: TextStyle(
-      fontWeight: FontWeight.bold,
-      color: Colors.white,
-      fontSize: 25,
-    ));
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontSize: 25,
+        ));
   }
 
   //Update points on screen
@@ -53,6 +55,7 @@ class ImmunityLevelState extends State<ImmunityLevel> {
   final GameStatus gameStatus = GameStatus();
   final controller = Get.find<RequirementStateController>();
   String immunityLevel = "0";
+  double barValue = 0.0;
 
   @override
   void initState() {
@@ -65,13 +68,47 @@ class ImmunityLevelState extends State<ImmunityLevel> {
 
   @override
   Widget build(BuildContext context) {
-    return Text(immunityLevel,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          fontSize: 25,
-
-        ));
+    return Row(children: [
+      SizedBox(
+        width: 200,
+        child: Stack(
+          children: [
+            Positioned(
+              child: LinearPercentIndicator(
+                width: 160.0,
+                lineHeight: 14.0,
+                percent: barValue,
+                animation: false,
+                barRadius: Radius.circular(7),
+                backgroundColor: Colors.grey,
+                progressColor: yellowColor,
+              ),
+              top: 22,
+              left: 30,
+            ),
+            Image.asset("images/immunity_status_icon.png", width: 50),
+            Positioned(
+              child: Text(
+                "IMMUNITY DEGREE",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: yellowColor,
+                  fontSize: 11
+                )
+              ),
+              top: 40,
+              left: 60,
+            )
+          ],
+        )
+      ),
+      Text(immunityLevel,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 25,
+          ))
+    ]);
   }
 
   void updateImmunityLevel() async {
@@ -79,10 +116,9 @@ class ImmunityLevelState extends State<ImmunityLevel> {
     String newImmunity = await gameStatus.getImmunity();
     setState(() {
       immunityLevel = newImmunity;
+      barValue = int.parse(newImmunity).toDouble() / 100.0;
     });
   }
-
-
 }
 
 class VaccinationAmount extends StatefulWidget {
@@ -111,7 +147,6 @@ class VaccinationAmountState extends State<VaccinationAmount> {
           fontWeight: FontWeight.bold,
           color: Colors.white,
           fontSize: 25,
-
         ));
   }
 
@@ -122,6 +157,4 @@ class VaccinationAmountState extends State<VaccinationAmount> {
       vaccinationAmount = vaccines.length.toString();
     });
   }
-
-
 }

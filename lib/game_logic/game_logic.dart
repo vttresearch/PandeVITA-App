@@ -124,8 +124,13 @@ class GameLogic {
 
   ///One tick of the game logic. Runs every 60 seconds
   void gameLogicTick() async {
-    debugPrint("infected $infected");
     gameActiveControl++;
+    var timestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
+    var checking = timestamp - lastGameLogicTimestamp;
+    debugPrint("time since last game logic tick $checking");
+    lastGameLogicTimestamp = timestamp;
     //Check whether the game is still active every 30 minutes
     debugPrint("gameActiveControl is $gameActiveControl");
     if (gameActiveControl > 30) {
@@ -133,14 +138,12 @@ class GameLogic {
       _isGameActive = await gameStatus!.isGameActive();
     }
     if (!_isGameActive) {
+      exposureTime = 0;
+      safeTime = 0;
+      aloneTime = 0;
       return;
     }
-    var timestamp = DateTime
-        .now()
-        .millisecondsSinceEpoch;
-    var checking = timestamp - lastGameLogicTimestamp;
-    debugPrint("time since last game logic tick $checking");
-    lastGameLogicTimestamp = timestamp;
+
     bool infNearby = false;
     //Check surrounding devices
 
@@ -191,8 +194,8 @@ class GameLogic {
         //If no exposure for 5 minutes
         //If player is healthy
         if (safeTime >= 5) {
-          gameStatus!.modifyPoints(1);
           safeTime = 0;
+          gameStatus!.modifyPoints(1);
           debugPrint("POINTS GAINED");
         }
       }
@@ -215,19 +218,7 @@ class GameLogic {
         //If over 3 days since infection
         if (timestamp - infectedTimestamp >= 259200000) {
           gameStatus!.cureInfectPlayer();
-        } //if over 2 days since infection
-        else if (timestamp - infectedTimestamp >= 172800000 && infected1day == false) {
-          controller.eventBackgroundChanged2days();
-          infected1day = true;
-          infected2days = false;
-        } //if over 1 day since infection
-        else if (timestamp - infectedTimestamp >= 86400000 && infected2days == false) {
-          controller.eventBackgroundChanged1day();
-          infected3days = false;
-          infected2days = true;
         }
-
-
       }
     });
     //These are gone through regardless of whether player is infected or not

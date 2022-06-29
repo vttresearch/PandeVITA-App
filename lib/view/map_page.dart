@@ -71,8 +71,6 @@ class _TabMapState extends State<TabMap> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                     //Immunity status
-                    Image.asset("images/immunity_status_icon.png", width: 50),
-                    const SizedBox(width: 20),
                     ImmunityLevel(),
                   ]))
             ],
