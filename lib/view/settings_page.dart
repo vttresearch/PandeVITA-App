@@ -62,6 +62,7 @@ class SettingsPageState extends State<SettingsPage> {
 
   @override
   void initState() {
+    super.initState();
     initializeSettings();
     controller.playerInfectedStream.listen((flag) {
       if (flag == true) {
@@ -71,7 +72,6 @@ class SettingsPageState extends State<SettingsPage> {
       }
       updatePage();
     });
-    super.initState();
   }
 
   void initializeSettings() async {

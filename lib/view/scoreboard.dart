@@ -44,9 +44,9 @@ class ScoreboardState extends State<Scoreboard> {
 
   @override
   void initState() {
+    super.initState();
     getScoreboardFromServer();
     timer = Timer.periodic(const Duration(minutes: 5), (Timer t) => getScoreboardFromServer());
-    super.initState();
   }
 
   @override

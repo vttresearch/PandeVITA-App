@@ -20,9 +20,8 @@ class LandingPageState extends State<LandingPage> {
 
   @override
   void initState() {
-    myFuture = getUserData();
-
     super.initState();
+    myFuture = getUserData();
   }
 
   Future<User?> getUserData() async {

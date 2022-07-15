@@ -49,8 +49,8 @@ class QuizPageState extends State<QuizPage> {
 
   @override
   void dispose() {
-    super.dispose();
     timer?.cancel();
+    super.dispose();
   }
 
   ///Answer a question in the quiz

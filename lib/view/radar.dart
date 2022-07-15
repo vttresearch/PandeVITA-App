@@ -63,6 +63,7 @@ class RadarState extends State<Radar>
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
@@ -71,7 +72,6 @@ class RadarState extends State<Radar>
     getVirusPointsList();
     getMaskPointsList();
     getVaccinationPointsList();
-    super.initState();
     initStateCounter++;
     debugPrint("initStateCounter $initStateCounter");
     initLocationService();

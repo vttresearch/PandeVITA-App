@@ -39,9 +39,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
     super.initState();
-
+    WidgetsBinding.instance.addObserver(this);
     checkPermissions();
     listeningState();
     controller.playerInfectedStream.listen((flag) {
@@ -65,6 +64,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.locationWhenInUse,
       Permission.bluetooth,
+     // Permission.bluetoothScan, //These are possibly needed for newer Android versions
+     // Permission.bluetoothAdvertise
     ].request();
     if (statuses[Permission.locationWhenInUse]!.isGranted) {
       var status = await Permission.locationAlways.request();
@@ -134,20 +135,22 @@ void didChangeAppLifecycleState(AppLifecycleState state) async {
     }
     await checkAllRequirements();
   } else if (state == AppLifecycleState.paused) {
-
-    _streamBluetooth?.cancel();
+    _streamBluetooth?.pause();
+   // beaconBroadcastClass.stopBroadcastBeacon();
   } else if (state == AppLifecycleState.detached) {
-   // await _streamBluetooth?.cancel();
-    await beaconBroadcastClass.stopBroadcastBeacon();
-    await stopForegroundTask();
+   // await stopForegroundTask();
+    _streamBluetooth?.cancel();
+
 
   }
 }
 
 @override
 void dispose() {
-  WidgetsBinding.instance.removeObserver(this);
+    debugPrint("dispose called");
+    _streamBluetooth?.cancel();
   _receivePort?.close();
+  WidgetsBinding.instance.removeObserver(this);
   super.dispose();
 }
 
@@ -176,8 +179,8 @@ Future<void> initForegroundTask() async {
     ),
     foregroundTaskOptions: const ForegroundTaskOptions(
       interval: 5000,
-      autoRunOnBoot: true,
-      allowWifiLock: true,
+      autoRunOnBoot: false,
+      allowWifiLock: false,
     ),
     printDevLog: true,
   );
@@ -207,9 +210,12 @@ Future<bool> startForegroundTask() async {
   if (receivePort != null) {
     _receivePort = receivePort;
     _receivePort?.listen((message) {
-      //if (message is DateTime) {
-      //  debugPrint('receive timestamp: $message');
-      //}
+     // if (message is String) {
+       //   debugPrint('receive message: $message');
+        //  if (message == "closeBroadcast") {
+         //   controller.stopBroadcasting();
+         // }
+       // }
     });
 
     return true;
@@ -435,6 +441,7 @@ class NotifTaskHandler extends TaskHandler {
   void onButtonPressed(String id) {
     // Called when the notification button on the Android platform is pressed.
     if (id == "stopButton") {
+      //port?.send("closeBroadcast");
       FlutterForegroundTask.stopService();
     }
   }

@@ -31,7 +31,9 @@ class BeaconBroadcastClass {
   BeaconBroadcastClass._privateConstructor() {
     controller.startBroadcastStream.listen((flag) {
       if (flag == true) {
-        startBroadcastBeacon();
+        if (!broadcasting) {
+          startBroadcastBeacon();
+        }
       } else if (flag == false) {
         if (broadcasting) {
           stopBroadcastBeacon();
@@ -55,6 +57,10 @@ class BeaconBroadcastClass {
 
 
   startBroadcastBeacon() async {
+    if (broadcasting) {
+      return;
+    }
+    broadcasting = true;
     await flutterBeacon.initializeScanning;
     debugPrint("STARTING BROADCAST");
     String proximityUUID = await getProximityUUID();
