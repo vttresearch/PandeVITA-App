@@ -230,7 +230,6 @@ class SettingsPageState extends State<SettingsPage> {
       }
     }
 
-
     doLeaveTeam() async {
       debugPrint("leavingteam");
       if (currentTeamName == null) {
@@ -292,6 +291,31 @@ class SettingsPageState extends State<SettingsPage> {
       gameLogic.stopGame();
       //Back to the landing screen
 
+      Navigator.pushReplacementNamed(context, '/landing');
+
+      return;
+    }
+
+    /*
+    Logs the user out and removes local data.
+     */
+    doLogOut() async {
+      var snackBar = const SnackBar(
+        content: Text("Logging out. The app will return to "
+            "landing page shortly."),
+        duration: Duration(seconds: 5),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      //Clear local data
+      GameStatus gameStatus = GameStatus();
+      controller.stopBroadcasting();
+      await gameStatus.deleteAllData();
+      await storage.deleteUser();
+      //Stop the game
+      GameLogic gameLogic = GameLogic();
+      gameLogic.stopGame();
+
+      //Back to the landing screen
       Navigator.pushReplacementNamed(context, '/landing');
 
       return;
@@ -523,6 +547,7 @@ class SettingsPageState extends State<SettingsPage> {
                       ],
                     ),
               const SizedBox(height: 20),
+              //Delete account row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -555,6 +580,39 @@ class SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
+              //Log out row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Log out "),
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: () => showDialog<String>(
+                      context: context,
+                      builder: (BuildContext context) => AlertDialog(
+                        title: const Text('Log out'),
+                        content: const Text('Do you really want to log out?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context, 'Cancel');
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context, 'Yes');
+                              doLogOut();
+                            },
+                            child: const Text('Yes'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
               /*SwitchListTile(
             title: const Text('Bluetooth'),
             value: isBluetoothEnabled,

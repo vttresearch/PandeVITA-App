@@ -36,9 +36,7 @@ class LandingPageState extends State<LandingPage> {
   @override
   Widget build(BuildContext context) {
 
-    return MaterialApp(
-        title: 'PandeVITA game application',
-        home: FutureBuilder(
+    return FutureBuilder(
             future: myFuture,
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
@@ -57,13 +55,6 @@ class LandingPageState extends State<LandingPage> {
                   }
               }
             }
-
-        ),
-        routes: {
-          '/home': (context) => HomePage(),
-          '/register': (context) => RegisterPage(),
-          '/landing': (context) => LandingPage(),
-        }
-    );
+      );
   }
 }

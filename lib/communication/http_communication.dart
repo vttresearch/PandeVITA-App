@@ -10,6 +10,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/retry.dart';
 import 'package:synchronized/synchronized.dart';
 import '../Utility/user.dart';
+import '../game_logic/game_status.dart';
 
 
 /**Singleton class that communicates with the platform server*/
@@ -129,7 +130,6 @@ class PandeVITAHttpClient {
     return [];
   }
 
-  //TODO: FIX
   //Get vaccination GPS points from the server
   Future<List> getVaccinationPoints() async {
     debugPrint("GETVACCINATIONPOINTS in http_comm");
@@ -254,7 +254,7 @@ class PandeVITAHttpClient {
     return {};
   }
 
-  //TODO: handle user id
+
   Future<int> registerUser(String userName, String password, String email,
       String? roleSelection) async {
     try {
@@ -318,12 +318,119 @@ class PandeVITAHttpClient {
       //Everything went ok, save the user
       var userId = decodedResponse2['user_id'];
       User user =
-      User(userId: userId, name: userName, email: email, password: password);
+      User(userId: userId, name: userName, password: password);
       userStorage.saveUser(user);
       return 0;
     } catch (error) {
       debugPrint("registerUser error $error");
       return 3;
+    }
+  }
+
+  /**
+   * Try logging in to the service. Returns true if successful, false if not.
+   */
+  Future<bool> tryLogin(String userName, String password) async {
+    try {
+      var registerUrl = Uri.parse(_url + "/users");
+      //Check first that the username is real
+      var checkUserNameAvailabilityUrl =
+      Uri.parse(_url + "/users?username=" + userName.toLowerCase());
+      var response = await client.get(checkUserNameAvailabilityUrl);
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decodedResponse["userExists"] == false) {
+        debugPrint("error logging in: username does not exist");
+        return false;
+      }
+
+      //"Log in" by getting the access token
+      String? accessToken;
+      var currentTimeStamp = DateTime
+          .now()
+          .millisecondsSinceEpoch;
+      var authUrl = Uri.parse(_url + "/auth");
+      try {
+        var response = await client.post(authUrl, body: {
+          'client_id': 'pandevita-dev',
+          'grant_type': 'password',
+          'username': userName,
+          'password': password
+        }, headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        });
+        debugPrint('auth Response status: ${response.statusCode}');
+        //debugPrint('auth Response body: ${response.body}');
+        if (response.statusCode == 200) {
+          var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+          accessToken = decodedResponse['access_token'];
+          int expires_in = decodedResponse['expires_in'];
+          int accessTimeStamp = currentTimeStamp + expires_in * 1000;
+          await storage.write(key: 'access_token', value: accessToken);
+          await storage.write(key: 'expires', value: accessTimeStamp.toString());
+        } else {
+          return false;
+        }
+      } catch (error) {
+        return false;
+      }
+      if (accessToken == null) {
+        return false;
+      }
+
+      var jwtTokenParts = accessToken.split(".");
+      if (jwtTokenParts.length !=3) {
+        debugPrint("Invalid access token");
+        return false;
+      }
+      var accessTokenData = jwtTokenParts[1];
+      //JWT access token decoding
+      String normalizedSource = base64Url.normalize(accessTokenData);
+      String jsonToken = utf8.decode(base64Url.decode(normalizedSource));
+      Map token = jsonDecode(jsonToken);
+      String userId = token["sub"];
+
+      User user = User(userId: userId, name: userName, password: password);
+      userStorage.saveUser(user);
+      //Get the player data from the server
+      Map? playerData = await getPlayer();
+      //If unable to retrieve player data
+      if (playerData == null) {
+        userStorage.deleteUser();
+        return false;
+      }
+      //Save player data
+      GameStatus gameStatus = GameStatus();
+      int score = playerData["score"];
+      gameStatus.modifyPoints(score);
+
+      List teams = await getTeams();
+      debugPrint("gothere");
+      if (teams != []) {
+        for (var team in teams) {
+          var teamName = team["teamName"];
+          var teamId = team["id"];
+          int index = 0;
+          for (var player in team["teamPlayers"]) {
+            debugPrint("test $player");
+            if (player == userName && index == 0) {
+              userStorage.createTeam(teamName, teamId);
+              break;
+            } else if (player == userName && index != 0) {
+              userStorage.joinTeam(teamName, teamId);
+              break;
+            }
+            index++;
+          }
+        }
+      }
+      return true;
+
+    } catch (error) {
+      debugPrint("tryLogin error $error");
+      return false;
     }
   }
 
@@ -357,52 +464,53 @@ class PandeVITAHttpClient {
   }
 
   //Update player stats on the server
-  Future<int> updatePlayer(int score, {int? recentContacts}) async {
-    if (recentContacts == null) {
-      debugPrint("updatePlayer in http_comm");
-      var accessToken = await lock.synchronized(getAuthorizationToken);
-      if (accessToken == null) {
-        return 3;
-      }
-      var playerName = await userStorage.getUserName();
-      debugPrint("playername is $playerName");
-      var playerUrl = Uri.parse(_url + "/players/" + playerName);
-      var playerData = {'playerName': playerName, 'score': score};
-      var body = json.encode(playerData);
-      var response = await client.patch(playerUrl, body: body, headers: {
-        'accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json'
-      });
-      debugPrint('Response body: + ${response.body}');
-      debugPrint('Response code: + ${response.statusCode}');
-      if (response.statusCode == 204) {
-        return 0;
-      } else {
-        return 1;
-      }
+  Future<int> updatePlayer(int score, {int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId}) async {
+    debugPrint("updatePlayer in http_comm");
+    //First get the most current data on the server
+    Map? playerData = await getPlayer();
+    if (playerData == null) {
+      return 5;
+    }
+    //Update the data
+    playerData['score'] = score;
+    if (recentContacts != null) {
+      playerData['recentContacts'] = recentContacts;
+    }
+    if (status != null) {
+      playerData['status'] = status;
+    }
+    if (collectedMaskId != null) {
+      List collectedMaskArray = playerData['collected_masks'];
+      collectedMaskArray.add(collectedMaskId);
+      playerData['collected_masks'] = collectedMaskArray;
+    }
+    if (collectedVaccineId != null) {
+      List collectedVaccineArray = playerData['collected_vaccines'];
+      collectedVaccineArray.add(collectedVaccineId);
+      playerData['collected_vaccines'] = collectedVaccineArray;
+    }
+    //Updated player data
+    debugPrint("updated playerData " + playerData.toString());
+
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    if (accessToken == null) {
+      return 3;
+    }
+    var playerName = await userStorage.getUserName();
+    debugPrint("playername is $playerName");
+    var playerUrl = Uri.parse(_url + "/players/" + playerName);
+    var body = json.encode(playerData);
+    var response = await client.patch(playerUrl, body: body, headers: {
+      'accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json'
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (response.statusCode == 204) {
+      return 0;
     } else {
-      debugPrint("updatePlayer in http_comm, recentcontacts $recentContacts");
-      var accessToken = await lock.synchronized(getAuthorizationToken);
-      if (accessToken == null) {
-        return 3;
-      }
-      var playerName = await userStorage.getUserName();
-      var playerUrl = Uri.parse(_url + "/players/" + playerName);
-      var playerData = {'score': score, 'recentContacts': recentContacts};
-      var body = json.encode(playerData);
-      var response = await client.patch(playerUrl, body: body, headers: {
-        'accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json'
-      });
-      debugPrint('Response body: + ${response.body}');
-      debugPrint('Response code: + ${response.statusCode}');
-      if (response.statusCode == 204) {
-        return 0;
-      } else {
-        return 1;
-      }
+      return 1;
     }
   }
 
@@ -634,8 +742,30 @@ class PandeVITAHttpClient {
     return 1;
   }
 
-  Future<Map> getPlayer() async {
-    return {};
+  /**
+   * Get the player data from the backend
+   */
+  Future<Map?> getPlayer() async {
+    debugPrint("getPlayer() in http_communication");
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    if (accessToken == null) {
+      return null;
+    }
+    var playerName = await userStorage.getUserName();
+    debugPrint("playername is $playerName");
+    var playerUrl = Uri.parse(_url + "/players/" + playerName);
+    var response = await client.get(playerUrl, headers: {
+      'accept': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (response.statusCode == 200) {
+      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      return decodedResponse;
+    } else {
+      return null;
+    }
   }
 
   Future<int> postPointLossEvent() async {

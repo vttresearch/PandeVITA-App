@@ -1,0 +1,155 @@
+import 'package:flutter/material.dart';
+import 'package:pandevita_game/Utility/styles.dart';
+import 'register_page.dart';
+import '../communication/http_communication.dart';
+import '../Utility/user.dart';
+
+/** This page handles the login process. It opens when the user opens
+ * the application for the first time. Based heavily on
+    https://medium.com/@afegbua/flutter-thursday-13-building-a-user-registration-and-login-process-with-provider-and-external-api-1bb87811fd1d
+    https://github.com/shubie/flutter-thursday-login-registration
+ */
+
+class LoginPage extends StatefulWidget {
+  @override
+  LoginPageState createState() => LoginPageState();
+}
+
+class LoginPageState extends State<LoginPage> {
+  final formKey = GlobalKey<FormState>();
+  late String username, password;
+  final PandeVITAHttpClient client = PandeVITAHttpClient();
+  final UserStorage storage = UserStorage();
+
+  bool loggingIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final usernameField = TextFormField(
+        autofocus: false,
+        onSaved: (value) => username = value as String,
+        validator: (value)   => value!.isEmpty ? 'Please enter username' : null,
+        decoration: const InputDecoration(
+            icon: Icon(Icons.person), labelText: 'Enter username'));
+
+    final passwordField = TextFormField(
+        autofocus: false,
+        obscureText: true,
+        validator: (value) => value!.isEmpty ? 'Please enter password' : null,
+        onSaved: (value) => password = value as String,
+        decoration: const InputDecoration(
+            icon: Icon(Icons.lock), labelText: 'Enter password'));
+
+    var loading = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
+        CircularProgressIndicator(),
+        Text("Logging in ... Please wait")
+      ],
+    );
+
+    final registerLabel = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        TextButton(
+          child: const Text("Sign up", style: TextStyle(fontWeight: FontWeight.w300)),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/register');
+          },
+        ),
+      ],
+    );
+
+    doLogin() async {
+      final form = formKey.currentState;
+
+      if (form!.validate()) {
+
+        setState(() {
+          loggingIn = true;
+        });
+        form.save();
+
+        bool succession = await client.tryLogin(username, password);
+        setState(() {loggingIn = false;});
+
+        //If login was unsuccessful
+        if (succession == false) {
+          var snackBar = const SnackBar(
+            content: Text("Login failed"),
+            duration: Duration(seconds: 3),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        }
+        //If login was successful
+        else {
+          var snackBar = const SnackBar(
+            content: Text("Login successful"),
+            duration: Duration(seconds: 3),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+
+      } else {
+        var snackBar = const SnackBar(
+          content: Text("Complete the login form"),
+          duration: Duration(seconds: 5),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
+    }
+
+    //TODO UI
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: backgroundBlue,
+        body: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(40.0),
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 5),
+                  Image.asset('images/pandevita_logo_large.png', height: 200, ),
+                  const SizedBox(height: 20.0),
+                  usernameField,
+                  const SizedBox(height: 20.0),
+                  passwordField,
+                  const SizedBox(height: 20.0),
+                  loggingIn == true
+                      ? loading
+                      : OutlinedButton(
+                    child: const Text("Log in", style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 25,
+                    ),), onPressed: doLogin,
+                  ),
+                  const SizedBox(height: 5.0),
+                  OutlinedButton(
+                    child: const Text("Create an account", style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 25,
+                    ),), onPressed: () {Navigator.pushReplacementNamed(context, '/register');},
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+
+  }
+
+}

@@ -195,7 +195,14 @@ class RegisterPageState extends State<RegisterPage> {
                             fontSize: 25,
                           ),), onPressed: doRegister,
                   ),
-                  const SizedBox(height: 5.0)
+                  const SizedBox(height: 5.0),
+                  OutlinedButton(
+                    child: const Text("Have an account? Sign in", style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),), onPressed: () {Navigator.pushReplacementNamed(context, '/login');}
+                  ),
                 ],
               ),
             ),
