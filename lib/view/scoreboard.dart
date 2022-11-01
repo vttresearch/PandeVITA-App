@@ -91,6 +91,9 @@ class ScoreboardState extends State<Scoreboard> {
     //Create team scoreboard
     var teams = await client.getTeams();
     var teamsFiltered = teams.where((team) => team["teamPlayers"].length > 3);
+    if (teamsFiltered.isNotEmpty) {
+      teamScoreboard.clear();
+    }
     for (var team in teamsFiltered) {
       var teamName = team["teamName"];
       var teamScore = 0;
@@ -111,19 +114,7 @@ class ScoreboardState extends State<Scoreboard> {
     return Container(
         decoration: boxDecorationWhiteBorder,
         child: Column(children: [
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Text("Scoreboard",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 25,
-                )),
-            /*IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: getScoreboardFromServer,
-                color: Colors.white,
-                iconSize: 30)*/
-          ]),
+          const SizedBox(height: 10.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -144,8 +135,7 @@ class ScoreboardState extends State<Scoreboard> {
                       const Text("TEAM"),
                       const SizedBox(width: 5),
                     ],
-                  )
-                ],
+                  )                ],
                 onPressed: (int index) {
                   setState(() {
                     for (int buttonIndex = 0;

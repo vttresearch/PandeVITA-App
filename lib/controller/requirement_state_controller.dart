@@ -16,6 +16,9 @@ class RequirementStateController extends GetxController {
   var _staticVirusNearby = false.obs;
   var _vaccinationAmountChanged = false.obs;
 
+  var _storyWatched = false.obs;
+  var _credentialsExpired = false.obs;
+
 
   bool get bluetoothEnabled => bluetoothState.value == BluetoothState.stateOn;
   bool get authorizationStatusOk =>
@@ -81,6 +84,14 @@ class RequirementStateController extends GetxController {
     _staticVirusNearby.value = false;
   }
 
+  storyWatched() {
+    _storyWatched.value = !_storyWatched.value;
+  }
+
+  credentialsExpired() {
+    _credentialsExpired.value = !_credentialsExpired.value;
+  }
+
   Stream<bool> get startBroadcastStream {
     return _startBroadcasting.stream;
   }
@@ -111,6 +122,14 @@ class RequirementStateController extends GetxController {
 
   Stream<bool> get vaccinationAmountChangedStream {
     return _vaccinationAmountChanged.stream;
+  }
+
+  Stream<bool> get storyWatchedStream {
+    return _storyWatched.stream;
+  }
+
+  Stream<bool> get credentialsExpiredStream {
+    return _credentialsExpired.stream;
   }
 
 }

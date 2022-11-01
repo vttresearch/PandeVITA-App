@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../Utility/user.dart';
 import 'home_page.dart';
 import 'register_page.dart';
+import 'login_page.dart';
 
 class LandingPage extends StatefulWidget {
 
@@ -49,7 +50,7 @@ class LandingPageState extends State<LandingPage> {
                   }
                   //If user has not registered
                   if (snapshot.data == null) {
-                    return RegisterPage();
+                    return LoginPage();
                   } else {
                     return HomePage();
                   }

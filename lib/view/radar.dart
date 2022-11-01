@@ -41,13 +41,17 @@ class RadarState extends State<Radar>
   StreamSubscription<LocationData>? locationSubscription;
   bool locationSubscriptionCancelled = false;
 
+  List masks = [];
+  List vaccinations = [];
+
+
   //Virus locations for drawing the radar
   List<LatLng> virusLocations = [];
   List<LatLng> maskLocations = [];
   List<LatLng> vaccinationLocations = [];
 
-  List<LatLng> collectedMasks = [];
-  List<LatLng> collectedVaccines = [];
+  List<String> collectedMasks = [];
+  List<String> collectedVaccines = [];
 
   int initStateCounter = 0;
 
@@ -129,11 +133,19 @@ class RadarState extends State<Radar>
   void onMaskCollected(LatLng coordinate) async {
     String coordinateString =
         coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
-    bool newMask = await gameStatus.checkMask(coordinateString);
+    //Get the ID of the mask
+    String maskId = "";
+    for (Map maskMap in masks) {
+      if (maskMap['maskCoordinate'] == coordinateString) {
+        maskId = maskMap['id'];
+      }
+    }
+    debugPrint("onMaskCollected, maskId $maskId");
+    bool newMask = await gameStatus.checkMask(maskId);
     if (newMask) {
-      collectedMasks.add(coordinate);
+      collectedMasks.add(maskId);
       maskLocations.remove(coordinate);
-      var snackBar = const SnackBar(
+      var snackBar = SnackBar(
         content: Text("You collected a mask and got 20 immunity for a day"),
         duration: Duration(seconds: 5),
       );
@@ -145,11 +157,18 @@ class RadarState extends State<Radar>
   void onVaccineCollected(LatLng coordinate) async {
     String coordinateString =
         coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
-    bool newVaccine = await gameStatus.checkVaccination(coordinateString);
+    //Get the ID of the vaccine
+    String vaccinationId = "";
+    for (Map vaccinationMap in vaccinations) {
+      if (vaccinationMap['vaccinationCoordinate'] == coordinateString) {
+        vaccinationId = vaccinationMap['id'];
+      }
+    }
+    bool newVaccine = await gameStatus.checkVaccination(vaccinationId);
     if (newVaccine) {
-      collectedVaccines.add(coordinate);
+      collectedVaccines.add(vaccinationId);
       vaccinationLocations.remove(coordinate);
-      var snackBar = const SnackBar(
+      var snackBar = SnackBar(
         content:
             Text("You collected a vaccine and got 50 immunity for two days"),
         duration: Duration(seconds: 5),
@@ -314,29 +333,27 @@ class RadarState extends State<Radar>
       debugPrint("Mask: EMPTY");
       return false;
     } else {
+      masks = maskPoints;
+      //Get already collected masks from local memory
+      List collectedMasksIds = await gameStatus.getCollectedMasks();
+      for (String collectedMaskId in collectedMasksIds) {
+        collectedMasks.add(collectedMaskId);
+      }
       debugPrint("Mask: $maskPoints");
-      for (String maskPoint in maskPoints) {
+      for (Map maskPoint in maskPoints) {
         try {
-          var splitted = maskPoint.split(", ");
+          String maskId = maskPoint["id"];
+          //Do not display collected masks to user
+          if (collectedMasks.contains(maskId)) {
+            continue;
+          }
+          String maskCoordinate = maskPoint['maskCoordinate'];
+          var splitted = maskCoordinate.split(", ");
           LatLng latLngTemp =
               LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
           maskLocations.add(latLngTemp);
         } catch (e) {
           debugPrint(e.toString());
-        }
-      }
-      //Get already collected masks from local memory
-
-      List<String> collectedMasksStrings = await gameStatus.getCollectedMasks();
-      for (String coordinateString in collectedMasksStrings) {
-        var splitted = coordinateString.split(", ");
-        LatLng latLngTemp =
-            LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
-        collectedMasks.add(latLngTemp);
-      }
-      for (LatLng coordinate in collectedMasks) {
-        if (maskLocations.contains(coordinate)) {
-          maskLocations.remove(coordinate);
         }
       }
       return true;
@@ -353,9 +370,21 @@ class RadarState extends State<Radar>
       return false;
     } else {
       debugPrint("Vaccination: $vaccinationPoints");
-      for (String vaccinationPoint in vaccinationPoints) {
+      vaccinations = vaccinationPoints;
+      //Get already collected vaccinations from local memory
+      List collectedVaccinationIds = await gameStatus.getCollectedVaccinations();
+      for (String collectedVaccinationId in collectedVaccinationIds) {
+        collectedVaccines.add(collectedVaccinationId);
+      }
+      for (Map vaccinationPoint in vaccinationPoints) {
         try {
-          var splitted = vaccinationPoint.split(", ");
+          String vaccinationId = vaccinationPoint['id'];
+          //Do not display collected vaccines to user
+          if (collectedVaccines.contains(vaccinationId)) {
+            continue;
+          }
+          String vaccinationCoordinate = vaccinationPoint['vaccinationCoordinate'];
+          var splitted = vaccinationCoordinate.split(", ");
           LatLng latLngTemp =
               LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
           vaccinationLocations.add(latLngTemp);
@@ -381,11 +410,11 @@ class RadarState extends State<Radar>
       //Player infected if too close to a static virus point for a minute
       if (distanceFromUser < infectionDistance) {
         ticksNearStaticVirus += 1;
-        var snackBar = SnackBar(
+       /* var snackBar = SnackBar(
           content: Text("Ticks near static virus $ticksNearStaticVirus"),
           duration: const Duration(seconds: 5),
         );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
         if (ticksNearStaticVirus > 3) {
           statusController.staticVirusNearby();
           ticksNearStaticVirus = 0;

@@ -35,6 +35,9 @@ class _TabMapState extends State<TabMap> {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
+    Row(
+      children: [
+    Text("Radar", style: settingsTextStyle)]),
       Expanded(
           child: Row(children: [
         Expanded(

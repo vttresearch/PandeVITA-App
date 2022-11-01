@@ -107,7 +107,7 @@ class GameLogic {
           .now()
           .millisecondsSinceEpoch;
       //If over 3 days since infection
-      if (currentTimestamp - infectedTimestamp >= 259200000) {
+      if (currentTimestamp - playerInfectedTimestamp >= 259200000) {
         gameStatus!.cureInfectPlayer();
       } else {
         infectedTimestamp = playerInfectedTimestamp;
@@ -224,15 +224,16 @@ class GameLogic {
     //These are gone through regardless of whether player is infected or not
     contactsSinceStarted = contacts.toSet();
     //if over 1 day  since started tracking contacts
-    /*  if (timestamp - contactsStartedTimestamp >= 86400000) {
+    //TODO: test this
+    if (timestamp - contactsStartedTimestamp >= 86400000) {
       gameStatus!.updatePlayerStatus(contacts: contactsSinceStarted.length);
       contactsStartedTimestamp = timestamp;
       gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
       contactsSinceStarted.clear();
-    }*/
+    }
     //Vaccines
     debugPrint("Immunity logic: vaccines");
-    List<String> vaccineTimestamps = await gameStatus!.getVaccineTimestamps();
+    List vaccineTimestamps = await gameStatus!.getVaccineTimestamps();
     for (String vaccineTimestamp in vaccineTimestamps) {
       //Vaccine dose grants immunity for two days
       var vaccineTimestampInt = int.parse(vaccineTimestamp);
@@ -242,7 +243,7 @@ class GameLogic {
     }
     //Masks
     debugPrint("Immunity logic: masks");
-    List<String> maskTimestamps = await gameStatus!.getMaskTimestamps();
+    List maskTimestamps = await gameStatus!.getMaskTimestamps();
     for (String maskTimestamp in maskTimestamps) {
       //A collected mask grants immunity for one day
       var maskTimestampInt = int.parse(maskTimestamp);

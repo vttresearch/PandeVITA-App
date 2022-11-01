@@ -32,10 +32,10 @@ class MainApp extends StatelessWidget {
 
     return GetMaterialApp(
         title: 'PandeVITA game application',
-      theme: ThemeData(
+     /* theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: primary,
-       /* appBarTheme: themeData.appBarTheme.copyWith(
+        appBarTheme: themeData.appBarTheme.copyWith(
           brightness: Brightness.light,
           elevation: 0.5,
           color: Colors.white,
@@ -50,12 +50,12 @@ class MainApp extends StatelessWidget {
               color: primary,
             ),
           ),
-        ),*/
+        )
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: primary,
-      ),
+      ),*/
       home: LandingPage(),
       routes: {
         '/home': (context) => HomePage(),

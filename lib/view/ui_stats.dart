@@ -152,7 +152,7 @@ class VaccinationAmountState extends State<VaccinationAmount> {
 
   void updateVaccinationAmount() async {
     debugPrint("EVENT: Vaccination amount UPDATED");
-    List<String> vaccines = await gameStatus.getVaccineTimestamps();
+    List vaccines = await gameStatus.getVaccineTimestamps();
     setState(() {
       vaccinationAmount = vaccines.length.toString();
     });

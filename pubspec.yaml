@@ -68,6 +68,7 @@ dependencies:
 
   percent_indicator: ^4.2.2
 
+  story_view: ^0.13.2
 
 dev_dependencies:
   flutter_test:
@@ -103,6 +104,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - images/
+    - images/news/
     - asset_files/test_credentials.txt
 
   # An image asset can refer to one or more resolution-specific "variants", see

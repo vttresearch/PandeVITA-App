@@ -41,6 +41,12 @@ var settingsTextStyle =  const TextStyle(
     color: Colors.white,
     fontSize: 20);
 
+var settingsTextStyleTeamAct = const TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+    fontSize: 17);
+
+
 var settingsTextStyleAlt =  const TextStyle(
    // fontWeight: FontWeight.bold,
     color: Colors.black,
@@ -88,4 +94,14 @@ const BoxDecoration(
 var quizTextStyle = const TextStyle(
     fontWeight: FontWeight.bold,
     color: Colors.white,
+    fontSize: 18);
+
+var storyTitleStyle = TextStyle(
+    fontWeight: FontWeight.bold,
+    color: yellowColor,
     fontSize: 25);
+
+var storyTextStyle = const TextStyle(
+    //fontWeight: FontWeight.bold,
+    color: Colors.black,
+    fontSize: 14);

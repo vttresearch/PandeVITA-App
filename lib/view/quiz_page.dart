@@ -26,7 +26,7 @@ class QuizPageState extends State<QuizPage> {
   late String currentQuizId;
 
   //Control variables
-  bool isQuizAvailable = false;
+  bool isQuestionAvailable = false;
   bool isQuizAlreadyAnswered = false;
   bool isAnsweringQuiz = false;
 
@@ -54,12 +54,26 @@ class QuizPageState extends State<QuizPage> {
   }
 
   ///Answer a question in the quiz
-  void answerQuestion(String answer, String correctAnswer) {
+  void answerQuestion(String questionId, String answer, String correctAnswer) {
     isAnsweringQuiz = true;
+    bool answerWasCorrect = false;
     if (answer == correctAnswer) {
       totalScore += immunityPerQuestion;
+      answerWasCorrect = true;
+      var snackBar = const SnackBar(
+        content: Text("Correct answer!"),
+        duration: Duration(seconds: 5),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } else {
+      var snackBar = SnackBar(
+        content: Text("Wrong answer! The correct answer was: " + correctAnswer),
+        duration: Duration(seconds: 5),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
-
+    gameStatus.answeredQuizQuestion(questionId);
+    client.updateQuizAnswer(questionId, answerWasCorrect);
     // setState(() {
     questionIndex = questionIndex + 1;
     //  });
@@ -85,30 +99,30 @@ class QuizPageState extends State<QuizPage> {
       return;
     }
     //Control variables
-    isQuizAvailable = false;
+    isQuestionAvailable = false;
     isQuizAlreadyAnswered = false;
 
-    Map quizFromServer = await client.getQuiz();
+    List? quizFromServer = await client.getQuiz();
+    if (quizFromServer == null) {
+      setState(() {});
+      return;
+    }
+    isQuizAlreadyAnswered = true;
     if (quizFromServer.isNotEmpty) {
-      //Something has gone wrong
-      if (quizFromServer.containsKey('error')) {
-        //Update UI
-        setState(() {});
-        return;
+      isQuestionAvailable = true;
+      bool newQuestions = false;
+      for (Map question in quizFromServer) {
+        currentQuizId = question['id'];
+        //Do not display already answered questions
+        if (await gameStatus.isQuizQuestionAnswered(currentQuizId)) {
+          continue;
+        }
+        newQuestions = true;
+        currentQuiz.add(question);
+        isAnsweringQuiz = true;
+        isQuizAlreadyAnswered = false;
       }
-      isQuizAvailable = true;
-      currentQuizId = quizFromServer['id'];
-      //Check if the user has already answered to the quiz
-      if (await gameStatus.isQuizAnswered(currentQuizId)) {
-        totalScore = await gameStatus.getLastQuizScore();
-        //Update UI
-        setState(() {
-          isQuizAlreadyAnswered = true;
-        });
-        return;
-      }
-      //The user has not answered to the quiz yet
-      currentQuiz = quizFromServer['quiz'];
+      //Update UI
       setState(() {});
       return;
     }
@@ -117,14 +131,23 @@ class QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
     var quizResult = Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text("You have answered to the most recent quiz",
-            style: settingsTextStyle, overflow: TextOverflow.ellipsis, maxLines: 2),
-        Text("You got $totalScore points", style: settingsTextStyle),
-
-            Text("Check this tab later to find a new quiz",
-                style: settingsTextStyle)
+        Padding(
+            child: Text(
+                "You have answered to the most recent questions available",
+                style: settingsTextStyle,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2),
+            padding:
+                const EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0)),
+        //Text("You got $totalScore immunity points", style: settingsTextStyle),
+        Padding(
+            child: Text("Check this tab later to find new questions",
+                style: settingsTextStyle),
+            padding:
+                const EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0))
       ],
     );
 
@@ -143,7 +166,7 @@ class QuizPageState extends State<QuizPage> {
               //crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 //If a new quiz is available and it has not been answered yet
-                if (isQuizAvailable && !isQuizAlreadyAnswered)
+                if (isQuestionAvailable && !isQuizAlreadyAnswered)
                   //Show quiz
                   questionIndex < currentQuiz.length
                       ? Expanded(
@@ -154,9 +177,9 @@ class QuizPageState extends State<QuizPage> {
                         ))
                       : Expanded(child: quizResult),
                 //If the newest quiz has already been answered
-                if (isQuizAvailable && isQuizAlreadyAnswered) quizResult,
+                if (isQuestionAvailable && isQuizAlreadyAnswered) quizResult,
                 //If no quiz available, default option
-                if (!isQuizAvailable)
+                if (!isQuestionAvailable)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -214,30 +237,46 @@ class Quiz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    debugPrint("listview length ${(questions[questionIndex]['answers'] as List).length}");
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Text(
-          questions[questionIndex]['quizItem']['question'] as String,
-          maxLines: 3,
-          style: quizTextStyle,
-          overflow: TextOverflow.ellipsis,
-        ),
+        Padding(
+            child: Text(
+              questions[questionIndex]['question'] as String,
+              maxLines: 3,
+              style: quizTextStyle,
+              overflow: TextOverflow.ellipsis,
+            ),
+            padding:
+                const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0)),
         //Question
-        ...(questions[questionIndex]['quizItem']['answers'] as List)
-            .map((answer) {
-          return ElevatedButton(
-              onPressed: () => answerQuestion(answer,
-                  questions[questionIndex]['quizItem']['correctAnswer']),
-              child: Text(answer as String, style: quizTextStyle),
-              style: ElevatedButton.styleFrom(
-                primary: yellowColor,
-                padding: const EdgeInsets.only(
-                    top: 10.0, bottom: 10.0, right: 8.0, left: 8.0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(13.0)),
-              ));
-        }).toList()
+        Expanded(child: Scrollbar(
+            thumbVisibility: true,
+            trackVisibility: true,
+            controller: ScrollController(),
+            child: ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: (questions[questionIndex]['answers'] as List).length,
+
+            itemBuilder: (context, i) {
+              var answer = (questions[questionIndex]['answers'] as List)[i];
+              return Padding(child: ElevatedButton(
+                      onPressed: () => answerQuestion(
+                          questions[questionIndex]['id'],
+                          answer,
+                          questions[questionIndex]['correctAnswer']),
+                      child: Text(answer as String, style: quizTextStyle),
+                      style: ElevatedButton.styleFrom(
+                        primary: yellowColor,
+                        onPrimary: Colors.orange,
+                        padding: const EdgeInsets.only(
+                            top: 10.0, bottom: 10.0, right: 8.0, left: 8.0),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(13.0)),
+                      )), padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0));
+            })))
       ],
     ); //Column
   }

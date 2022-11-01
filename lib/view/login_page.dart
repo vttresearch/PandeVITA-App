@@ -22,6 +22,7 @@ class LoginPageState extends State<LoginPage> {
   final UserStorage storage = UserStorage();
 
   bool loggingIn = false;
+  bool showInfo = false;
 
   @override
   void initState() {
@@ -31,19 +32,33 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final usernameField = TextFormField(
+        style: TextStyle(color: Colors.black),
         autofocus: false,
         onSaved: (value) => username = value as String,
         validator: (value)   => value!.isEmpty ? 'Please enter username' : null,
-        decoration: const InputDecoration(
-            icon: Icon(Icons.person), labelText: 'Enter username'));
+        cursorColor: Colors.black,
+        decoration: InputDecoration(
+          labelStyle: TextStyle(color: Colors.black),
+          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black),
+          ), floatingLabelStyle: TextStyle(color: Colors.black),
+          icon: Icon(Icons.person, color: Colors.black), labelText: 'Enter username'));
 
     final passwordField = TextFormField(
+        style: TextStyle(color: Colors.black),
         autofocus: false,
         obscureText: true,
         validator: (value) => value!.isEmpty ? 'Please enter password' : null,
         onSaved: (value) => password = value as String,
-        decoration: const InputDecoration(
-            icon: Icon(Icons.lock), labelText: 'Enter password'));
+        cursorColor: Colors.black,
+        decoration: InputDecoration(
+            labelStyle: TextStyle(color: Colors.black),
+            border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+            ), floatingLabelStyle: TextStyle(color: Colors.black),
+            icon: Icon(Icons.lock, color: Colors.black), labelText: 'Enter password'));
 
     var loading = Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -105,40 +120,62 @@ class LoginPageState extends State<LoginPage> {
       }
     }
 
-    //TODO UI
     return SafeArea(
       child: Scaffold(
-        backgroundColor: backgroundBlue,
-        body: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(40.0),
+        body: Container(
+          decoration: backgroundDecoration,
+          padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 40.0),
+          height: double.infinity,
+          child: SingleChildScrollView(
+
             child: Form(
               key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 20),
                   Image.asset('images/pandevita_logo_large.png', height: 200, ),
                   const SizedBox(height: 20.0),
+                  IconButton(icon: Icon(Icons.info_outline, color: Colors.white, size: 25),
+                      onPressed: () {showInfo = !showInfo; setState(() {});}),
+                  if (showInfo) Center(
+                      child: Padding(
+                          child: Text("The PandeVITA account you create is the same for the dashboard and the application."
+                              "You can log in with an account created on the dashboard. If you create an account in the application,"
+                              "you will be able to use the dashboard with the same account.", style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: Colors.white,
+                            fontSize: 16,
+                          )),
+                          padding: const EdgeInsets.all(12.0))),
                   usernameField,
                   const SizedBox(height: 20.0),
                   passwordField,
                   const SizedBox(height: 20.0),
                   loggingIn == true
                       ? loading
-                      : OutlinedButton(
+                      : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.white,
+                      onPrimary: Colors.grey,
+                    ),
                     child: const Text("Log in", style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                       fontSize: 25,
                     ),), onPressed: doLogin,
                   ),
-                  const SizedBox(height: 5.0),
-                  OutlinedButton(
-                    child: const Text("Create an account", style: TextStyle(
+                  const SizedBox(height: 20.0),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.white,
+                      onPrimary: Colors.grey,
+                      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0)
+                    ),
+                    child: Text("Don't have a PandeVITA account yet? Create an account", style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 25,
+                      color: yellowColor,
+                      fontSize: 20,
                     ),), onPressed: () {Navigator.pushReplacementNamed(context, '/register');},
                   ),
                 ],
