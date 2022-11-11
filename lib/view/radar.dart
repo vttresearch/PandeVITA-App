@@ -73,9 +73,9 @@ class RadarState extends State<Radar>
       vsync: this,
       duration: const Duration(seconds: 1),
     )..repeat();
-    getVirusPointsList();
-    getMaskPointsList();
-    getVaccinationPointsList();
+   // getVirusPointsList();
+   // getMaskPointsList();
+   // getVaccinationPointsList();
     initStateCounter++;
     debugPrint("initStateCounter $initStateCounter");
     initLocationService();
@@ -131,7 +131,7 @@ class RadarState extends State<Radar>
 
   ///When the user collects a mask
   void onMaskCollected(LatLng coordinate) async {
-    String coordinateString =
+   /* String coordinateString =
         coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
     //Get the ID of the mask
     String maskId = "";
@@ -141,21 +141,22 @@ class RadarState extends State<Radar>
       }
     }
     debugPrint("onMaskCollected, maskId $maskId");
-    bool newMask = await gameStatus.checkMask(maskId);
-    if (newMask) {
-      collectedMasks.add(maskId);
+    bool newMask = await gameStatus.checkMask(maskId);*/
+    //if (newMask) {
+     // collectedMasks.add(maskId);
       maskLocations.remove(coordinate);
+      gameStatus.collectMask();
       var snackBar = SnackBar(
         content: Text("You collected a mask and got 20 immunity for a day"),
         duration: Duration(seconds: 5),
       );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
+      Timer(const Duration(seconds: 5), () => ScaffoldMessenger.of(context).showSnackBar(snackBar));
+  //  }
   }
 
   ///When the user collects a vaccine
   void onVaccineCollected(LatLng coordinate) async {
-    String coordinateString =
+ /*   String coordinateString =
         coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
     //Get the ID of the vaccine
     String vaccinationId = "";
@@ -166,15 +167,16 @@ class RadarState extends State<Radar>
     }
     bool newVaccine = await gameStatus.checkVaccination(vaccinationId);
     if (newVaccine) {
-      collectedVaccines.add(vaccinationId);
+      collectedVaccines.add(vaccinationId);*/
       vaccinationLocations.remove(coordinate);
+      gameStatus.collectVaccination();
       var snackBar = SnackBar(
         content:
             Text("You collected a vaccine and got 50 immunity for two days"),
         duration: Duration(seconds: 5),
       );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
+      Timer(const Duration(seconds: 5), () => ScaffoldMessenger.of(context).showSnackBar(snackBar));
+   // }
   }
 
   @override
@@ -289,6 +291,7 @@ class RadarState extends State<Radar>
       });
       timer = Timer.periodic(
           const Duration(seconds: 20), (Timer t) => radarLogicTick());
+      Timer(const Duration(seconds: 5), () => initRadarElements());
     } on PlatformException catch (e) {
       debugPrint(e.toString());
       if (e.code == 'PERMISSION_DENIED') {
@@ -396,6 +399,96 @@ class RadarState extends State<Radar>
     }
   }
 
+
+  /**
+   * Generate random elements for the radar near location
+   */
+  void initRadarElements() async {
+    generateMasks(10, 500);
+    generateVaccines(10, 500);
+    generateViruses(10, 500);
+  }
+
+  /**
+   * Generate amount number of masks inside the range (in meters) from the users current location.
+   */
+  void generateMasks(int amount, int range) async {
+    //Remove the old masks
+    maskLocations.clear();
+    LatLng initialLocation = userLocation;
+    Random random = Random();
+    Distance distance = const Distance();
+
+    List<LatLng> maskLocationsTemp = [];
+
+    for (int i=0; i < amount; i++) {
+      //Randomness for direction and distance from starting location
+      double dirRandom = random.nextDouble();
+      double disRandom = random.nextDouble();
+
+      double direction = 360 * dirRandom;
+      double dist = range * (disRandom + 0.1);
+
+      LatLng newMaskLocation = distance.offset(initialLocation, dist, direction);
+      maskLocationsTemp.add(newMaskLocation);
+    }
+
+    maskLocations = maskLocationsTemp;
+  }
+
+  /**
+   * Generate amount number of vaccines inside the range (in meters) from the users current location.
+   */
+  void generateVaccines(int amount, int range) async {
+    //Remove the old vaccination locations
+    vaccinationLocations.clear();
+    LatLng initialLocation = userLocation;
+    Random random = Random();
+    Distance distance = const Distance();
+
+    List<LatLng> vaccinationLocationsTemp = [];
+
+    for (int i=0; i < amount; i++) {
+      //Randomness for direction and distance from starting location
+      double dirRandom = random.nextDouble();
+      double disRandom = random.nextDouble();
+
+      double direction = 360 * dirRandom;
+      double dist = range * (disRandom + 0.1);
+
+      LatLng newVaccinationLocation = distance.offset(initialLocation, dist, direction);
+      vaccinationLocationsTemp.add(newVaccinationLocation);
+    }
+
+    vaccinationLocations = vaccinationLocationsTemp;
+  }
+
+  /**
+   * Generate amount number of masks inside the range (in meters) from the users current location.
+   */
+  void generateViruses(int amount, int range) async {
+    //Remove the old viruses
+    virusLocations.clear();
+    LatLng initialLocation = userLocation;
+    Random random = Random();
+    Distance distance = const Distance();
+
+    List<LatLng> virusLocationsTemp = [];
+    for (int i=0; i < amount; i++) {
+      //Randomness for direction and distance from starting location
+      double dirRandom = random.nextDouble();
+      double disRandom = random.nextDouble();
+
+      double direction = 360 * dirRandom;
+      double dist = range * (disRandom + 0.1);
+
+      LatLng newVirusLocation = distance.offset(initialLocation, dist, direction);
+      virusLocationsTemp.add(newVirusLocation);
+    }
+
+    virusLocations = virusLocationsTemp;
+  }
+
   ///Radar logic tick. Runs every 20 seconds when radar is active.
   ///
   void radarLogicTick() {
@@ -427,13 +520,13 @@ class RadarState extends State<Radar>
     }
 
     refreshCounter++;
-    //Get updated data from the API every 10 minutes
-    if (refreshCounter > 30) {
+    //Update the viruses, masks and vaccinations locations every 20 minutes
+    if (refreshCounter > 60) {
       refreshCounter = 0;
       getMostRecentData();
       var snackBar = const SnackBar(
-        content: Text("New virus, mask and vaccine locations collected"),
-        duration: Duration(seconds: 5),
+        content: Text("Virus, mask and vaccine locations updated"),
+        duration: Duration(seconds: 3),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
@@ -442,7 +535,7 @@ class RadarState extends State<Radar>
 
   //Get most recent data from the API
   getMostRecentData() async {
-    //Do not spam the server
+    //Prevent spam changing the locations
     int timestamp = DateTime.now().millisecondsSinceEpoch;
     if (timestamp - dataUpdateTimestamp < 300000) {
       return;
@@ -453,9 +546,13 @@ class RadarState extends State<Radar>
     virusLocations.clear();
     vaccinationLocations.clear();
 
-    await getMaskPointsList();
-    await getVirusPointsList();
-    await getVaccinationPointsList();
+  //  await getMaskPointsList();
+    //Generate elements automatically
+    generateMasks(10, 500);
+    generateVaccines(10, 500);
+    generateViruses(10, 500);
+   // await getVirusPointsList();
+   // await getVaccinationPointsList();
     setState(() {});
   }
 }
@@ -593,7 +690,9 @@ class RadarPainter extends CustomPainter {
     canvas.drawCircle(centerOffset, 10, playerPaint);
 
     //Virus coordinate logic
-    for (LatLng virusCoordinate in virusLocations) {
+    List<LatLng> virusIterableList = virusLocations.toList();
+
+    for (LatLng virusCoordinate in virusIterableList) {
       //distance from the user
       double distanceFromUser = distance(userLocation, virusCoordinate);
       //If the virus point is further away than the range of the radar
@@ -617,7 +716,9 @@ class RadarPainter extends CustomPainter {
     }
 
     //Vaccination coordinate logic
-    for (LatLng vaccinationCoordinate in vaccinationLocations) {
+    List<LatLng> vaccinationIterableList = vaccinationLocations.toList();
+
+    for (LatLng vaccinationCoordinate in vaccinationIterableList) {
       //distance from the user
       double distanceFromUser = distance(userLocation, vaccinationCoordinate);
 
@@ -648,7 +749,9 @@ class RadarPainter extends CustomPainter {
     }
 
     //Mask coordinate logic
-    for (LatLng maskCoordinate in maskLocations) {
+    List<LatLng> maskIterableList = maskLocations.toList();
+
+    for (LatLng maskCoordinate in maskIterableList) {
       //distance from the user
       double distanceFromUser = distance(userLocation, maskCoordinate);
 

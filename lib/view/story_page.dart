@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:story_view/story_view.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../communication/http_communication.dart';
 import '../Utility/styles.dart';
 import '../controller/requirement_state_controller.dart';
@@ -80,6 +81,7 @@ class StoryPageState extends State<StoryPage> {
   final controller = Get.find<RequirementStateController>();
   final storyController = StoryController();
   List<StoryItem> storyItems = [];
+  PandeVITAHttpClient client = PandeVITAHttpClient();
 
   @override
   void dispose() {
@@ -113,6 +115,10 @@ class StoryPageState extends State<StoryPage> {
     }
   }
 
+  List<String> linkList = [];
+  int pos = 0;
+  List<String> storyIdList = [];
+
   /**Create a custom story item. Based on the story_view library views.*/
   StoryItem createStoryItem(Map article, int index) {
     String caption = article["title_en"];
@@ -120,6 +126,10 @@ class StoryPageState extends State<StoryPage> {
     String storyText = article["description_en"];
     String articleTopic = article["topic"];
     String imageLocation = "images/news/politics.png";
+
+    String link = article["link"];
+    linkList.add(link);
+    storyIdList.add(article["id"]);
 
     //Generate topic image
     switch (articleTopic) {
@@ -142,6 +152,9 @@ class StoryPageState extends State<StoryPage> {
         imageLocation = "images/news/vaccines.png";
         break;
       case "7":
+        break;
+      case "8":
+        imageLocation = "images/news/gender.jpg";
         break;
     }
 
@@ -183,9 +196,9 @@ class StoryPageState extends State<StoryPage> {
                               0.1),
                           const Center(
                               child: Padding(
-                                  child: Text("Read more on the PandeVITA dashboard", style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white
+                                  child: Text("Swipe up to open the article in a browser", style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white
                                   )),
                                   padding: EdgeInsets.all(12.0))),
                         ],
@@ -206,21 +219,39 @@ class StoryPageState extends State<StoryPage> {
     return article["description_en"];
   }
 
+  void openLinkInBrowser(String link) async {
+    var uri = Uri.parse(link);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      var snackBar = const SnackBar(
+        content: Text("Sorry, could not open the article in browser."),
+        duration: Duration(seconds: 2),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StoryView(
       storyItems: storyItems,
       onStoryShow: (s) {
         debugPrint("Showing a story");
-        int pos = storyItems.indexOf(s);
+        pos = storyItems.indexOf(s);
       },
       onComplete: () {
         Navigator.of(context).pop();
         controller.storyWatched();
+        client.storiesWatched(storyIdList);
+
       },
       onVerticalSwipeComplete: (v) {
         if (v == Direction.down) {
           Navigator.pop(context);
+        }
+        else if (v == Direction.up) {
+          openLinkInBrowser(linkList[pos]);
         }
       },
       progressPosition: ProgressPosition.top,

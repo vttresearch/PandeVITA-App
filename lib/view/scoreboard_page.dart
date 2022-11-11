@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
+import 'package:pandevita_game/communication/http_communication.dart';
 import 'ui_stats.dart';
 import 'scoreboard.dart';
 import 'story_page.dart';
@@ -13,6 +16,40 @@ class ScoreboardPage extends StatefulWidget {
 }
 
 class ScoreboardPageState extends State<ScoreboardPage> {
+
+  PandeVITAHttpClient client = PandeVITAHttpClient();
+
+
+
+  bool unwatchedStories = false;
+  Timer? timer;
+
+  checkNewStories() async {
+    debugPrint("checkNewStories");
+    bool newStoriesAvailable = await client.checkNewStories();
+    if (newStoriesAvailable) {
+      unwatchedStories = true;
+    } else {
+      unwatchedStories = false;
+    }
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkNewStories();
+    //Check whether there are new stories available every 30 minutes from the platform
+    timer = Timer.periodic(
+        const Duration(minutes: 30), (Timer t) => checkNewStories());
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,7 +57,19 @@ class ScoreboardPageState extends State<ScoreboardPage> {
       body: Column(
         children: [
           const SizedBox(height: 5),
-          OutlinedButton(
+          unwatchedStories == true ? ElevatedButton(
+            onPressed: () {Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => PandeVITAStories()),
+            );},
+            child: Icon(Icons.newspaper, color: yellowColor, size: 50.0),
+            style: ElevatedButton.styleFrom(
+              shadowColor: Colors.yellow,
+              side: BorderSide(color: yellowColor, width: 5.0),
+              shape: CircleBorder(),
+              padding: EdgeInsets.all(10.0),
+              primary: Color.fromARGB(255, 91, 197, 224), // <-- Button color// <-- Splash color
+            ),
+          ) : OutlinedButton(
             onPressed: () {Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => PandeVITAStories()),
             );},

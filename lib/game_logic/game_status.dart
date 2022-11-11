@@ -309,6 +309,7 @@ class GameStatus {
     await storage.deleteAll();
   }
 
+  //not used currently
   Future<bool> checkVaccination(String vaccinationId) async {
    // SharedPreferences prefs = await SharedPreferences.getInstance();
   //  List<String> collectedVaccines = (prefs.getStringList('collectedVaccines') ?? []);
@@ -339,6 +340,7 @@ class GameStatus {
     return true;
   }
 
+  //not used currently
   Future<bool> checkMask(String maskId) async {
     //SharedPreferences prefs = await SharedPreferences.getInstance();
    // List<String> collectedMasks = (prefs.getStringList('collectedMasks') ?? []);
@@ -365,6 +367,40 @@ class GameStatus {
     client.updatePlayer(points, collectedMaskId: maskId);
     //update masks
     client.maskTaken(maskId);
+    return true;
+  }
+
+  //New function for handling randomly generated masks
+  Future<bool> collectMask() async {
+    modifyImmunity(20);
+    //Set timestamp
+    String maskTimestampsList = await storage.read(key: 'maskTimestamps') ?? '[]';
+    List maskTimestamps = jsonDecode(maskTimestampsList);
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    maskTimestamps.add(timestamp.toString());
+    await storage.write(key: 'maskTimestamps', value: jsonEncode(maskTimestamps));
+    //Update backend
+    String score = await getPoints();
+    int points = int.parse(score);
+    client.updatePlayer(points, collectedMask: true);
+    return true;
+  }
+
+  //New function for handling randomly generated vaccines
+  Future<bool> collectVaccination() async {
+    modifyImmunity(50);
+    //Set timestamp
+    String vaccineTimestampsList = await storage.read(key: 'vaccineTimestamps') ?? '[]';
+    List vaccineTimestamps = jsonDecode(vaccineTimestampsList);
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    vaccineTimestamps.add(timestamp.toString());
+    await storage.write(key: 'vaccineTimestamps', value: jsonEncode(vaccineTimestamps));
+    controller.eventVaccinationAmountChanged();
+    //Update backend
+    String score = await getPoints();
+    int points = int.parse(score);
+    client.updatePlayer(points, collectedVaccination: true);
+    //update vaccinations
     return true;
   }
 

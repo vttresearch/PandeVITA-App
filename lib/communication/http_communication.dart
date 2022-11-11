@@ -22,6 +22,7 @@ class PandeVITAHttpClient {
   final storage = const FlutterSecureStorage();
   final userStorage = UserStorage();
   final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
+  final String _urlWithoutHttps = "gateway.pandevita.d.lst.tfo.upm.es";
 
   final controller = Get.find<RequirementStateController>();
 
@@ -558,7 +559,7 @@ class PandeVITAHttpClient {
   }
 
   //Update player stats on the server
-  Future<int> updatePlayer(int score, {int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId}) async {
+  Future<int> updatePlayer(int score, {int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId, bool collectedMask = false, bool collectedVaccination = false}) async {
     debugPrint("updatePlayer in http_comm");
     //First get the most current data on the server
     Map? playerData = await getPlayer();
@@ -573,6 +574,7 @@ class PandeVITAHttpClient {
     if (status != null) {
       playerData['status'] = status;
     }
+    /*Not used currently
     if (collectedMaskId != null) {
       List collectedMaskArray = playerData['collected_masks'];
      /* collectedMaskArray.add(collectedMaskId);
@@ -580,7 +582,17 @@ class PandeVITAHttpClient {
       int collectedAmount = int.parse(collectedMaskArray[0]) + 1;
       List collectedList = [collectedAmount.toString()];
       playerData["collected_masks"] = collectedList;
+    }*/
+    if (collectedMask == true) {
+      List collectedMaskArray = playerData['collected_masks'];
+      int collectedAmount = 1;
+      if (collectedMaskArray.isNotEmpty) {
+        collectedAmount = int.parse(collectedMaskArray[0]) + 1;
+      }
+      List collectedList = [collectedAmount.toString()];
+      playerData["collected_masks"] = collectedList;
     }
+    /*Not used currently
     if (collectedVaccineId != null) {
       List collectedVaccineArray = playerData['collected_vaccines'];
      /* collectedVaccineArray.add(collectedVaccineId);
@@ -589,7 +601,17 @@ class PandeVITAHttpClient {
       List collectedList = [collectedAmount.toString()];
       playerData["collected_vaccines"] = collectedList;
 
+    }*/
+    if (collectedVaccination == true) {
+      List collectedVaccineArray = playerData['collected_vaccines'];
+      int collectedAmount = 1;
+      if (collectedVaccineArray.isNotEmpty) {
+        collectedAmount = int.parse(collectedVaccineArray[0]) + 1;
+      }
+      List collectedList = [collectedAmount.toString()];
+      playerData["collected_vaccines"] = collectedList;
     }
+
     //Updated player data
     debugPrint("updated playerData " + playerData.toString());
 
@@ -992,12 +1014,54 @@ class PandeVITAHttpClient {
     if (teamId != null) {
       removeFromTeam(playerName, teamId);
     }
-    //Delete the user
+    //Remove watched stories
+    List watchedStoryIds = [];
     var userId = await userStorage.getUserId();
+    Map filter = {"where": {"id_user": userId, "tool": "app"}};
+    var queryFilter = jsonEncode(filter);
+    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views',
+        {"filter": queryFilter});
+    debugPrint("watchedStoriesUrl $watchedStoriesUrl");
+    //First get the watched stories in the app
+    var watchedStoriesResponse = await client.get(watchedStoriesUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    debugPrint('Response body: + ${watchedStoriesResponse.body}');
+    debugPrint('Response code: + ${watchedStoriesResponse.statusCode}');
+    if (watchedStoriesResponse.statusCode == 200) {
+      try {
+        List watchedStoriesList = jsonDecode(
+            utf8.decode(watchedStoriesResponse.bodyBytes));
+        debugPrint("Article views response decoded successfully");
+        for (Map watchedStory in watchedStoriesList) {
+          watchedStoryIds.add(watchedStory["id"] as String);
+        }
+        for (var watchedStoryId in watchedStoryIds) {
+          var watchedStoryUrl = Uri.parse(_url + "/article-views/" + watchedStoryId);
+        //  debugPrint("deleting watched story $watchedStoryUrl");
+          try {
+            var response = await client.delete(
+                watchedStoryUrl, headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $accessToken',
+            });
+            debugPrint('Response body: + ${response.body}');
+            debugPrint('Response code: + ${response.statusCode}');
+          } catch (error) {
+            debugPrint("error in removeWatchedStories(): $error");
+          }
+        }
+      } catch (error) {
+        debugPrint("error in removeUser(): $error");
+        return 6;
+      }
+    }
+    //Delete the user
     var usersUrl =
     Uri.parse(_url + "/users/" + userId);
     var deletionResponse = await client.delete(usersUrl, headers: {
-      'accept': 'application/json',
+      'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
     debugPrint('Response body: + ${response.body}');
@@ -1017,7 +1081,10 @@ class PandeVITAHttpClient {
     if (accessToken == null) {
       return null;
     }
-    var articlesUrl = Uri.parse(_url + "/articles");
+    //Get only approved articles
+    Map filter = {"limit": 50, "where": {"status": "2"}};
+    var queryFilter = jsonEncode(filter);
+    var articlesUrl = Uri.https(_urlWithoutHttps, '/articles', {"filter": queryFilter});
     var response = await client.get(articlesUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
@@ -1040,4 +1107,122 @@ class PandeVITAHttpClient {
     }
    return null;
   }
+
+  Future<bool> checkNewStories() async {
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    var userId = await userStorage.getUserId();
+    List watchedStoryIds = [];
+    Map filter = {"where": {"id_user": userId, "tool": "app"}};
+    var queryFilter = jsonEncode(filter);
+    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views',
+        {"filter": queryFilter});
+    debugPrint("watchedStoriesUrl $watchedStoriesUrl");
+    //First get the watched stories in the app
+    var response = await client.get(watchedStoriesUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (response.statusCode == 200) {
+      try {
+        List watchedStoriesList = jsonDecode(utf8.decode(response.bodyBytes));
+        debugPrint("Article views response decoded successfully");
+        for (Map watchedStory in watchedStoriesList) {
+          watchedStoryIds.add(watchedStory["id_article"]);
+        }
+        //Check whether there are new articles
+        var articles = await getArticles();
+        if (articles == null) {
+          return false;
+        }
+        int articleAmount = 0;
+        var articlesReversed = articles.reversed.toList();
+        var newArticlesAvailable = false;
+        for (Map article in articlesReversed) {
+          articleAmount += 1;
+          var articleId = article["id"];
+          if (articleAmount > 5) {
+            break;
+          }
+          if (watchedStoryIds.contains(articleId)) {
+            continue;
+          } else {
+            newArticlesAvailable = true;
+            break;
+          }
+        }
+        debugPrint("NEW ARTICLES AVAILABLE: $newArticlesAvailable");
+        return newArticlesAvailable;
+
+
+      } catch (error) {
+        debugPrint("error in checkNewStories(): $error");
+        return false;
+      }
+    }
+
+
+
+    return false;
+  }
+
+  void storiesWatched(List watchedStoriesIds) async {
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    var articleViewsUrl = Uri.parse(_url + "/article-views");
+    var userId = await userStorage.getUserId();
+    //Check that the stories were not viewed before
+    List alreadyWatchedStoryIds = [];
+    Map filter = {"where": {"id_user": userId, "tool": "app"}};
+    var queryFilter = jsonEncode(filter);
+    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views',
+        {"filter": queryFilter});
+    debugPrint("watchedStoriesUrl $watchedStoriesUrl");
+
+    var response = await client.get(watchedStoriesUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (response.statusCode == 200) {
+      try {
+        List watchedStoriesList = jsonDecode(utf8.decode(response.bodyBytes));
+        debugPrint("Article views response decoded successfully");
+        for (Map watchedStory in watchedStoriesList) {
+          alreadyWatchedStoryIds.add(watchedStory["id_article"]);
+        }
+      } catch (error) {
+        debugPrint("error in storiesWatched(): $error");
+      }
+    }
+
+    //Do not spam the server with article views
+   for (var storyId in alreadyWatchedStoryIds) {
+     if (watchedStoriesIds.contains(storyId)) {
+       watchedStoriesIds.remove(storyId);
+     }
+   }
+
+
+    for (var watchedStoryId in watchedStoriesIds) {
+      try {
+        var watchData = {
+          'id_article': watchedStoryId,
+          'id_user': userId,
+          'tool': 'app'
+        };
+        var body = json.encode(watchData);
+        var response = await client.post(articleViewsUrl, body: body, headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+          'Content-type': 'application/json'
+        });
+      } catch (error) {
+        debugPrint("error in storiesWatched(): $error");
+      }
+    }
+
+  }
+
 }

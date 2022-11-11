@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:email_validator/email_validator.dart';
 import '../communication/http_communication.dart';
 import '../Utility/styles.dart';
 
@@ -16,7 +17,6 @@ class RegisterPage extends StatefulWidget {
 }
 
 class RegisterPageState extends State<RegisterPage> {
-
   var chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
   Random random = Random();
 
@@ -35,7 +35,7 @@ class RegisterPageState extends State<RegisterPage> {
   bool agree = false;
 
   //Focus nodes could be used to change text field colors on focus change
- /* List<FocusNode> focusNodes = [
+  /* List<FocusNode> focusNodes = [
     FocusNode(),
     FocusNode(),
     FocusNode(),
@@ -76,31 +76,48 @@ class RegisterPageState extends State<RegisterPage> {
     final usernameField = TextFormField(
         style: TextStyle(color: Colors.black),
         autofocus: false,
-        onSaved: (value) => username = value as String,
+        onSaved: (value) => username = (value as String).toLowerCase(),
         validator: (value) => value!.isEmpty ? 'Please enter username' : null,
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-          ), floatingLabelStyle: TextStyle(color: Colors.black),
-          icon: Icon(Icons.person, color: Colors.black), labelText: 'Enter username',
+          ),
+          floatingLabelStyle: TextStyle(color: Colors.black),
+          icon: Icon(Icons.person, color: Colors.black),
+          labelText: 'Username',
         ));
 
     final emailField = TextFormField(
         style: TextStyle(color: Colors.black),
         autofocus: false,
         onSaved: (value) => email = value as String,
-        validator: (value) => value!.isEmpty ? 'Please enter email' : null,
+        //Validate email
+        validator: (value) {
+          if (value!.isEmpty) {
+            return 'Please enter email';
+          } else {
+            if (EmailValidator.validate(value)) {
+              return null;
+            } else {
+              return 'Please enter email';
+            }
+          }
+        },
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-          ), floatingLabelStyle: TextStyle(color: Colors.black),
-          icon: Icon(Icons.email, color: Colors.black), labelText: 'Enter a fake email',
+          ),
+          floatingLabelStyle: TextStyle(color: Colors.black),
+          icon: Icon(Icons.email, color: Colors.black),
+          labelText: 'Email',
         ));
 
     final passwordField = TextFormField(
@@ -108,50 +125,77 @@ class RegisterPageState extends State<RegisterPage> {
         autofocus: false,
         obscureText: true,
         validator: (value) => value!.isEmpty ? 'Please enter password' : null,
-        onSaved: (value) => password = value as String,
+        onChanged: (value) => password = value as String,
         cursorColor: Colors.black,
         decoration: InputDecoration(
-            labelStyle: TextStyle(color: Colors.black),
-            border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
-            focusedBorder: UnderlineInputBorder(
+          labelStyle: TextStyle(color: Colors.black),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-          ), floatingLabelStyle: TextStyle(color: Colors.black),
-            icon: Icon(Icons.lock, color: Colors.black), labelText: 'Enter password',
+          ),
+          floatingLabelStyle: TextStyle(color: Colors.black),
+          icon: Icon(Icons.lock, color: Colors.black),
+          labelText: 'Password',
         ));
 
     final confirmPasswordField = TextFormField(
         style: TextStyle(color: Colors.black),
         autofocus: false,
         obscureText: true,
-        validator: (value) => value!.isEmpty ? 'Please enter password' : null,
-        onSaved: (value) => confirmPassword = value as String,
+        validator: (value) {
+          if (value!.isEmpty) {
+            return 'Please enter password again';
+          } else {
+            if (confirmPassword == password) {
+              return null;
+            } else {
+              return 'Needs to match with password';
+            }
+          }
+        },
+        onChanged: (value) => confirmPassword = value as String,
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
-          ), floatingLabelStyle: TextStyle(color: Colors.black),
-          icon: Icon(Icons.lock, color: Colors.black), labelText: 'Confirm password',
+          ),
+          floatingLabelStyle: TextStyle(color: Colors.black),
+          icon: Icon(Icons.lock, color: Colors.black),
+          labelText: 'Confirm password',
         ));
 
     //List of possible roles of the user
-    List<String> rolesList = ["Academy", "Industry", "Public authority", "Other"];
+    List<String> rolesList = [
+      "Academy",
+      "Industry",
+      "Public authority",
+      "Other"
+    ];
     //List of possible countries of the user
-    List<String> countriesList = ["Germany", "Netherlands", "Spain", "Turkey", "Finland"];
+    List<String> countriesList = [
+      "Germany",
+      "Netherlands",
+      "Spain",
+      "Turkey",
+      "Finland"
+    ];
 
     //Role selection dropdown
     final roleDropDown = DropdownButtonFormField<String>(
         style: const TextStyle(color: Colors.black),
-       // focusColor: Colors.black,
+        // focusColor: Colors.black,
         dropdownColor: Colors.white,
         decoration: InputDecoration(
-          labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black),
-          )
-        ),
+            labelStyle: TextStyle(color: Colors.black),
+            border: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black)),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+            )),
         items: rolesList.map((String value) {
           return DropdownMenuItem(
             value: value,
@@ -166,7 +210,8 @@ class RegisterPageState extends State<RegisterPage> {
             }
           });
         },
-        hint: Text("Choose your PandeVITA dashboard role", style: TextStyle(color: Colors.black)),
+        hint: Text("Choose your PandeVITA dashboard role",
+            style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: dropdownValue);
 
@@ -177,11 +222,11 @@ class RegisterPageState extends State<RegisterPage> {
         dropdownColor: Colors.white,
         decoration: InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
-            border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+            border: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black)),
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.black),
-            )
-        ),
+            )),
         items: countriesList.map((String value) {
           return DropdownMenuItem(
             value: value,
@@ -196,7 +241,8 @@ class RegisterPageState extends State<RegisterPage> {
             }
           });
         },
-        hint: Text("Choose your country", style: TextStyle(color: Colors.black)),
+        hint:
+            Text("Choose your country", style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: countryDropdownValue);
 
@@ -212,14 +258,16 @@ class RegisterPageState extends State<RegisterPage> {
       final form = formKey.currentState;
       if (form!.validate()) {
         form.save();
-        email = getRandomString(16);
+
         setState(() {
           registering = true;
         });
         int success = await client.registerUser(
             username, password, email, roleSelection, countrySelection!);
         debugPrint("SUCCESS $success");
-        setState(() {registering = false;});
+        setState(() {
+          registering = false;
+        });
         if (success == 0) {
           int success = await client.createPlayer(username);
           if (success == 0) {
@@ -232,7 +280,6 @@ class RegisterPageState extends State<RegisterPage> {
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
             Navigator.pushReplacementNamed(context, '/home');
           }
-
         } else if (success == 1) {
           var snackBar = const SnackBar(
             content: Text("Username is not available"),
@@ -262,26 +309,35 @@ class RegisterPageState extends State<RegisterPage> {
           padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 40.0),
           height: double.infinity,
           child: SingleChildScrollView(
-
             child: Form(
               key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 20.0),
-                  Image.asset('images/pandevita_logo_large.png', height: 100, ),
+                  Image.asset(
+                    'images/pandevita_logo_large.png',
+                    height: 100,
+                  ),
                   const SizedBox(height: 10.0),
-                  IconButton(icon: Icon(Icons.info_outline, color: Colors.white, size: 25),
-                  onPressed: () {showInfo = !showInfo; setState(() {});}),
-                  if (showInfo) Center(
-                      child: Padding(
-                          child: Text("Remember to use a fake email "
-                              "and username", style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: Colors.white,
-                            fontSize: 16,
-                          )),
-                          padding: const EdgeInsets.all(12.0))),
+                  IconButton(
+                      icon: Icon(Icons.info_outline,
+                          color: Colors.white, size: 25),
+                      onPressed: () {
+                        showInfo = !showInfo;
+                        setState(() {});
+                      }),
+                  if (showInfo)
+                    Center(
+                        child: Padding(
+                            child: Text(
+                                "You must include a valid username. Please, make sure you DO NOT USE YOUR REAL NAME, that it only contains LETTERS and NUMBERS and that there are no white spaces.",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                )),
+                            padding: const EdgeInsets.all(12.0))),
                   usernameField,
                   const SizedBox(height: 10.0),
                   emailField,
@@ -292,16 +348,25 @@ class RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 10.0),
                   countryDropDown,
                   const SizedBox(height: 10.0),
-                 // Text("PandeVITA dashboard role"),
-                 // const SizedBox(height: 5.0),
+                  // Text("PandeVITA dashboard role"),
+                  // const SizedBox(height: 5.0),
                   roleDropDown,
                   const SizedBox(height: 10.0),
-                  Row(children: [Transform.scale(child: Checkbox(value: agree, onChanged: (value) {
-                    setState(() {
-                      agree = value ?? false;
-                    });
-                  },
-                  activeColor: Colors.black,), scale: 1.3), const Text("I accept terms", overflow: TextOverflow.ellipsis)]),
+                  Row(children: [
+                    Transform.scale(
+                        child: Checkbox(
+                          value: agree,
+                          onChanged: (value) {
+                            setState(() {
+                              agree = value ?? false;
+                            });
+                          },
+                          activeColor: Colors.black,
+                        ),
+                        scale: 1.3),
+                    const Text("I accept terms",
+                        overflow: TextOverflow.ellipsis)
+                  ]),
                   registering == true
                       ? loading
                       : ElevatedButton(
@@ -309,24 +374,33 @@ class RegisterPageState extends State<RegisterPage> {
                             primary: Colors.white,
                             onPrimary: Colors.grey,
                           ),
-                          child: const Text("Register", style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: 25,
-                          ),), onPressed: agree ? doRegister : null,
-                  ),
+                          child: const Text(
+                            "Register",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 25,
+                            ),
+                          ),
+                          onPressed: agree ? doRegister : null,
+                        ),
                   const SizedBox(height: 5.0),
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         primary: Colors.white,
                         onPrimary: Colors.grey,
                       ),
-                    child: Text("Have an account? Sign in", style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: yellowColor,
-                      fontSize: 20,
-                    ),), onPressed: () {Navigator.pushReplacementNamed(context, '/login');}
-                  ),
+                      child: Text(
+                        "Have an account? Sign in",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: yellowColor,
+                          fontSize: 20,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      }),
                 ],
               ),
             ),

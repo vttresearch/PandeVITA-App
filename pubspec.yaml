@@ -70,6 +70,10 @@ dependencies:
 
   story_view: ^0.13.2
 
+  url_launcher: ^6.1.6
+
+  email_validator: ^2.1.16
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
