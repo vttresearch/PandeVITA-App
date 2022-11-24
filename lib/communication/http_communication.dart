@@ -1,5 +1,6 @@
 /** This file contains the logic necessary to communicate with the platform
-    server*/
+ * Julius Hekkala VTT 2022
+ */
 
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
@@ -1075,16 +1076,30 @@ class PandeVITAHttpClient {
   /**
    * Get the list of articles from backend
    */
-  Future<List?> getArticles() async {
-    debugPrint("getQuiz() in http_comm");
+  Future<List?> getArticles({String? topic}) async {
+    debugPrint("getArticles() in http_comm");
     var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == null) {
       return null;
     }
     //Get only approved articles
-    Map filter = {"limit": 50, "where": {"status": "2"}};
-    var queryFilter = jsonEncode(filter);
-    var articlesUrl = Uri.https(_urlWithoutHttps, '/articles', {"filter": queryFilter});
+    Map basicFilter = {"limit": 20, "where": {"status": "2"}};
+    var queryFilter = jsonEncode(basicFilter);
+    Map<String, dynamic> filter = {"filter": queryFilter};
+    debugPrint("topic $topic");
+    if (topic != null) {
+      if (topic == "news") {
+        filter = {"filter[limit]": "20", "filter[where][status]": "2", "filter[where][or][0][topic]": "3", "filter[where][or][1][topic]": "4", "filter[where][or][2][topic]": "7", "filter[where][or][3][topic]": "8"};
+      } else if (topic == "mobility") {
+        filter = {"filter[limit]": "20", "filter[where][status]": "2", "filter[where][or][0][topic]": "5"};
+      } else if (topic == "info") {
+        filter = {"filter[limit]": "20", "filter[where][status]": "2", "filter[where][or][0][topic]": "1", "filter[where][or][1][topic]": "2", "filter[where][or][2][topic]": "6"};
+      }
+    }
+    debugPrint("filter is $filter");
+
+    var articlesUrl = Uri.https(_urlWithoutHttps, '/articles', filter);
+    debugPrint("getArticles articlesUrl $articlesUrl");
     var response = await client.get(articlesUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
@@ -1108,7 +1123,7 @@ class PandeVITAHttpClient {
    return null;
   }
 
-  Future<bool> checkNewStories() async {
+  Future<bool> checkNewStories(String topic) async {
     var accessToken = await lock.synchronized(getAuthorizationToken);
     var userId = await userStorage.getUserId();
     List watchedStoryIds = [];
@@ -1132,7 +1147,7 @@ class PandeVITAHttpClient {
           watchedStoryIds.add(watchedStory["id_article"]);
         }
         //Check whether there are new articles
-        var articles = await getArticles();
+        var articles = await getArticles(topic: topic);
         if (articles == null) {
           return false;
         }

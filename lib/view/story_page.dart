@@ -9,14 +9,32 @@ import '../Utility/styles.dart';
 import '../controller/requirement_state_controller.dart';
 
 class PandeVITAStories extends StatelessWidget {
+
+  String topic = "";
+
+  PandeVITAStories({String? topic}) {
+    if (topic != null) {
+      this.topic = topic;
+    }
+  }
+
   PandeVITAHttpClient httpClient = PandeVITAHttpClient();
   List<StoryItem> storyList = [];
+
+
 
   /**
    * Get the stories from server side
    */
   Future<List?> getArticlesFromServer() async {
-    List? articlesFromServer = await httpClient.getArticles();
+    //If there is a story topic
+    List? articlesFromServer;
+    if (topic != "") {
+      articlesFromServer = await httpClient.getArticles(topic: topic);
+    } else {
+      articlesFromServer = await httpClient.getArticles();
+    }
+
     if (articlesFromServer == null) {
       return null;
     } else {
@@ -189,7 +207,7 @@ class StoryPageState extends State<StoryPage> {
                               0.05),
                           Center(
                               child: Padding(
-                                  child: Text(storyText, style: storyTextStyle),
+                                  child: Text(storyText, style: storyTextStyle, overflow: TextOverflow.ellipsis, maxLines: 15),
                                   padding: const EdgeInsets.all(12.0))),
                           SizedBox( height: (constraints.maxHeight -
                               constraints.minHeight) *
