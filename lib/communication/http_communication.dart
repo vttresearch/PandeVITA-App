@@ -1240,4 +1240,16 @@ class PandeVITAHttpClient {
 
   }
 
+  //Sends a message to the backend to reset the password for the account
+  //without authorization token
+  void sendResetPassword(String email) async {
+    var resetPasswordUrl = Uri.https(_urlWithoutHttps, '/reset-password',
+        {"email": email});
+    debugPrint("resetPasswordUrl $resetPasswordUrl");
+    await client.post(resetPasswordUrl, headers: {
+      'Accept': '*/*',
+    });
+    return;
+  }
+
 }

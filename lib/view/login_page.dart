@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
 import 'register_page.dart';
@@ -21,8 +22,12 @@ class LoginPageState extends State<LoginPage> {
   final PandeVITAHttpClient client = PandeVITAHttpClient();
   final UserStorage storage = UserStorage();
 
+  TextEditingController _textFieldController = TextEditingController();
+
   bool loggingIn = false;
   bool showInfo = false;
+
+  String recoverEmail = "";
 
   @override
   void initState() {
@@ -177,6 +182,65 @@ class LoginPageState extends State<LoginPage> {
                       color: yellowColor,
                       fontSize: 20,
                     ),), onPressed: () {Navigator.pushReplacementNamed(context, '/register');},
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.grey,
+                        onPrimary: Colors.blueGrey,
+                        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0)
+                    ),
+                    child: Text("Forgot password?", style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 20,
+                    ),), onPressed: () => showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Recover password'),
+                      content: Column(mainAxisSize: MainAxisSize.min, children: [
+                        const Text("Enter your email and we'll send you the password reset link."),
+                        TextField(
+                        onChanged: (value) {
+                          recoverEmail = value;
+                          setState(() {
+                          });
+                        },
+                        controller: _textFieldController,
+                        decoration: const InputDecoration(
+                            hintText: "Email"),
+                      )]),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, 'Cancel');
+                            _textFieldController.clear();
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, 'Submit');
+                            if (EmailValidator.validate(recoverEmail)) {
+                              client.sendResetPassword(recoverEmail);
+                              var snackBar = const SnackBar(
+                                content: Text("Check your email for further instructions."),
+                                duration: Duration(seconds: 3),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                            } else {
+                              var snackBar = const SnackBar(
+                              content: Text("Did not enter a valid email"),
+                              duration: Duration(seconds: 3),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                            }
+                            _textFieldController.clear();
+                          },
+                          child: const Text('Submit'),
+                        ),
+                      ],
+                    ),
+                  ),
                   ),
                 ],
               ),
