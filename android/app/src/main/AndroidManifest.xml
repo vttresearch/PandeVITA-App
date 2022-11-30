@@ -19,7 +19,7 @@
         </intent>
     </queries>
    <application
-        android:label="pandevita_game"
+        android:label="PandeVITA Game"
         android:icon="@mipmap/launcher_icon"
         android:allowBackup="false"
        >
