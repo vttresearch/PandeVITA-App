@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
-import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
+
+import '../controller/requirement_state_controller.dart';
 
 /** This class handles the scanning for nearby devices.
     Based on the example implementation of flutter_beacon. */
@@ -12,7 +13,6 @@ class BeaconScanner {
   final _beacons = <Beacon>[];
   final controller = Get.find<RequirementStateController>();
   StreamSubscription<RangingResult>? _streamRanging;
-
 
   BeaconScanner() {
     //
@@ -23,13 +23,10 @@ class BeaconScanner {
     debugPrint("SCAN STARTED");
     Map<String, int> scanResults = {};
     await flutterBeacon.initializeScanning;
-    if (!controller.authorizationStatusOk ||
-        !controller.locationServiceEnabled ||
-        !controller.bluetoothEnabled) {
-      debugPrint(
-          'RETURNED, authorizationStatusOk=${controller.authorizationStatusOk}, '
-              'locationServiceEnabled=${controller.locationServiceEnabled}, '
-              'bluetoothEnabled=${controller.bluetoothEnabled}');
+    if (!controller.authorizationStatusOk || !controller.locationServiceEnabled || !controller.bluetoothEnabled) {
+      debugPrint('RETURNED, authorizationStatusOk=${controller.authorizationStatusOk}, '
+          'locationServiceEnabled=${controller.locationServiceEnabled}, '
+          'bluetoothEnabled=${controller.bluetoothEnabled}');
       return scanResults;
     }
     final regions = <Region>[
@@ -58,24 +55,18 @@ class BeaconScanner {
         for (Beacon foundBeacon in _beacons) {
           debugPrint(foundBeacon.toString());
           int inf = 0;
-          if (foundBeacon.proximityUUID ==
-              'CB10023F-A318-3394-4199-A8730C7C1AED') {
+          if (foundBeacon.proximityUUID == 'CB10023F-A318-3394-4199-A8730C7C1AED') {
             inf = 1;
           }
-          scanResults[foundBeacon.minor.toString() +
-              foundBeacon.major.toString()] = inf;
+          scanResults[foundBeacon.minor.toString() + foundBeacon.major.toString()] = inf;
         }
       });
     }
 
     await Future.delayed(const Duration(seconds: 10), () => _streamRanging?.pause());
-   // await flutterBeacon.
+    // await flutterBeacon.
     debugPrint("SCAN STOPPED");
 
-
     return scanResults;
-
   }
-
-
 }

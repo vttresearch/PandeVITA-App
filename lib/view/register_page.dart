@@ -1,10 +1,11 @@
 import 'dart:math';
 
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:email_validator/email_validator.dart';
-import '../communication/http_communication.dart';
+
 import '../Utility/styles.dart';
+import '../communication/http_communication.dart';
 
 /** Handles registering user to the platform server. User inputs their username
  * and email and creates a password. Should be one-time only. Based on
@@ -68,8 +69,7 @@ class RegisterPageState extends State<RegisterPage> {
   }*/
 
   /**Generate a random string for the email. https://stackoverflow.com/a/61929967*/
-  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
-      length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +81,7 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border:
-              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -110,8 +109,7 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border:
-              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -129,8 +127,7 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border:
-              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -158,8 +155,7 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border:
-              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -169,20 +165,9 @@ class RegisterPageState extends State<RegisterPage> {
         ));
 
     //List of possible roles of the user
-    List<String> rolesList = [
-      "Academy",
-      "Industry",
-      "Public authority",
-      "Other"
-    ];
+    List<String> rolesList = ["Academy", "Industry", "Public authority", "Other"];
     //List of possible countries of the user
-    List<String> countriesList = [
-      "Germany",
-      "Netherlands",
-      "Spain",
-      "Turkey",
-      "Finland"
-    ];
+    List<String> countriesList = ["Germany", "Netherlands", "Spain", "Turkey", "Finland"];
 
     //Role selection dropdown
     final roleDropDown = DropdownButtonFormField<String>(
@@ -191,8 +176,7 @@ class RegisterPageState extends State<RegisterPage> {
         dropdownColor: Colors.white,
         decoration: InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
-            border: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black)),
+            border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.black),
             )),
@@ -210,8 +194,7 @@ class RegisterPageState extends State<RegisterPage> {
             }
           });
         },
-        hint: Text("Choose your PandeVITA dashboard role",
-            style: TextStyle(color: Colors.black)),
+        hint: Text("Choose your PandeVITA dashboard role", style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: dropdownValue);
 
@@ -222,8 +205,7 @@ class RegisterPageState extends State<RegisterPage> {
         dropdownColor: Colors.white,
         decoration: InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
-            border: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black)),
+            border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.black),
             )),
@@ -241,17 +223,13 @@ class RegisterPageState extends State<RegisterPage> {
             }
           });
         },
-        hint:
-            Text("Choose your country", style: TextStyle(color: Colors.black)),
+        hint: Text("Choose your country", style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: countryDropdownValue);
 
     var loading = Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
-        CircularProgressIndicator(),
-        Text(" Registering ... Please wait")
-      ],
+      children: const [CircularProgressIndicator(), Text(" Registering ... Please wait")],
     );
 
     doRegister() async {
@@ -262,8 +240,7 @@ class RegisterPageState extends State<RegisterPage> {
         setState(() {
           registering = true;
         });
-        int success = await client.registerUser(
-            username, password, email, roleSelection, countrySelection!);
+        int success = await client.registerUser(username, password, email, roleSelection, countrySelection!);
         debugPrint("SUCCESS $success");
         setState(() {
           registering = false;
@@ -321,8 +298,7 @@ class RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 10.0),
                   IconButton(
-                      icon: Icon(Icons.info_outline,
-                          color: Colors.white, size: 25),
+                      icon: Icon(Icons.info_outline, color: Colors.white, size: 25),
                       onPressed: () {
                         showInfo = !showInfo;
                         setState(() {});
@@ -364,8 +340,7 @@ class RegisterPageState extends State<RegisterPage> {
                           activeColor: Colors.black,
                         ),
                         scale: 1.3),
-                    const Text("I accept terms",
-                        overflow: TextOverflow.ellipsis)
+                    const Text("I accept terms", overflow: TextOverflow.ellipsis)
                   ]),
                   registering == true
                       ? loading

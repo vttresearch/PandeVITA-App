@@ -1,24 +1,22 @@
 /** This file contains the logic necessary to communicate with the platform
     server*/
-
-import 'dart:convert';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as client;
 import 'dart:async';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:http/retry.dart';
-import 'package:synchronized/synchronized.dart';
-import '../Utility/user.dart';
-import '../game_logic/game_status.dart';
-import '../controller/requirement_state_controller.dart';
-import 'package:get/get.dart';
+import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as client;
+import 'package:synchronized/synchronized.dart';
+
+import '../Utility/user.dart';
+import '../controller/requirement_state_controller.dart';
+import '../game_logic/game_status.dart';
 
 /**Singleton class that communicates with the platform server*/
 class PandeVITAHttpClient {
-  static final PandeVITAHttpClient _pandeVITAHttpClient =
-  PandeVITAHttpClient._privateConstructor();
+  static final PandeVITAHttpClient _pandeVITAHttpClient = PandeVITAHttpClient._privateConstructor();
   final storage = const FlutterSecureStorage();
   final userStorage = UserStorage();
   final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
@@ -40,12 +38,10 @@ class PandeVITAHttpClient {
   PandeVITAHttpClient._privateConstructor();
 
   //Get authorization token from the server
-  Future<String?>  getAuthorizationToken() async {
+  Future<String?> getAuthorizationToken() async {
     // String credentials = await loadCredentials();
     // var credentialList = credentials.split(",");
-    var currentTimeStamp = DateTime
-        .now()
-        .millisecondsSinceEpoch;
+    var currentTimeStamp = DateTime.now().millisecondsSinceEpoch;
     var accessToken = await storage.read(key: 'access_token');
     var accessTimeStamp = await storage.read(key: 'expires');
     if (accessToken != null && accessTimeStamp != null) {
@@ -62,9 +58,7 @@ class PandeVITAHttpClient {
     debugPrint("password ${user.password}");
     debugPrint("getauthorizationtoken");
     var authUrl = Uri.parse(_url + "/auth");
-    var authData =
-        'client_id=pandevita-dev&grant_type=password&username=${user
-        .name}&password=${user.password}';
+    var authData = 'client_id=pandevita-dev&grant_type=password&username=${user.name}&password=${user.password}';
     /*var authData = {
       'client_id': 'pandevita-dev',
       'grant_type': 'password',
@@ -73,15 +67,9 @@ class PandeVITAHttpClient {
     };*/
     //var body = json.encode(authData);
     try {
-      var response = await client.post(authUrl, body: {
-        'client_id': 'pandevita-dev',
-        'grant_type': 'password',
-        'username': user.name,
-        'password': user.password
-      }, headers: {
-        'accept': '*/*',
-        'Content-Type': 'application/x-www-form-urlencoded'
-      });
+      var response = await client.post(authUrl,
+          body: {'client_id': 'pandevita-dev', 'grant_type': 'password', 'username': user.name, 'password': user.password},
+          headers: {'accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'});
       debugPrint('auth Response status: ${response.statusCode}');
       //debugPrint('auth Response body: ${response.body}');
       if (response.statusCode == 200) {
@@ -93,11 +81,11 @@ class PandeVITAHttpClient {
         await storage.write(key: 'expires', value: accessTimeStamp.toString());
         return accessToken;
         //if wrong credentials
-      } if (response.statusCode == 401) {
+      }
+      if (response.statusCode == 401) {
         controller.credentialsExpired();
         return null;
-      }
-      else {
+      } else {
         return null;
       }
     } catch (error) {
@@ -157,11 +145,8 @@ class PandeVITAHttpClient {
     int newAmount = amountTaken + 1;
     var maskData = {"amountTaken": newAmount};
     var body = json.encode(maskData);
-    var response2 = await client.patch(maskUrl, body: body, headers: {
-      'accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-Type': 'application/json'
-    });
+    var response2 = await client
+        .patch(maskUrl, body: body, headers: {'accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-Type': 'application/json'});
   }
 
   //Update the amount of vaccinations taken
@@ -181,11 +166,8 @@ class PandeVITAHttpClient {
     int newAmount = amountTaken + 1;
     var vaccinationData = {"amountTaken": newAmount};
     var body = json.encode(vaccinationData);
-    var response2 = await client.patch(vaccinationUrl, body: body, headers: {
-      'accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-Type': 'application/json'
-    });
+    var response2 = await client
+        .patch(vaccinationUrl, body: body, headers: {'accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-Type': 'application/json'});
   }
 
   //Get vaccination GPS points from the server
@@ -312,14 +294,11 @@ class PandeVITAHttpClient {
     return {};
   }
 
-
-  Future<int> registerUser(String userName, String password, String email,
-      String? roleSelection, String countrySelection) async {
+  Future<int> registerUser(String userName, String password, String email, String? roleSelection, String countrySelection) async {
     try {
       var registerUrl = Uri.parse(_url + "/users");
       //Check first that the username is available
-      var checkUserNameAvailabilityUrl =
-      Uri.parse(_url + "/users?username=" + userName.toLowerCase());
+      var checkUserNameAvailabilityUrl = Uri.parse(_url + "/users?username=" + userName.toLowerCase());
       var response = await client.get(checkUserNameAvailabilityUrl);
       debugPrint('Response status: ${response.statusCode}');
       debugPrint('Response body: ${response.body}');
@@ -368,9 +347,7 @@ class PandeVITAHttpClient {
         'username': userName,
         'enabled': 'true',
         'email': email,
-        'attributes': {
-          'country': selectedCountry
-        },
+        'attributes': {'country': selectedCountry},
         'credentials': [
           {'type': 'password', 'value': password, 'temporary': 'false'}
         ]
@@ -381,9 +358,7 @@ class PandeVITAHttpClient {
       }
       var body = json.encode(registrationData);
       //If the username does not exist, register user
-      var response2 = await client.post(registerUrl,
-          body: body,
-          headers: {'Accept': '*/*', 'Content-Type': 'application/json'});
+      var response2 = await client.post(registerUrl, body: body, headers: {'Accept': '*/*', 'Content-Type': 'application/json'});
       debugPrint('Response status: ${response2.statusCode}');
       debugPrint('Response body: ${response2.body}');
       var decodedResponse2 = jsonDecode(utf8.decode(response2.bodyBytes));
@@ -392,11 +367,9 @@ class PandeVITAHttpClient {
         return 2;
       }
 
-
       //Everything went ok, save the user
       var userId = decodedResponse2['user_id'];
-      User user =
-      User(userId: userId, name: userName, password: password);
+      User user = User(userId: userId, name: userName, password: password);
       userStorage.saveUser(user);
       return 0;
     } catch (error) {
@@ -412,8 +385,7 @@ class PandeVITAHttpClient {
     try {
       var registerUrl = Uri.parse(_url + "/users");
       //Check first that the username is real
-      var checkUserNameAvailabilityUrl =
-      Uri.parse(_url + "/users?username=" + userName.toLowerCase());
+      var checkUserNameAvailabilityUrl = Uri.parse(_url + "/users?username=" + userName.toLowerCase());
       var response = await client.get(checkUserNameAvailabilityUrl);
       debugPrint('Response status: ${response.statusCode}');
       debugPrint('Response body: ${response.body}');
@@ -425,20 +397,12 @@ class PandeVITAHttpClient {
 
       //"Log in" by getting the access token
       String? accessToken;
-      var currentTimeStamp = DateTime
-          .now()
-          .millisecondsSinceEpoch;
+      var currentTimeStamp = DateTime.now().millisecondsSinceEpoch;
       var authUrl = Uri.parse(_url + "/auth");
       try {
-        var response = await client.post(authUrl, body: {
-          'client_id': 'pandevita-dev',
-          'grant_type': 'password',
-          'username': userName,
-          'password': password
-        }, headers: {
-          'accept': '*/*',
-          'Content-Type': 'application/x-www-form-urlencoded'
-        });
+        var response = await client.post(authUrl,
+            body: {'client_id': 'pandevita-dev', 'grant_type': 'password', 'username': userName, 'password': password},
+            headers: {'accept': '*/*', 'Content-Type': 'application/x-www-form-urlencoded'});
         debugPrint('auth Response status: ${response.statusCode}');
         //debugPrint('auth Response body: ${response.body}');
         if (response.statusCode == 200) {
@@ -459,7 +423,7 @@ class PandeVITAHttpClient {
       }
 
       var jwtTokenParts = accessToken.split(".");
-      if (jwtTokenParts.length !=3) {
+      if (jwtTokenParts.length != 3) {
         debugPrint("Invalid access token");
         return false;
       }
@@ -484,14 +448,7 @@ class PandeVITAHttpClient {
       if (playerData.containsKey("error")) {
         if (playerData['error'] == 404) {
           createPlayer(userName);
-          playerData = {
-            'playerName': userName,
-            'score': 0,
-            'recentContacts': 0,
-            'status': 0,
-            'collected_masks': [],
-            'collected_vaccines': []
-          };
+          playerData = {'playerName': userName, 'score': 0, 'recentContacts': 0, 'status': 0, 'collected_masks': [], 'collected_vaccines': []};
         }
       }
       //Save player data
@@ -520,7 +477,6 @@ class PandeVITAHttpClient {
         }
       }
       return true;
-
     } catch (error) {
       debugPrint("tryLogin error $error");
       return false;
@@ -535,20 +491,10 @@ class PandeVITAHttpClient {
       return 3;
     }
     var playerUrl = Uri.parse(_url + "/players");
-    var playerData = {
-      'playerName': playerName,
-      'score': 0,
-      'recentContacts': 0,
-      'status': 0,
-      'collected_masks': [],
-      'collected_vaccines': []
-    };
+    var playerData = {'playerName': playerName, 'score': 0, 'recentContacts': 0, 'status': 0, 'collected_masks': [], 'collected_vaccines': []};
     var body = json.encode(playerData);
-    var response = await client.post(playerUrl, body: body, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-type': 'application/json'
-    });
+    var response = await client
+        .post(playerUrl, body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
     debugPrint('Response body: + ${response.body}');
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
@@ -559,7 +505,13 @@ class PandeVITAHttpClient {
   }
 
   //Update player stats on the server
-  Future<int> updatePlayer(int score, {int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId, bool collectedMask = false, bool collectedVaccination = false}) async {
+  Future<int> updatePlayer(int score,
+      {int? recentContacts,
+      int? status,
+      String? collectedMaskId,
+      String? collectedVaccineId,
+      bool collectedMask = false,
+      bool collectedVaccination = false}) async {
     debugPrint("updatePlayer in http_comm");
     //First get the most current data on the server
     Map? playerData = await getPlayer();
@@ -623,11 +575,8 @@ class PandeVITAHttpClient {
     debugPrint("playername is $playerName");
     var playerUrl = Uri.parse(_url + "/players/" + playerName);
     var body = json.encode(playerData);
-    var response = await client.patch(playerUrl, body: body, headers: {
-      'accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-Type': 'application/json'
-    });
+    var response = await client
+        .patch(playerUrl, body: body, headers: {'accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-Type': 'application/json'});
     debugPrint('Response body: + ${response.body}');
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 204) {
@@ -656,11 +605,8 @@ class PandeVITAHttpClient {
         return 3;
       }
       var scoreboardsUrl = Uri.parse(_url + "/scoreboards");
-      var response = await client.post(scoreboardsUrl, body: body, headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      });
+      var response = await client.post(scoreboardsUrl,
+          body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
       if (response.statusCode == 200) {
         return 0;
       }
@@ -684,15 +630,11 @@ class PandeVITAHttpClient {
     if (accessToken == null) {
       return 3;
     }
-    var scoreboardsUrl =
-    Uri.parse(_url + "/scoreboards/" + scoreboardId.toString());
+    var scoreboardsUrl = Uri.parse(_url + "/scoreboards/" + scoreboardId.toString());
     var scoreBoardData = {'players': playerList};
     var body = json.encode(scoreBoardData);
-    var response = await client.patch(scoreboardsUrl, body: body, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-type': 'application/json'
-    });
+    var response = await client
+        .patch(scoreboardsUrl, body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
     if (response.statusCode == 204) {
       return 0;
     }
@@ -712,11 +654,8 @@ class PandeVITAHttpClient {
       'teamPlayers': [playerName]
     };
     var body = json.encode(teamData);
-    var response = await client.post(teamsUrl, body: body, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-type': 'application/json'
-    });
+    var response = await client
+        .post(teamsUrl, body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
     debugPrint('Response body: + ${response.body}');
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
@@ -818,11 +757,8 @@ class PandeVITAHttpClient {
     var teamUrl = Uri.parse(_url + "/teams/" + teamId);
     var teamData = {'teamPlayers': teamPlayers};
     var body = json.encode(teamData);
-    var response = await client.patch(teamUrl, body: body, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-type': 'application/json'
-    });
+    var response = await client
+        .patch(teamUrl, body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
     if (response.statusCode == 204) {
       return 0;
     }
@@ -854,11 +790,8 @@ class PandeVITAHttpClient {
     var teamUrl = Uri.parse(_url + "/teams/" + teamId);
     var teamData = {'teamPlayers': teamPlayers};
     var body = json.encode(teamData);
-    var response = await client.patch(teamUrl, body: body, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-      'Content-type': 'application/json'
-    });
+    var response = await client
+        .patch(teamUrl, body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
     if (response.statusCode == 204) {
       return 0;
     }
@@ -877,10 +810,7 @@ class PandeVITAHttpClient {
     var playerName = await userStorage.getUserName();
     debugPrint("playername is $playerName");
     var playerUrl = Uri.parse(_url + "/players/" + playerName);
-    var response = await client.get(playerUrl, headers: {
-      'accept': 'application/json',
-      'Authorization': 'Bearer $accessToken'
-    });
+    var response = await client.get(playerUrl, headers: {'accept': 'application/json', 'Authorization': 'Bearer $accessToken'});
     debugPrint('Response body: + ${response.body}');
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
@@ -888,8 +818,7 @@ class PandeVITAHttpClient {
       return decodedResponse;
     } else if (response.statusCode == 404) {
       return {'error': 404};
-    }
-    else {
+    } else {
       return null;
     }
   }
@@ -897,7 +826,6 @@ class PandeVITAHttpClient {
   Future<int> postPointLossEvent() async {
     return 0;
   }
-
 
   /**
    * Get the quiz questions from the server
@@ -943,21 +871,15 @@ class PandeVITAHttpClient {
       correctUsers.add(await userStorage.getUserName());
       var quizAnswerData = {'correctUsers': correctUsers};
       var body = json.encode(quizAnswerData);
-      var response2 = await client.patch(quizUrl, body: body, headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      });
+      var response2 = await client
+          .patch(quizUrl, body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
     } else {
       var wrongUsers = decodedResponse['wrongUsers'];
       wrongUsers.add(await userStorage.getUserName());
       var quizAnswerData = {'wrongUsers': wrongUsers};
       var body = json.encode(quizAnswerData);
-      var response2 = await client.patch(quizUrl, body: body, headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      });
+      var response2 = await client
+          .patch(quizUrl, body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
     }
   }
 
@@ -996,15 +918,11 @@ class PandeVITAHttpClient {
           break;
         }
       }
-      var scoreboardsUrl =
-      Uri.parse(_url + "/scoreboards/" + scoreboardId.toString());
+      var scoreboardsUrl = Uri.parse(_url + "/scoreboards/" + scoreboardId.toString());
       var scoreBoardData = {'players': playerList};
       var body = json.encode(scoreBoardData);
-      var response = await client.patch(scoreboardsUrl, body: body, headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-        'Content-type': 'application/json'
-      });
+      var response = await client.patch(scoreboardsUrl,
+          body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
       if (response.statusCode != 204) {
         return 2;
       }
@@ -1017,10 +935,11 @@ class PandeVITAHttpClient {
     //Remove watched stories
     List watchedStoryIds = [];
     var userId = await userStorage.getUserId();
-    Map filter = {"where": {"id_user": userId, "tool": "app"}};
+    Map filter = {
+      "where": {"id_user": userId, "tool": "app"}
+    };
     var queryFilter = jsonEncode(filter);
-    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views',
-        {"filter": queryFilter});
+    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views', {"filter": queryFilter});
     debugPrint("watchedStoriesUrl $watchedStoriesUrl");
     //First get the watched stories in the app
     var watchedStoriesResponse = await client.get(watchedStoriesUrl, headers: {
@@ -1031,18 +950,16 @@ class PandeVITAHttpClient {
     debugPrint('Response code: + ${watchedStoriesResponse.statusCode}');
     if (watchedStoriesResponse.statusCode == 200) {
       try {
-        List watchedStoriesList = jsonDecode(
-            utf8.decode(watchedStoriesResponse.bodyBytes));
+        List watchedStoriesList = jsonDecode(utf8.decode(watchedStoriesResponse.bodyBytes));
         debugPrint("Article views response decoded successfully");
         for (Map watchedStory in watchedStoriesList) {
           watchedStoryIds.add(watchedStory["id"] as String);
         }
         for (var watchedStoryId in watchedStoryIds) {
           var watchedStoryUrl = Uri.parse(_url + "/article-views/" + watchedStoryId);
-        //  debugPrint("deleting watched story $watchedStoryUrl");
+          //  debugPrint("deleting watched story $watchedStoryUrl");
           try {
-            var response = await client.delete(
-                watchedStoryUrl, headers: {
+            var response = await client.delete(watchedStoryUrl, headers: {
               'Accept': 'application/json',
               'Authorization': 'Bearer $accessToken',
             });
@@ -1058,8 +975,7 @@ class PandeVITAHttpClient {
       }
     }
     //Delete the user
-    var usersUrl =
-    Uri.parse(_url + "/users/" + userId);
+    var usersUrl = Uri.parse(_url + "/users/" + userId);
     var deletionResponse = await client.delete(usersUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
@@ -1082,7 +998,10 @@ class PandeVITAHttpClient {
       return null;
     }
     //Get only approved articles
-    Map filter = {"limit": 50, "where": {"status": "2"}};
+    Map filter = {
+      "limit": 50,
+      "where": {"status": "2"}
+    };
     var queryFilter = jsonEncode(filter);
     var articlesUrl = Uri.https(_urlWithoutHttps, '/articles', {"filter": queryFilter});
     var response = await client.get(articlesUrl, headers: {
@@ -1103,19 +1022,19 @@ class PandeVITAHttpClient {
         debugPrint("error in getArticles(): $error");
         return null;
       }
-
     }
-   return null;
+    return null;
   }
 
   Future<bool> checkNewStories() async {
     var accessToken = await lock.synchronized(getAuthorizationToken);
     var userId = await userStorage.getUserId();
     List watchedStoryIds = [];
-    Map filter = {"where": {"id_user": userId, "tool": "app"}};
+    Map filter = {
+      "where": {"id_user": userId, "tool": "app"}
+    };
     var queryFilter = jsonEncode(filter);
-    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views',
-        {"filter": queryFilter});
+    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views', {"filter": queryFilter});
     debugPrint("watchedStoriesUrl $watchedStoriesUrl");
     //First get the watched stories in the app
     var response = await client.get(watchedStoriesUrl, headers: {
@@ -1154,15 +1073,11 @@ class PandeVITAHttpClient {
         }
         debugPrint("NEW ARTICLES AVAILABLE: $newArticlesAvailable");
         return newArticlesAvailable;
-
-
       } catch (error) {
         debugPrint("error in checkNewStories(): $error");
         return false;
       }
     }
-
-
 
     return false;
   }
@@ -1173,10 +1088,11 @@ class PandeVITAHttpClient {
     var userId = await userStorage.getUserId();
     //Check that the stories were not viewed before
     List alreadyWatchedStoryIds = [];
-    Map filter = {"where": {"id_user": userId, "tool": "app"}};
+    Map filter = {
+      "where": {"id_user": userId, "tool": "app"}
+    };
     var queryFilter = jsonEncode(filter);
-    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views',
-        {"filter": queryFilter});
+    var watchedStoriesUrl = Uri.https(_urlWithoutHttps, '/article-views', {"filter": queryFilter});
     debugPrint("watchedStoriesUrl $watchedStoriesUrl");
 
     var response = await client.get(watchedStoriesUrl, headers: {
@@ -1198,31 +1114,21 @@ class PandeVITAHttpClient {
     }
 
     //Do not spam the server with article views
-   for (var storyId in alreadyWatchedStoryIds) {
-     if (watchedStoriesIds.contains(storyId)) {
-       watchedStoriesIds.remove(storyId);
-     }
-   }
-
+    for (var storyId in alreadyWatchedStoryIds) {
+      if (watchedStoriesIds.contains(storyId)) {
+        watchedStoriesIds.remove(storyId);
+      }
+    }
 
     for (var watchedStoryId in watchedStoriesIds) {
       try {
-        var watchData = {
-          'id_article': watchedStoryId,
-          'id_user': userId,
-          'tool': 'app'
-        };
+        var watchData = {'id_article': watchedStoryId, 'id_user': userId, 'tool': 'app'};
         var body = json.encode(watchData);
-        var response = await client.post(articleViewsUrl, body: body, headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-          'Content-type': 'application/json'
-        });
+        var response = await client.post(articleViewsUrl,
+            body: body, headers: {'Accept': 'application/json', 'Authorization': 'Bearer $accessToken', 'Content-type': 'application/json'});
       } catch (error) {
         debugPrint("error in storiesWatched(): $error");
       }
     }
-
   }
-
 }

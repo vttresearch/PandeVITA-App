@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
+
 import '../Utility/styles.dart';
 
 /** Team and individual scoreboards*/
@@ -52,7 +53,7 @@ class ScoreboardState extends State<Scoreboard> {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-       if (timer != null) {
+      if (timer != null) {
         if (!timer!.isActive) {
           timer = Timer.periodic(const Duration(minutes: 5), (Timer t) => getScoreboardFromServer());
         }
@@ -135,12 +136,11 @@ class ScoreboardState extends State<Scoreboard> {
                       const Text("TEAM"),
                       const SizedBox(width: 5),
                     ],
-                  )                ],
+                  )
+                ],
                 onPressed: (int index) {
                   setState(() {
-                    for (int buttonIndex = 0;
-                        buttonIndex < isSelectedScoreboard.length;
-                        buttonIndex++) {
+                    for (int buttonIndex = 0; buttonIndex < isSelectedScoreboard.length; buttonIndex++) {
                       if (buttonIndex == index) {
                         isSelectedScoreboard[buttonIndex] = true;
                       } else {
@@ -161,72 +161,45 @@ class ScoreboardState extends State<Scoreboard> {
               //If showing individual scoreboard
               Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () async {
-                      getScoreboardFromServer();
-                    },
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16.0),
-                      itemCount: individualScoreboard.length,
-                      itemBuilder: (context, i) {
-                        //if (i.isOdd) return const Divider();
-                        final index = i;
+                      onRefresh: () async {
+                        getScoreboardFromServer();
+                      },
+                      child: ListView.builder(
+                          padding: const EdgeInsets.all(16.0),
+                          itemCount: individualScoreboard.length,
+                          itemBuilder: (context, i) {
+                            //if (i.isOdd) return const Divider();
+                            final index = i;
 
-                        return ListTile(
-                            title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                      (index + 1).toString() +
-                                          '  ' +
-                                          individualScoreboard[index][0],
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          fontSize: 20)),
+                            return ListTile(
+                                title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                  Text((index + 1).toString() + '  ' + individualScoreboard[index][0],
+                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20)),
                                   Text(individualScoreboard[index][1].toString(),
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          fontSize: 20))
+                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20))
                                 ]),
-                            trailing:
-                                Image.asset('images/xp_star.png', width: 25));
-                      })),
+                                trailing: Image.asset('images/xp_star.png', width: 25));
+                          })),
                   //If showing team scoreboard
                 )
               : Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () async {
-                      getScoreboardFromServer();
-                    },
-                    child: ListView.builder(
+                  onRefresh: () async {
+                    getScoreboardFromServer();
+                  },
+                  child: ListView.builder(
                       padding: const EdgeInsets.all(16.0),
                       itemCount: teamScoreboard.length,
                       itemBuilder: (context, i) {
                         //if (i.isOdd) return const Divider();
                         final index = i;
                         return ListTile(
-                            title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                      (index + 1).toString() +
-                                          '  ' +
-                                          teamScoreboard[index][0],
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          fontSize: 20)),
-                                  Text(teamScoreboard[index][1].toString(),
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          fontSize: 20))
-                                ]),
-                            trailing:
-                                Image.asset('images/xp_star.png', width: 25));
+                            title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                              Text((index + 1).toString() + '  ' + teamScoreboard[index][0],
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20)),
+                              Text(teamScoreboard[index][1].toString(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20))
+                            ]),
+                            trailing: Image.asset('images/xp_star.png', width: 25));
                       }),
                 ))
         ]));

@@ -1,25 +1,21 @@
 /** This file takes care of all the user related things in the application */
-
 import 'dart:async';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class User {
   String userId;
   String name;
- // String email;
+
+  // String email;
   String password;
   String? token;
   String? renewalToken;
 
-  User({required this.userId, required this.name,
-    required this.password});
+  User({required this.userId, required this.name, required this.password});
 
   factory User.fromJson(Map<String, dynamic> responseData) {
-    return User(
-        userId: responseData['id'],
-        name: responseData['username'],
-        password: responseData['credentials'][0]['value']
-    );
+    return User(userId: responseData['id'], name: responseData['username'], password: responseData['credentials'][0]['value']);
   }
 }
 
@@ -28,7 +24,7 @@ class UserStorage {
     const storage = FlutterSecureStorage();
     await storage.write(key: "userId", value: user.userId);
     await storage.write(key: "username", value: user.name);
-   // await storage.write(key: "email", value: user.email);
+    // await storage.write(key: "email", value: user.email);
     await storage.write(key: "password", value: user.password);
 
     return true;
@@ -39,16 +35,12 @@ class UserStorage {
 
     var userId = await storage.read(key: "userId");
     var name = await storage.read(key: "username");
-   // var email = await storage.read(key: "email");
+    // var email = await storage.read(key: "email");
     var password = await storage.read(key: "password");
     if (userId == null || name == null || password == null) {
       return null;
     }
-    return User(
-        userId: userId,
-        name: name,
-        password: password);
-
+    return User(userId: userId, name: name, password: password);
   }
 
   Future<void> deleteUser() async {
@@ -93,7 +85,7 @@ class UserStorage {
     return team;
   }
 
-  void createTeam(String teamName, String teamId) async{
+  void createTeam(String teamName, String teamId) async {
     const storage = FlutterSecureStorage();
     await storage.write(key: 'team', value: teamName);
     await storage.write(key: 'teamFounder', value: teamName);
@@ -124,6 +116,4 @@ class UserStorage {
     String? teamId = await storage.read(key: 'teamId');
     return teamId;
   }
-
 }
-

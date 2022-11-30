@@ -1,11 +1,12 @@
 /**This file contains classes for the map functionality of the PandeVITA
  * application. This uses flutter_osm_plugin. */
 import 'package:flutter/material.dart';
-import '../game_logic/game_status.dart';
-import '../controller/requirement_state_controller.dart';
-import 'package:get/get.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:get/get.dart';
+
 import '../communication/http_communication.dart';
+import '../controller/requirement_state_controller.dart';
+import '../game_logic/game_status.dart';
 
 class GameMap extends StatefulWidget {
   @override
@@ -41,7 +42,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
     return OSMFlutter(
       controller: mapController,
       markerOption: MarkerOption(
-        defaultMarker: MarkerIcon(
+        defaultMarker: const MarkerIcon(
           icon: Icon(
             Icons.person_pin_circle,
             color: Colors.blue,
@@ -61,7 +62,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
 
   void zoomIn() async {
-    await mapController.setZoom(zoomLevel: 25);
+    await mapController.setZoom(zoomLevel: 100);
   }
 
   void displayMaskPointsOnMap() async {
@@ -70,8 +71,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
       await getMaskPointsList();
     }
     for (GeoPoint maskPoint in maskPointsList) {
-      await mapController.addMarker(maskPoint,
-          markerIcon: MarkerIcon(image: AssetImage('images/mask_icon.png')));
+      await mapController.addMarker(maskPoint, markerIcon: const MarkerIcon(image: AssetImage('images/mask_icon.png')));
     }
   }
 
@@ -87,9 +87,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
       for (String maskPoint in maskPoints) {
         try {
           var splitted = maskPoint.split(", ");
-          GeoPoint geoPointTemp = GeoPoint(
-              latitude: double.parse(splitted[0]),
-              longitude: double.parse(splitted[1]));
+          GeoPoint geoPointTemp = GeoPoint(latitude: double.parse(splitted[0]), longitude: double.parse(splitted[1]));
           maskPointsList.add(geoPointTemp);
         } catch (e) {
           print(e.toString());
@@ -103,12 +101,9 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
     if (vaccinationPointsList.isEmpty) {
       print("VACCINATION: asking vaccination points from server");
       await getVaccinationPointsList();
-
     }
     for (GeoPoint vaccinationPoint in vaccinationPointsList) {
-      await mapController.addMarker(vaccinationPoint,
-          markerIcon:
-              MarkerIcon(image: AssetImage('images/vaccination_icon.png')));
+      await mapController.addMarker(vaccinationPoint, markerIcon: MarkerIcon(image: AssetImage('images/vaccination_icon.png')));
     }
   }
 
@@ -123,9 +118,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
       for (String vaccinationPoint in vaccinationPoints) {
         try {
           var splitted = vaccinationPoint.split(", ");
-          GeoPoint geoPointTemp = GeoPoint(
-              latitude: double.parse(splitted[0]),
-              longitude: double.parse(splitted[1]));
+          GeoPoint geoPointTemp = GeoPoint(latitude: double.parse(splitted[0]), longitude: double.parse(splitted[1]));
           vaccinationPointsList.add(geoPointTemp);
         } catch (e) {
           print(e.toString());
@@ -141,9 +134,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
       await getVirusPointsList();
     }
     for (GeoPoint virusPoint in virusPointsList) {
-      await mapController.addMarker(virusPoint,
-          markerIcon:
-          MarkerIcon(image: AssetImage('images/virus_icon.png'))); //TODO: add image asset
+      await mapController.addMarker(virusPoint, markerIcon: MarkerIcon(image: AssetImage('images/virus_icon.png'))); //TODO: add image asset
     }
   }
 
@@ -159,9 +150,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
         try {
           var coordinate = virusPoint['coordinate'];
           var splitted = coordinate.split(", ");
-          GeoPoint geoPointTemp = GeoPoint(
-              latitude: double.parse(splitted[0]),
-              longitude: double.parse(splitted[1]));
+          GeoPoint geoPointTemp = GeoPoint(latitude: double.parse(splitted[0]), longitude: double.parse(splitted[1]));
           virusPointsList.add(geoPointTemp);
         } catch (e) {
           print(e.toString());

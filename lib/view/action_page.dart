@@ -1,20 +1,9 @@
 /** Action page in the UI of the PandeVITA application */
-
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter_beacon/flutter_beacon.dart';
+import 'package:get/get.dart';
 import 'package:pandevita_game/Utility/styles.dart';
-import '../controller/requirement_state_controller.dart';
-import 'package:get/get.dart';
 
-import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter_beacon/flutter_beacon.dart';
 import '../controller/requirement_state_controller.dart';
-import 'package:get/get.dart';
-import '../game_logic/game_status.dart';
 import 'ui_stats.dart';
 
 class TabAction extends StatefulWidget {
@@ -31,18 +20,13 @@ class _TabActionState extends State<TabAction> {
     super.initState();
   }
 
-
-
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
-          //height: 25,
+            //height: 25,
             decoration: boxDecorationYellowBorder,
-            child:
-            Column(
+            child: Column(
               children: [
                 Row(
                   children: [
@@ -54,20 +38,12 @@ class _TabActionState extends State<TabAction> {
                     const Text("0"), //TODO: vaccination status
                   ],
                 ),
-                Row(
-                    children: [
-                      //Immunity status
-                      Image.asset("images/immunity_status_icon.png", width: 50),
-                      ImmunityLevel(),
-                    ]
-
-                )
+                Row(children: [
+                  //Immunity status
+                  Image.asset("images/immunity_status_icon.png", width: 50),
+                  ImmunityLevel(),
+                ])
               ],
-            )
-
-
-
-        )
-    );
+            )));
   }
 }

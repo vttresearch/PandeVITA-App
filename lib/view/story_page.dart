@@ -1,11 +1,13 @@
 import 'dart:convert';
-import 'package:get/get.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:story_view/story_view.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../communication/http_communication.dart';
+
 import '../Utility/styles.dart';
+import '../communication/http_communication.dart';
 import '../controller/requirement_state_controller.dart';
 
 class PandeVITAStories extends StatelessWidget {
@@ -25,8 +27,7 @@ class PandeVITAStories extends StatelessWidget {
   }
 
   Future<List> getLocalStories() async {
-    String fileString =
-        await rootBundle.loadString('images/exampleStories.json');
+    String fileString = await rootBundle.loadString('images/exampleStories.json');
     debugPrint("local Stories read");
     final fileBody = jsonDecode(fileString);
 
@@ -77,7 +78,6 @@ class StoryPage extends StatefulWidget {
 }
 
 class StoryPageState extends State<StoryPage> {
-
   final controller = Get.find<RequirementStateController>();
   final storyController = StoryController();
   List<StoryItem> storyItems = [];
@@ -110,8 +110,7 @@ class StoryPageState extends State<StoryPage> {
         }
       }
     } catch (error) {
-      debugPrint(
-          "error in parsing the stories in story_page:initState(): $error");
+      debugPrint("error in parsing the stories in story_page:initState(): $error");
     }
   }
 
@@ -164,42 +163,26 @@ class StoryPageState extends State<StoryPage> {
           child: Stack(
             children: <Widget>[
               Image(
-                    alignment: Alignment.topLeft,
-                    width: double.infinity,
-                    height: 200.0,
-                    fit: BoxFit.fitWidth,
-                    image: AssetImage(imageLocation),
-                  ),
+                alignment: Alignment.topLeft,
+                width: double.infinity,
+                height: 200.0,
+                fit: BoxFit.fitWidth,
+                image: AssetImage(imageLocation),
+              ),
 
               //Use layout builder to position the texts
               //https://stackoverflow.com/a/51704903
               LayoutBuilder(
                   builder: (context, constraints) => Column(
                         children: [
-                          SizedBox(
-                              height: (constraints.maxHeight -
-                                      constraints.minHeight) *
-                                  0.3),
-                          Center(
-                              child: Padding(
-                                  child: Text(caption, style: storyTitleStyle),
-                                  padding: const EdgeInsets.all(12.0))),
-                          SizedBox( height: (constraints.maxHeight -
-                              constraints.minHeight) *
-                              0.05),
-                          Center(
-                              child: Padding(
-                                  child: Text(storyText, style: storyTextStyle),
-                                  padding: const EdgeInsets.all(12.0))),
-                          SizedBox( height: (constraints.maxHeight -
-                              constraints.minHeight) *
-                              0.1),
+                          SizedBox(height: (constraints.maxHeight - constraints.minHeight) * 0.3),
+                          Center(child: Padding(child: Text(caption, style: storyTitleStyle), padding: const EdgeInsets.all(12.0))),
+                          SizedBox(height: (constraints.maxHeight - constraints.minHeight) * 0.05),
+                          Center(child: Padding(child: Text(storyText, style: storyTextStyle), padding: const EdgeInsets.all(12.0))),
+                          SizedBox(height: (constraints.maxHeight - constraints.minHeight) * 0.1),
                           const Center(
                               child: Padding(
-                                  child: Text("Swipe up to open the article in a browser", style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white
-                                  )),
+                                  child: Text("Swipe up to open the article in a browser", style: TextStyle(fontSize: 16, color: Colors.white)),
                                   padding: EdgeInsets.all(12.0))),
                         ],
                       ))
@@ -209,7 +192,6 @@ class StoryPageState extends State<StoryPage> {
         shown: shown,
         duration: const Duration(seconds: 10));
   }
-
 
   String createCaption(Map article) {
     return article["title_en"];
@@ -244,13 +226,11 @@ class StoryPageState extends State<StoryPage> {
         Navigator.of(context).pop();
         controller.storyWatched();
         client.storiesWatched(storyIdList);
-
       },
       onVerticalSwipeComplete: (v) {
         if (v == Direction.down) {
           Navigator.pop(context);
-        }
-        else if (v == Direction.up) {
+        } else if (v == Direction.up) {
           openLinkInBrowser(linkList[pos]);
         }
       },

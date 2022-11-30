@@ -1,24 +1,23 @@
 /**This class handles the continuous beacon broadcasting needed by the
     application. It is based on the example implementation of flutter_beacon.
- Changed to a singleton class.*/
-import 'package:flutter/cupertino.dart';
-import '../game_logic/game_status.dart';
-import 'package:flutter_beacon/flutter_beacon.dart';
-import '../controller/requirement_state_controller.dart';
-import 'package:get/get.dart';
+    Changed to a singleton class.*/
 import 'dart:math';
 
-class BeaconBroadcastClass {
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_beacon/flutter_beacon.dart';
+import 'package:get/get.dart';
 
+import '../controller/requirement_state_controller.dart';
+import '../game_logic/game_status.dart';
+
+class BeaconBroadcastClass {
   final controller = Get.find<RequirementStateController>();
 
   bool broadcasting = false;
   int? major;
   int? minor;
-  bool get broadcastReady =>
-      controller.authorizationStatusOk == true &&
-          controller.locationServiceEnabled == true &&
-          controller.bluetoothEnabled == true;
+
+  bool get broadcastReady => controller.authorizationStatusOk == true && controller.locationServiceEnabled == true && controller.bluetoothEnabled == true;
 
   GameStatus gameStatus = GameStatus();
 
@@ -38,7 +37,6 @@ class BeaconBroadcastClass {
         if (broadcasting) {
           stopBroadcastBeacon();
         }
-
       }
     });
     //Change the broadcast UUID when infected/cured
@@ -50,11 +48,6 @@ class BeaconBroadcastClass {
     minor = rng.nextInt(65535);
     major = rng.nextInt(65535);
   }
-
-
-
-
-
 
   startBroadcastBeacon() async {
     if (broadcasting) {
@@ -75,7 +68,6 @@ class BeaconBroadcastClass {
     final isBroadcasting = await flutterBeacon.isBroadcasting();
     broadcasting = isBroadcasting;
     debugPrint("ISBROADCASTING " + isBroadcasting.toString());
-
   }
 
   stopBroadcastBeacon() async {
@@ -98,7 +90,5 @@ class BeaconBroadcastClass {
     String proximityUUID = await gameStatus.getProximityUUID();
     debugPrint("GOTHERE");
     return proximityUUID;
-}
-
-
+  }
 }

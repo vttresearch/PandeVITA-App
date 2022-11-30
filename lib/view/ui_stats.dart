@@ -1,11 +1,12 @@
 /**This file contains classes to help displaying the correct stats
     to the player in the PandeVITA app UI*/
 import 'package:flutter/material.dart';
-import '../Utility/styles.dart';
-import '../game_logic/game_status.dart';
-import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+
+import '../Utility/styles.dart';
+import '../controller/requirement_state_controller.dart';
+import '../game_logic/game_status.dart';
 
 class PlayerPoints extends StatefulWidget {
   @override
@@ -70,38 +71,30 @@ class ImmunityLevelState extends State<ImmunityLevel> {
   Widget build(BuildContext context) {
     return Row(children: [
       SizedBox(
-        width: 200,
-        child: Stack(
-          children: [
-            Positioned(
-              child: LinearPercentIndicator(
-                width: 160.0,
-                lineHeight: 14.0,
-                percent: barValue,
-                animation: false,
-                barRadius: Radius.circular(7),
-                backgroundColor: Colors.grey,
-                progressColor: yellowColor,
+          width: 200,
+          child: Stack(
+            children: [
+              Positioned(
+                child: LinearPercentIndicator(
+                  width: 160.0,
+                  lineHeight: 14.0,
+                  percent: barValue,
+                  animation: false,
+                  barRadius: Radius.circular(7),
+                  backgroundColor: Colors.grey,
+                  progressColor: yellowColor,
+                ),
+                top: 22,
+                left: 30,
               ),
-              top: 22,
-              left: 30,
-            ),
-            Image.asset("images/immunity_status_icon.png", width: 50),
-            Positioned(
-              child: Text(
-                "IMMUNITY DEGREE",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: yellowColor,
-                  fontSize: 11
-                )
-              ),
-              top: 40,
-              left: 60,
-            )
-          ],
-        )
-      ),
+              Image.asset("images/immunity_status_icon.png", width: 50),
+              Positioned(
+                child: Text("IMMUNITY DEGREE", style: TextStyle(fontWeight: FontWeight.bold, color: yellowColor, fontSize: 11)),
+                top: 40,
+                left: 60,
+              )
+            ],
+          )),
       Text(immunityLevel,
           style: TextStyle(
             fontWeight: FontWeight.bold,

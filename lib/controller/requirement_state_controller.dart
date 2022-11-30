@@ -19,11 +19,10 @@ class RequirementStateController extends GetxController {
   var _storyWatched = false.obs;
   var _credentialsExpired = false.obs;
 
-
   bool get bluetoothEnabled => bluetoothState.value == BluetoothState.stateOn;
-  bool get authorizationStatusOk =>
-      authorizationStatus.value == AuthorizationStatus.allowed ||
-      authorizationStatus.value == AuthorizationStatus.always;
+
+  bool get authorizationStatusOk => authorizationStatus.value == AuthorizationStatus.allowed || authorizationStatus.value == AuthorizationStatus.always;
+
   bool get locationServiceEnabled => locationService.value;
 
   updateBluetoothState(BluetoothState state) {
@@ -131,5 +130,4 @@ class RequirementStateController extends GetxController {
   Stream<bool> get credentialsExpiredStream {
     return _credentialsExpired.stream;
   }
-
 }

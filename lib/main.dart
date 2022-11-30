@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:get/get.dart';
+
 import 'controller/requirement_state_controller.dart';
 import 'view/home_page.dart';
 import 'view/landing_page.dart';
-import 'package:get/get.dart';
-import 'view/register_page.dart';
 import 'view/login_page.dart';
+import 'view/register_page.dart';
 
 void main() async {
   const bool isProduction = bool.fromEnvironment('dart.vm.product');
@@ -17,8 +16,8 @@ void main() async {
     debugPrint = (String? message, {int? wrapWidth}) => null;
   }
   //Hive db
- // await Hive.initFlutter();
- // await Hive.openBox("pandevita_box");
+  // await Hive.initFlutter();
+  // await Hive.openBox("pandevita_box");
   runApp(MainApp());
 }
 
@@ -32,7 +31,7 @@ class MainApp extends StatelessWidget {
 
     return GetMaterialApp(
         title: 'PandeVITA game application',
-     /* theme: ThemeData(
+        /* theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: primary,
         appBarTheme: themeData.appBarTheme.copyWith(
@@ -56,13 +55,12 @@ class MainApp extends StatelessWidget {
         brightness: Brightness.dark,
         primarySwatch: primary,
       ),*/
-      home: LandingPage(),
-      routes: {
-        '/home': (context) => HomePage(),
-        '/register': (context) => RegisterPage(),
-        '/login': (context) => LoginPage(),
-        '/landing': (context) => LandingPage(),
-      }
-    );
+        home: LandingPage(),
+        routes: {
+          '/home': (context) => HomePage(),
+          '/register': (context) => RegisterPage(),
+          '/login': (context) => LoginPage(),
+          '/landing': (context) => LandingPage(),
+        });
   }
 }
