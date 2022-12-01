@@ -114,9 +114,9 @@ class QuizPageState extends State<QuizPage> {
       for (Map question in quizFromServer) {
         currentQuizId = question['id'];
         //Do not display already answered questions
-        if (await gameStatus.isQuizQuestionAnswered(currentQuizId)) {
+     /*   if (await gameStatus.isQuizQuestionAnswered(currentQuizId)) {
           continue;
-        }
+        }*/
         newQuestions = true;
         currentQuiz.add(question);
         isAnsweringQuiz = true;
@@ -180,13 +180,31 @@ class QuizPageState extends State<QuizPage> {
                 if (isQuestionAvailable && isQuizAlreadyAnswered) quizResult,
                 //If no quiz available, default option
                 if (!isQuestionAvailable)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Expanded(child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text("No quiz currently available",
-                          style: settingsTextStyle)
+                      Padding(
+                          child: Text(
+                              "No questions currently available",
+                              style: settingsTextStyle,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2),
+                          padding:
+                          const EdgeInsets.symmetric(vertical: 20.0, horizontal: 10.0)),
+                      //Text("You got $totalScore immunity points", style: settingsTextStyle),
+                      Padding(
+                          child: Text("Check this tab later to find new",
+                              style: settingsTextStyle),
+                          padding:
+                          const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0)),
+                      Padding(
+                          child: Text("questions",
+                              style: settingsTextStyle),
+                          padding:
+                          const EdgeInsets.symmetric(vertical: 0.0, horizontal: 10.0))
                     ],
-                  ),
+                  )),
               ],
             )),
       ),

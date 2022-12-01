@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as client;
 import 'dart:async';
@@ -491,7 +492,8 @@ class PandeVITAHttpClient {
             'recentContacts': 0,
             'status': 0,
             'collected_masks': [],
-            'collected_vaccines': []
+            'collected_vaccines': [],
+            'ansewredQuizzes': {}
           };
         }
       }
@@ -542,7 +544,8 @@ class PandeVITAHttpClient {
       'recentContacts': 0,
       'status': 0,
       'collected_masks': [],
-      'collected_vaccines': []
+      'collected_vaccines': [],
+      'ansewredQuizzes': {}
     };
     var body = json.encode(playerData);
     var response = await client.post(playerUrl, body: body, headers: {
@@ -560,7 +563,7 @@ class PandeVITAHttpClient {
   }
 
   //Update player stats on the server
-  Future<int> updatePlayer(int score, {int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId, bool collectedMask = false, bool collectedVaccination = false}) async {
+  Future<int> updatePlayer({int? score, int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId, bool collectedMask = false, bool collectedVaccination = false, String? answeredQuestion}) async {
     debugPrint("updatePlayer in http_comm");
     //First get the most current data on the server
     Map? playerData = await getPlayer();
@@ -568,7 +571,10 @@ class PandeVITAHttpClient {
       return 5;
     }
     //Update the data
-    playerData['score'] = score;
+    if (score != null) {
+      playerData['score'] = score;
+    }
+
     if (recentContacts != null) {
       playerData['recentContacts'] = recentContacts;
     }
@@ -612,6 +618,38 @@ class PandeVITAHttpClient {
       List collectedList = [collectedAmount.toString()];
       playerData["collected_vaccines"] = collectedList;
     }
+
+    //If the user has answered a quiz question, add quiz question id
+    //to the array
+    if (answeredQuestion != null) {
+      Map answeredQuizzesMap = playerData['ansewredQuizzes'];
+      DateTime date = DateTime.now();
+      var dateString = "${date.year}-${date.month}-${date.day}";
+      debugPrint("date is $dateString");
+      if (answeredQuizzesMap.isNotEmpty) {
+        List answeredQuizzesList = answeredQuizzesMap["quizIds"];
+        answeredQuizzesList.add(answeredQuestion);
+        answeredQuizzesMap["quizIds"] = answeredQuizzesList;
+
+        List answeredQuizzesDates = answeredQuizzesMap["dates"];
+        bool dateFound = false;
+        for (var dateData in answeredQuizzesDates) {
+          if (dateData["date"] == dateString) {
+            dateFound = true;
+            dateData["amount"] = dateData["amount"] + 1;
+            break;
+          }
+        }
+        if (dateFound == false) {
+          answeredQuizzesDates.add({"date": dateString, "amount": 1});
+        }
+        answeredQuizzesMap["dates"] = answeredQuizzesDates;
+      } else {
+        answeredQuizzesMap = {"quizIds": [answeredQuestion], "dates": [{"date": dateString, "amount": 1}]};
+      }
+      playerData['ansewredQuizzes'] = answeredQuizzesMap;
+    }
+
 
     //Updated player data
     debugPrint("updated playerData " + playerData.toString());
@@ -909,25 +947,72 @@ class PandeVITAHttpClient {
     if (accessToken == null) {
       return null;
     }
-    var quizUrl = Uri.parse(_url + "/quizzes");
-    var response = await client.get(quizUrl, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    });
-    debugPrint('Response body: + ${response.body}');
-    debugPrint('Response code: + ${response.statusCode}');
-    if (response.statusCode == 200) {
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      debugPrint("quiz response decoded successfully");
-      return decodedResponse;
+    try {
+      int amountOfQuestionsToGive = 3;
+      //Get already answered quiz questions and the user can answer 3 questions per day
+      DateTime dateToday = DateTime.now();
+      var dateTodayString = "${dateToday.year}-${dateToday.month}-${dateToday.day}";
+      debugPrint("date is $dateTodayString");
+      var player = await getPlayer();
+      Map answeredQuizzesMap = player!["ansewredQuizzes"];
+      List answeredQuizIds = [];
+      List dates = [];
+      if (answeredQuizzesMap.isNotEmpty) {
+        answeredQuizIds = answeredQuizzesMap["quizIds"];
+        dates = answeredQuizzesMap["dates"];
+      }
+      int alreadyAnsweredTodayAmount = 0;
+      for (var date in dates) {
+        var day = date["date"];
+        if (day == dateTodayString) {
+          alreadyAnsweredTodayAmount = date["amount"];
+        }
+      }
+      amountOfQuestionsToGive =
+          amountOfQuestionsToGive - alreadyAnsweredTodayAmount;
+      var quizUrl = Uri.parse(_url + "/quizzes");
+      var response = await client.get(quizUrl, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      });
+      debugPrint('Response body: + ${response.body}');
+      debugPrint('Response code: + ${response.statusCode}');
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        debugPrint("quiz response decoded successfully");
+        //Remove the answered questions, then return amountOfQuestionsToGive
+        //amount of questions
+        List quizQuestionsToReturn = decodedResponse.toList();
+        debugPrint("quizquestions1 $quizQuestionsToReturn");
+        for (var quizQuestion in quizQuestionsToReturn) {
+          if (answeredQuizIds.contains(quizQuestion["id"])) {
+            decodedResponse.remove(quizQuestion);
+          }
+        }
+        debugPrint("quizquestions2 $quizQuestionsToReturn");
+        debugPrint("decodedResponse now $decodedResponse");
+        quizQuestionsToReturn = [];
+        for (int i=0; i < amountOfQuestionsToGive; i++) {
+          if (i < decodedResponse.length) {
+            quizQuestionsToReturn.add(decodedResponse[i]);
+          } else {
+            break;
+          }
+        }
+        debugPrint("quizquestions3 $quizQuestionsToReturn");
+        return quizQuestionsToReturn;
+      }
+      if (response.statusCode == 404) {
+        return null;
+      }
     }
-    if (response.statusCode == 404) {
+    catch (e) {
       return null;
     }
-    return null;
   }
 
   void updateQuizAnswer(String quizId, bool correctAnswer) async {
+    updatePlayer(answeredQuestion: quizId);
     debugPrint("updating QuizAnswer");
     var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == null) {
@@ -941,7 +1026,7 @@ class PandeVITAHttpClient {
     var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
     if (correctAnswer) {
       var correctUsers = decodedResponse['correctUsers'];
-      correctUsers.add(await userStorage.getUserName());
+      correctUsers.add(await userStorage.getUserId());
       var quizAnswerData = {'correctUsers': correctUsers};
       var body = json.encode(quizAnswerData);
       var response2 = await client.patch(quizUrl, body: body, headers: {
@@ -951,7 +1036,7 @@ class PandeVITAHttpClient {
       });
     } else {
       var wrongUsers = decodedResponse['wrongUsers'];
-      wrongUsers.add(await userStorage.getUserName());
+      wrongUsers.add(await userStorage.getUserId());
       var quizAnswerData = {'wrongUsers': wrongUsers};
       var body = json.encode(quizAnswerData);
       var response2 = await client.patch(quizUrl, body: body, headers: {

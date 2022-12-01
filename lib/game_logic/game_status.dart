@@ -75,7 +75,7 @@ class GameStatus {
     await storage.write(key: 'playerInfectedTimestamp', value: timestamp.toString());
     String score = await storage.read(key: 'playerPoints') ?? "0";
     int points = int.parse(score);
-    client.updatePlayer(points, status: 1);
+    client.updatePlayer(score: points, status: 1);
     controller.playerInfected();
   }
 
@@ -107,7 +107,7 @@ class GameStatus {
     await storage.write(key: 'playerInfectedTimestamp', value: '0');
     String score = await storage.read(key: "playerPoints") ?? "0";
     int points = int.parse(score);
-    client.updatePlayer(points, status: 0);
+    client.updatePlayer(score: points, status: 0);
     controller.playerCured();
   }
 
@@ -217,12 +217,12 @@ class GameStatus {
     if (contacts == null) {
       //At least 1 minute between updates
       if (timestamp - lastUpdatedServer > 60000) {
-        await client.updatePlayer(score);
+        await client.updatePlayer(score: score);
         await client.updateScoreboardPlayer(score);
         lastUpdatedServer = timestamp;
       }
     } else {
-      await client.updatePlayer(score, recentContacts: contacts);
+      await client.updatePlayer(score: score, recentContacts: contacts);
       await client.updateScoreboardPlayer(score);
       lastUpdatedServer = timestamp;
     }
@@ -334,7 +334,7 @@ class GameStatus {
     //Update backend
     String score = await getPoints();
     int points = int.parse(score);
-    client.updatePlayer(points, collectedVaccineId: vaccinationId);
+    client.updatePlayer(score: points, collectedVaccineId: vaccinationId);
     //update vaccinations
     client.vaccinationTaken(vaccinationId);
     return true;
@@ -364,7 +364,7 @@ class GameStatus {
     //Update backend
     String score = await getPoints();
     int points = int.parse(score);
-    client.updatePlayer(points, collectedMaskId: maskId);
+    client.updatePlayer(score: points, collectedMaskId: maskId);
     //update masks
     client.maskTaken(maskId);
     return true;
@@ -382,7 +382,7 @@ class GameStatus {
     //Update backend
     String score = await getPoints();
     int points = int.parse(score);
-    client.updatePlayer(points, collectedMask: true);
+    client.updatePlayer(score: points, collectedMask: true);
     return true;
   }
 
@@ -399,7 +399,7 @@ class GameStatus {
     //Update backend
     String score = await getPoints();
     int points = int.parse(score);
-    client.updatePlayer(points, collectedVaccination: true);
+    client.updatePlayer(score: points, collectedVaccination: true);
     //update vaccinations
     return true;
   }
