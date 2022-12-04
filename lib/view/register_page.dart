@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pandevita_game/view/terms_page.dart';
 
 import '../Utility/styles.dart';
 import '../communication/http_communication.dart';
@@ -340,7 +341,11 @@ class RegisterPageState extends State<RegisterPage> {
                           activeColor: Colors.black,
                         ),
                         scale: 1.3),
-                    const Text("I accept terms", overflow: TextOverflow.ellipsis)
+                    const Text("I accept terms", overflow: TextOverflow.ellipsis),
+                    IconButton(
+                      onPressed: () => _showTerms(context),
+                      icon: Icon(Icons.info_outline, color: Colors.white, size: 20.0),
+                    )
                   ]),
                   registering == true
                       ? loading
@@ -383,5 +388,9 @@ class RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  void _showTerms(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TermsPage()));
   }
 }
