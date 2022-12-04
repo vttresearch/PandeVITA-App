@@ -71,7 +71,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
       await getMaskPointsList();
     }
     for (GeoPoint maskPoint in maskPointsList) {
-      await mapController.addMarker(maskPoint, markerIcon: const MarkerIcon(image: AssetImage('images/mask_icon.png')));
+      await mapController.addMarker(maskPoint, markerIcon: MarkerIcon(assetMarker: AssetMarker(image: AssetImage('images/mask_icon.png'))));
     }
   }
 
@@ -103,7 +103,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
       await getVaccinationPointsList();
     }
     for (GeoPoint vaccinationPoint in vaccinationPointsList) {
-      await mapController.addMarker(vaccinationPoint, markerIcon: MarkerIcon(image: AssetImage('images/vaccination_icon.png')));
+      await mapController.addMarker(vaccinationPoint, markerIcon: MarkerIcon(assetMarker: AssetMarker(image: AssetImage('images/vaccination_icon.png'))));
     }
   }
 
@@ -134,7 +134,7 @@ class GameMapState extends State<GameMap> with AutomaticKeepAliveClientMixin {
       await getVirusPointsList();
     }
     for (GeoPoint virusPoint in virusPointsList) {
-      await mapController.addMarker(virusPoint, markerIcon: MarkerIcon(image: AssetImage('images/virus_icon.png'))); //TODO: add image asset
+      await mapController.addMarker(virusPoint, markerIcon: MarkerIcon(assetMarker: AssetMarker(image: AssetImage('images/virus_icon.png')))); //TODO: add image asset
     }
   }
 

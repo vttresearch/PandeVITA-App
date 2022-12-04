@@ -152,14 +152,14 @@ packages:
       name: flutter_osm_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.14+1"
+    version: "0.1.30"
   flutter_osm_plugin:
     dependency: "direct main"
     description:
       name: flutter_osm_plugin
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.28.2"
+    version: "0.41.2"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -414,35 +414,35 @@ packages:
       name: permission_handler
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.2.0"
+    version: "10.2.0"
   permission_handler_android:
     dependency: transitive
     description:
       name: permission_handler_android
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.0.2+1"
+    version: "10.2.0"
   permission_handler_apple:
     dependency: transitive
     description:
       name: permission_handler_apple
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.0.4"
+    version: "9.0.7"
   permission_handler_platform_interface:
     dependency: transitive
     description:
       name: permission_handler_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.7.0"
+    version: "3.9.0"
   permission_handler_windows:
     dependency: transitive
     description:
       name: permission_handler_windows
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.0"
+    version: "0.1.2"
   petitparser:
     dependency: transitive
     description:

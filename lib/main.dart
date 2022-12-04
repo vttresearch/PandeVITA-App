@@ -30,6 +30,7 @@ class MainApp extends StatelessWidget {
     final primary = Colors.blue;
 
     return GetMaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'PandeVITA game application',
         /* theme: ThemeData(
         brightness: Brightness.light,
