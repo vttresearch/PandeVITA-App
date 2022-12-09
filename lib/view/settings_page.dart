@@ -615,6 +615,53 @@ class SettingsPageState extends State<SettingsPage> {
                             )
                         ],
                       ),
+                    //Show the names of the team mates
+                    if (!isNotMemberOfTeam)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                              child:
+                              Text("See team mates", style: settingsTextStyle),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0.0, horizontal: 10.0)),
+                          ElevatedButton(
+                            child: Icon(Icons.group,
+                                size: 25.0, color: yellowColor),
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.white,
+                              onPrimary: Colors.blue,
+                              shape: CircleBorder(),
+                              padding: EdgeInsets.all(5.0),
+                            ),
+                            onPressed: () => showDialog<String>(
+                              context: context,
+                              builder: (BuildContext context) => AlertDialog(
+                                scrollable: true,
+                                title: const Text('Scroll to see more'),
+                                content: Container(
+                                    height: 100,
+                                    width: 200,
+                                    child: ListView.builder(
+                                           // padding: const EdgeInsets.all(16.0),
+                                            itemCount: teamMembers.length,
+                                            itemBuilder: (context, i) {
+                                              var teamMember = teamMembers[i];
+                                              return Center(child: Text(teamMember, style: TextStyle(fontSize: 18)));
+                                            })),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context, 'Close');
+                                    },
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     Spacer(),
                     Center(
                         child: Padding(child: Text(
