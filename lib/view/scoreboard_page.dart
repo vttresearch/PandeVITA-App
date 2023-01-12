@@ -61,6 +61,8 @@ class ScoreboardPageState extends State<ScoreboardPage> {
               unwatchedNewsStories == true
                   ? ElevatedButton(
                       onPressed: () {
+                        unwatchedNewsStories = false;
+                        setState(() {});
                         Navigator.of(context).push(
                           MaterialPageRoute(
                               builder: (context) =>
@@ -104,6 +106,8 @@ class ScoreboardPageState extends State<ScoreboardPage> {
               unwatchedMobilityStories == true
                   ? ElevatedButton(
                       onPressed: () {
+                        unwatchedMobilityStories = false;
+                        setState(() {});
                         Navigator.of(context).push(
                           MaterialPageRoute(
                               builder: (context) =>
@@ -147,6 +151,8 @@ class ScoreboardPageState extends State<ScoreboardPage> {
               unwatchedInfoStories == true
                   ? ElevatedButton(
                       onPressed: () {
+                        unwatchedInfoStories = false;
+                        setState(() {});
                         Navigator.of(context).push(
                           MaterialPageRoute(
                               builder: (context) =>

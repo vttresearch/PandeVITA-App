@@ -70,9 +70,14 @@ dependencies:
 
   story_view: ^0.13.2
 
+  flutter_markdown: ^0.6.13
+
   url_launcher: ^6.1.6
 
   email_validator: ^2.1.16
+
+  #tutorial
+ # tutorial_coach_mark: ^1.2.4
 
 dev_dependencies:
   flutter_test:
@@ -110,6 +115,7 @@ flutter:
     - images/
     - images/news/
     - asset_files/test_credentials.txt
+    - asset_files/privacy_policy.md
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -1144,9 +1144,21 @@ class PandeVITAHttpClient {
       }
     }
     //Delete the user
-    var usersUrl =
+    /*var usersUrl =
     Uri.parse(_url + "/users/" + userId);
     var deletionResponse = await client.delete(usersUrl, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    });
+    debugPrint('Response body: + ${response.body}');
+    debugPrint('Response code: + ${response.statusCode}');
+    if (deletionResponse.statusCode != 204) {
+      return 1;
+    }*/
+
+    //Use the newer delete-user endpoint
+    var deleteUserUrl = Uri.parse(_url + "/delete-user");
+    var deletionResponse = await client.delete(deleteUserUrl, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
     });
@@ -1336,5 +1348,55 @@ class PandeVITAHttpClient {
     });
     return;
   }
+
+/**  Future<Map> getQuizHistory() async {
+    debugPrint("getQuiz() in http_comm");
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    if (accessToken == null) {
+      return null;
+    }
+    try {
+      Map quizHistory = {};
+      var player = await getPlayer();
+      Map answeredQuizzesMap = player!["ansewredQuizzes"];
+      quizHistory["answered"] = answeredQuizzesMap;
+      List answeredQuizIds = [];
+      List dates = [];
+      if (answeredQuizzesMap.isNotEmpty) {
+        answeredQuizIds = answeredQuizzesMap["quizIds"];
+        dates = answeredQuizzesMap["dates"];
+      }
+      var quizUrl = Uri.parse(_url + "/quizzes");
+      var response = await client.get(quizUrl, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      });
+      debugPrint('Response body: + ${response.body}');
+      debugPrint('Response code: + ${response.statusCode}');
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        debugPrint("quiz response decoded successfully");
+        //Remove the non-answered questions
+        List quizQuestionsToReturn = [];
+        debugPrint("quizquestions1 $quizQuestionsToReturn");
+        for (var quizQuestion in decodedResponse) {
+          if (answeredQuizIds.contains(quizQuestion["id"])) {
+            quizQuestionsToReturn.add(quizQuestion);
+          }
+        }
+        debugPrint("quizquestions2 $quizQuestionsToReturn");
+        debugPrint("decodedResponse now $decodedResponse");
+        quizHistory["quizHistory"] = quizQuestionsToReturn;
+        debugPrint("quizquestions3 $quizQuestionsToReturn");
+        return quizHistory;
+      }
+      if (response.statusCode == 404) {
+        return {};
+      }
+    }
+    catch (e) {
+      return {};
+    }
+  }*/
 
 }

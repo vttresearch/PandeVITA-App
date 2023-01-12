@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:email_validator/email_validator.dart';
 import '../communication/http_communication.dart';
 import '../Utility/styles.dart';
@@ -33,6 +36,10 @@ class RegisterPageState extends State<RegisterPage> {
 
   bool showInfo = false;
   bool agree = false;
+
+  Future<String> loadPrivacyPolicy() async {
+    return await rootBundle.loadString('asset_files/privacy_policy.md');
+  }
 
   //Focus nodes could be used to change text field colors on focus change
   /* List<FocusNode> focusNodes = [
@@ -262,6 +269,7 @@ class RegisterPageState extends State<RegisterPage> {
         setState(() {
           registering = true;
         });
+      //  roleSelection = "Other";
         int success = await client.registerUser(
             username, password, email, roleSelection, countrySelection!);
         debugPrint("SUCCESS $success");
@@ -351,7 +359,7 @@ class RegisterPageState extends State<RegisterPage> {
                   // Text("PandeVITA dashboard role"),
                   // const SizedBox(height: 5.0),
                   roleDropDown,
-                  const SizedBox(height: 10.0),
+                //  const SizedBox(height: 10.0),
                   Row(children: [
                     Transform.scale(
                         child: Checkbox(
@@ -364,9 +372,41 @@ class RegisterPageState extends State<RegisterPage> {
                           activeColor: Colors.black,
                         ),
                         scale: 1.3),
-                    const Text("I accept terms",
-                        overflow: TextOverflow.ellipsis)
+                    RichText(text: TextSpan(
+                      children: [
+                        TextSpan(text: "I accept "),
+                        TextSpan(text: "privacy policy.",
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.underline),
+                        recognizer: TapGestureRecognizer()..onTap = () async {
+                          String privacyPolicy = await loadPrivacyPolicy();
+                          //Show privacy policy
+                          showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              scrollable: true,
+                              title: const Text('Scroll to see more'),
+                              content: Container(
+                                width: MediaQuery.of(context).size.width,
+                                  height: MediaQuery.of(context).size.height/2,
+                                  child: Markdown(
+                                data: privacyPolicy
+                              )),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, 'Close');
+                                  },
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        )
+                      ]
+                    ))
                   ]),
+
                   registering == true
                       ? loading
                       : ElevatedButton(

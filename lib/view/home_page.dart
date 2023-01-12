@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pandevita_game/communication/beacon_broadcast.dart';
 import 'package:pandevita_game/view/quiz_page.dart';
 import 'package:pandevita_game/view/scoreboard_page.dart';
+//import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import '../game_logic/game_logic.dart';
@@ -26,6 +29,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+
+ // late TutorialCoachMark tutorialCoachMark;
+ // GlobalKey keyBottomNavigation1 = GlobalKey();
+
   final controller = Get.find<RequirementStateController>();
   StreamSubscription<BluetoothState>? _streamBluetooth;
   int currentIndex = 0;
@@ -40,6 +47,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+   // createTutorial();
     WidgetsBinding.instance.addObserver(this);
     checkPermissions();
     listeningState();
@@ -53,6 +61,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
       });
     });
+
 
     initForegroundTask();
 
@@ -81,7 +90,70 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  listeningState() async {
+  /**
+   * Create a tutorial when the user opens the application for the first time
+   */
+ /* void createTutorial() async {
+    tutorialCoachMark = TutorialCoachMark(
+      targets: createTutorialTargets(),
+      colorShadow: Colors.lightBlueAccent,
+      textSkip: "SKIP",
+      paddingFocus: 10,
+      opacityShadow: 0.8,
+      onFinish: () {
+        print("finish");
+      },
+      onClickTarget: (target) {
+        print('onClickTarget: $target');
+      },
+      onClickTargetWithTapPosition: (target, tapDetails) {
+        print("target: $target");
+        print(
+            "clicked at position local: ${tapDetails.localPosition} - global: ${tapDetails.globalPosition}");
+      },
+      onClickOverlay: (target) {
+        print('onClickOverlay: $target');
+      },
+      onSkip: () {
+        print("skip");
+      },
+    );
+  }
+
+  List<TargetFocus> createTutorialTargets() {
+    List<TargetFocus> targets = [];
+    targets.add(
+      TargetFocus(
+        identify: "keyBottomNavigation1",
+        keyTarget: keyBottomNavigation1,
+        alignSkip: Alignment.topRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Titulo lorem ipsum",
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+    return targets;
+  }*/
+
+    listeningState() async {
     debugPrint('Listening to bluetooth state');
     _streamBluetooth = flutterBeacon
         .bluetoothStateChanged()
@@ -138,10 +210,8 @@ void didChangeAppLifecycleState(AppLifecycleState state) async {
     _streamBluetooth?.pause();
    // beaconBroadcastClass.stopBroadcastBeacon();
   } else if (state == AppLifecycleState.detached) {
-   // await stopForegroundTask();
     _streamBluetooth?.cancel();
-
-
+    _receivePort?.close();
   }
 }
 
@@ -149,7 +219,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) async {
 void dispose() {
     debugPrint("dispose called");
     _streamBluetooth?.cancel();
-  _receivePort?.close();
+    stopForegroundTask();
   WidgetsBinding.instance.removeObserver(this);
   super.dispose();
 }
@@ -229,7 +299,7 @@ Widget build(BuildContext context) {
     return WithForegroundTask(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('PandeVITA app 0.1'),
+          title: Image.asset("images/white_logo.png", height: AppBar().preferredSize.height - 5.0),
           centerTitle: false,
           /*actions: <Widget>[
           Obx(() {

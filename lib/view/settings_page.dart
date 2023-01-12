@@ -2,7 +2,10 @@
  * for the PandeVITA application
  */
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:pandevita_game/Utility/user.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
 import 'package:pandevita_game/game_logic/game_logic.dart';
@@ -58,6 +61,10 @@ class SettingsPageState extends State<SettingsPage> {
   //Update the page
   void updatePage() {
     setState(() {});
+  }
+
+  Future<String> loadPrivacyPolicy() async {
+    return await rootBundle.loadString('asset_files/privacy_policy.md');
   }
 
   @override
@@ -621,8 +628,8 @@ class SettingsPageState extends State<SettingsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Padding(
-                              child:
-                              Text("See team mates", style: settingsTextStyle),
+                              child: Text("See team mates",
+                                  style: settingsTextStyle),
                               padding: const EdgeInsets.symmetric(
                                   vertical: 0.0, horizontal: 10.0)),
                           ElevatedButton(
@@ -643,12 +650,15 @@ class SettingsPageState extends State<SettingsPage> {
                                     height: 100,
                                     width: 200,
                                     child: ListView.builder(
-                                           // padding: const EdgeInsets.all(16.0),
-                                            itemCount: teamMembers.length,
-                                            itemBuilder: (context, i) {
-                                              var teamMember = teamMembers[i];
-                                              return Center(child: Text(teamMember, style: TextStyle(fontSize: 18)));
-                                            })),
+                                        // padding: const EdgeInsets.all(16.0),
+                                        itemCount: teamMembers.length,
+                                        itemBuilder: (context, i) {
+                                          var teamMember = teamMembers[i];
+                                          return Center(
+                                              child: Text(teamMember,
+                                                  style:
+                                                      TextStyle(fontSize: 18)));
+                                        })),
                                 actions: <Widget>[
                                   TextButton(
                                     onPressed: () {
@@ -664,9 +674,51 @@ class SettingsPageState extends State<SettingsPage> {
                       ),
                     Spacer(),
                     Center(
-                        child: Padding(child: Text(
-                            "To change the user data or the password, please visit the PandeVITA dashboard.",
-                            style: TextStyle(fontSize: 15.0, color: yellowColor)), padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0))),
+                        child: Padding(
+                            child: Text(
+                                "To change the user data or the password, please visit the PandeVITA dashboard.",
+                                style: TextStyle(
+                                    fontSize: 15.0, color: yellowColor)),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 10.0))),
+                    //Privacy policy
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                      RichText(
+                          text: TextSpan(
+                              text: "Read Privacy Policy",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 17),
+                              recognizer: TapGestureRecognizer()..onTap = () async {
+                                String privacyPolicy = await loadPrivacyPolicy();
+                                //Show privacy policy
+                                showDialog<String>(
+                                  context: context,
+                                  builder: (BuildContext context) => AlertDialog(
+                                    scrollable: true,
+                                    title: const Text('Scroll to see more'),
+                                    content: Container(
+                                        width: MediaQuery.of(context).size.width,
+                                        height: MediaQuery.of(context).size.height/2,
+                                        child: Markdown(
+                                            data: privacyPolicy
+                                        )),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context, 'Close');
+                                        },
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }))
+                    ]),
                     //Delete account row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
