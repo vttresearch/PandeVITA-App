@@ -207,11 +207,9 @@ class StoryPageState extends State<StoryPage> {
                               0.05),
                           Center(
                               child: Padding(
-                                  child: Text(storyText, style: storyTextStyle, overflow: TextOverflow.ellipsis, maxLines: 15),
+                                  child: Text(storyText, style: storyTextStyle, overflow: TextOverflow.ellipsis, maxLines: 10),
                                   padding: const EdgeInsets.all(12.0))),
-                          SizedBox( height: (constraints.maxHeight -
-                              constraints.minHeight) *
-                              0.1),
+                          Spacer(),
                           const Center(
                               child: Padding(
                                   child: Text("Swipe up to open the article in a browser", style: TextStyle(
@@ -219,6 +217,7 @@ class StoryPageState extends State<StoryPage> {
                                       color: Colors.white
                                   )),
                                   padding: EdgeInsets.all(12.0))),
+                          Spacer(),
                         ],
                       ))
             ],
