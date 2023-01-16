@@ -422,7 +422,7 @@ class RegisterPageState extends State<RegisterPage> {
                               fontSize: 25,
                             ),
                           ),
-                          onPressed: agree ? doRegister : null,
+                          onPressed: agree && formKey.currentState!.validate() ? doRegister : null,
                         ),
                   const SizedBox(height: 5.0),
                   ElevatedButton(
