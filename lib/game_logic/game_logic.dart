@@ -88,7 +88,8 @@ class GameLogic {
     DateTime now = DateTime.now();
     DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
     timer2 = Timer(endOfDay.difference(now), immunityReset);
-    _isGameActive = await gameStatus!.isGameActive();
+    //_isGameActive = await gameStatus!.isGameActive();
+    _isGameActive = true;
 
 
     contactsStartedTimestamp = await gameStatus!.getContactTimestamp();

@@ -95,6 +95,7 @@ class LoginPageState extends State<LoginPage> {
         });
         form.save();
 
+        //bool succession = true;
         bool succession = await client.tryLogin(username, password);
         setState(() {loggingIn = false;});
 

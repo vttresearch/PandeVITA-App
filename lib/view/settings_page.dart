@@ -373,7 +373,9 @@ class SettingsPageState extends State<SettingsPage> {
       ],
     );
 
-    return Column(children: [
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
       Row(
         children: [
           Text("Settings", style: settingsTextStyle),
@@ -382,15 +384,47 @@ class SettingsPageState extends State<SettingsPage> {
             onPressed: () {
               refreshSettingsPage();
             },
-          )
+          ),
+              Spacer(),
+              Padding(
+                  child: Text("Log out", style: settingsTextStyleAlt),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10.0, horizontal: 10.0)),
+              IconButton(
+                icon: const Icon(Icons.logout_outlined, size: 30.0, color: Colors.white),
+                onPressed: () => showDialog<String>(
+                  context: context,
+                  builder: (BuildContext context) => AlertDialog(
+
+                    title: const Text('Log out'),
+                    content:
+                    const Text('Do you really want to log out?'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, 'Cancel');
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, 'Yes');
+                          doLogOut();
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
         ],
       ),
       Expanded(
           child: Container(
-              // padding: const EdgeInsets.all(20.0),
+            // padding: const EdgeInsets.all(20.0),
               decoration: boxDecorationWhiteBorder,
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  //crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
                     Row(
@@ -409,7 +443,8 @@ class SettingsPageState extends State<SettingsPage> {
                                         child: Text(playerName,
                                             style: settingsTextStyleAlt),
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 5.0, horizontal: 10.0)))))
+                                            vertical: 5.0, horizontal: 10.0))))
+                        )
                       ],
                     ),
                     Row(
@@ -430,7 +465,8 @@ class SettingsPageState extends State<SettingsPage> {
                                               style: settingsTextStyleAlt),
                                           padding: const EdgeInsets.symmetric(
                                               vertical: 5.0,
-                                              horizontal: 10.0)))))
+                                              horizontal: 10.0))))
+                          )
                         ]),
                     if (isNotMemberOfTeam == false)
                       Row(
@@ -456,13 +492,13 @@ class SettingsPageState extends State<SettingsPage> {
                     if (isFounderOfTeam == true) deleteTeamRow,
                     if (isNotMemberOfTeam == true)
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Padding(
                               child: Text("Create team",
                                   style: settingsTextStyleTeamAct),
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 10.0)),
+                                  vertical: 10.0, horizontal: 15.0)),
                           ElevatedButton(
                             child:
                                 Icon(Icons.add, color: yellowColor, size: 35.0),
@@ -553,13 +589,13 @@ class SettingsPageState extends State<SettingsPage> {
                     const SizedBox(height: 20),
                     if (isNotMemberOfTeam == true)
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Padding(
                               child: Text("Choose a team to join ",
                                   style: settingsTextStyleTeamAct),
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 10.0)),
+                                  vertical: 10.0, horizontal: 15.0)),
                           DropdownButton<String>(
                               style: TextStyle(color: Colors.black),
                               dropdownColor: Colors.white,
@@ -673,14 +709,6 @@ class SettingsPageState extends State<SettingsPage> {
                         ],
                       ),
                     Spacer(),
-                    Center(
-                        child: Padding(
-                            child: Text(
-                                "To change the user data or the password, please visit the PandeVITA dashboard.",
-                                style: TextStyle(
-                                    fontSize: 15.0, color: yellowColor)),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 10.0))),
                     //Privacy policy
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -755,42 +783,15 @@ class SettingsPageState extends State<SettingsPage> {
                         ),
                       ],
                     ),
-                    //Log out row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                            child: Text("Log out", style: settingsTextStyleAlt),
+                    Center(
+                        child: Padding(
+                            child: Text(
+                                "To change the user data or the password, please visit the PandeVITA dashboard.",
+                                style: TextStyle(
+                                    fontSize: 15.0, color: whiteColor)),
                             padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 10.0)),
-                        IconButton(
-                          icon: const Icon(Icons.logout_outlined, size: 30.0),
-                          onPressed: () => showDialog<String>(
-                            context: context,
-                            builder: (BuildContext context) => AlertDialog(
-                              title: const Text('Log out'),
-                              content:
-                                  const Text('Do you really want to log out?'),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, 'Cancel');
-                                  },
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, 'Yes');
-                                    doLogOut();
-                                  },
-                                  child: const Text('Yes'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                                vertical: 10.0, horizontal: 10.0))),
+                    //Log out row
 
                     /*SwitchListTile(
             title: const Text('Bluetooth'),

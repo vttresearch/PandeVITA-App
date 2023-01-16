@@ -48,8 +48,8 @@ var settingsTextStyleTeamAct = const TextStyle(
 
 
 var settingsTextStyleAlt =  const TextStyle(
-   // fontWeight: FontWeight.bold,
-    color: Colors.black,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
     fontSize: 20);
 
 var backgroundDecorationInfected3days =
