@@ -421,26 +421,25 @@ class SettingsPageState extends State<SettingsPage> {
           ),
           Expanded(
               child: Container(
-                // padding: const EdgeInsets.all(20.0),
+                  // padding: const EdgeInsets.all(20.0),
                   decoration: boxDecorationWhiteBorder,
                   child: Column(
                     //crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
                         Table(
-                          columnWidths: {
-                            0: FlexColumnWidth(3.5),
-                            1: FlexColumnWidth(6.5),
-                          },
-                          children: [
-                            TableRow(
-                              children: [
-                                Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 10.0),
-                                    child: Text("Name", style: settingsTextStyle)),
-                                Expanded(
-                                    child: Padding(
+                            columnWidths: const {
+                              0: FlexColumnWidth(3.5),
+                              1: FlexColumnWidth(6.5),
+                            },
+                            children: [
+                              TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 10.0),
+                                        child: Text("Name", style: settingsTextStyle)),
+                                    Padding(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 10.0, horizontal: 16.0),
                                         child: Card(
@@ -449,54 +448,49 @@ class SettingsPageState extends State<SettingsPage> {
                                                     style: settingsTextStyleName),
                                                 padding: const EdgeInsets.symmetric(
                                                     vertical: 5.0, horizontal: 10.0))))
-                                ),
-                              ]),
-                            TableRow(
-                                children: [
-                                Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 10.0),
-                                    child: Text("Your status",
-                                        style: settingsTextStyle)),
-                                       Expanded(
-                                           child: Padding(
-                                               padding: const EdgeInsets.symmetric(
-                                                   vertical: 10.0, horizontal: 16.0),
-                                               child: Card(
-                                                   child: Container(
-                                                       child: Text(playerStatus,
-                                                           style: settingsTextStyleName),
-                                                       padding: const EdgeInsets.symmetric(
-                                                           vertical: 5.0,
-                                                           horizontal: 10.0))))
-                                     ),
+                                  ]),
+                              TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 10.0),
+                                        child: Text("Your status",
+                                            style: settingsTextStyle)),
+                                    Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10.0, horizontal: 16.0),
+                                        child: Card(
+                                            child: Container(
+                                                child: Text(playerStatus,
+                                                    style: settingsTextStyleName),
+                                                padding: const EdgeInsets.symmetric(
+                                                    vertical: 5.0,
+                                                    horizontal: 10.0))))
+                                  ]),
+                              if (isNotMemberOfTeam == false)
+                                TableRow(
+                                    children: [
+                                      Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10.0, horizontal: 10.0),
+                                          child: Text("Team", style: settingsTextStyle)),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  vertical: 10.0, horizontal: 16.0),
+                                              child: Card(
+                                                  child: Container(
+                                                      child: Text(currentTeamName,
+                                                          style: settingsTextStyleName),
+                                                      padding: const EdgeInsets.symmetric(
+                                                          vertical: 5.0,
+                                                          horizontal: 10.0))))
+                                        ],
+                                      ),
+                                    ]),
                             ]),
-                            if (isNotMemberOfTeam == false)
-                            TableRow(
-                                children: [
-                                Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 10.0),
-                                    child: Text("Team", style: settingsTextStyle)),
-                                   Row(
-                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                     children: [
-                                       Expanded(
-                                           child: Padding(
-                                               padding: const EdgeInsets.symmetric(
-                                                   vertical: 10.0, horizontal: 16.0),
-                                               child: Card(
-                                                   child: Container(
-                                                       child: Text(currentTeamName,
-                                                           style: settingsTextStyleName),
-                                                       padding: const EdgeInsets.symmetric(
-                                                           vertical: 5.0,
-                                                           horizontal: 10.0))))
-                                       ),
-                                     ],
-                                   ),
-                              ]),
-                          ]),
                         if (isFounderOfTeam == true) deleteTeamRow,
                         if (isNotMemberOfTeam == true)
                           Row(
@@ -796,19 +790,19 @@ class SettingsPageState extends State<SettingsPage> {
                             children: [
                               //Icon(Icons.info_outline),
                               Padding(
-                                child: Icon(Icons.info_outline, color: Colors.white),
-                                padding: const EdgeInsets.only( bottom: 5.0, left: 10.0)
+                                  child: Icon(Icons.info_outline, color: Colors.white),
+                                  padding: const EdgeInsets.only( bottom: 5.0, left: 10.0)
                               ),
 
                               Expanded(
-                              child: Padding(
-                              child: Text(
-                              "To change the user data or the password, please visit the PandeVITA dashboard.",
-                                    style: TextStyle(
-                                        fontSize: 15.0, color: whiteColor)),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10.0, horizontal: 10.0)),),
-                        ]),
+                                child: Padding(
+                                    child: Text(
+                                        "To change the user data or the password, please visit the PandeVITA dashboard.",
+                                        style: TextStyle(
+                                            fontSize: 15.0, color: whiteColor)),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 10.0)),),
+                            ]),
                         //Log out row
 
                         /*SwitchListTile(
