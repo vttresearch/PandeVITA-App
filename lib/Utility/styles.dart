@@ -52,6 +52,11 @@ var settingsTextStyleAlt =  const TextStyle(
     color: Colors.white,
     fontSize: 20);
 
+var settingsTextStyleName =  const TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+    fontSize: 20);
+
 var backgroundDecorationInfected3days =
 const BoxDecoration(
   gradient: LinearGradient(

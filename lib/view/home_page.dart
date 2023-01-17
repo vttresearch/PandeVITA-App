@@ -73,8 +73,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.locationWhenInUse,
       Permission.bluetooth,
-     // Permission.bluetoothScan, //These are possibly needed for newer Android versions
-     // Permission.bluetoothAdvertise
+      Permission.bluetoothScan, //These are possibly needed for newer Android versions
+      Permission.bluetoothAdvertise
     ].request();
     if (statuses[Permission.locationWhenInUse]!.isGranted) {
       var status = await Permission.locationAlways.request();
