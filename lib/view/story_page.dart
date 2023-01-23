@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../communication/http_communication.dart';
 import '../Utility/styles.dart';
 import '../controller/requirement_state_controller.dart';
+import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
+import 'package:http/http.dart' as http;
 
 class PandeVITAStories extends StatelessWidget {
 
@@ -95,7 +98,6 @@ class StoryPage extends StatefulWidget {
 }
 
 class StoryPageState extends State<StoryPage> {
-
   final controller = Get.find<RequirementStateController>();
   final storyController = StoryController();
   List<StoryItem> storyItems = [];
@@ -110,7 +112,6 @@ class StoryPageState extends State<StoryPage> {
   @override
   void initState() {
     super.initState();
-
     try {
       //Reverse the list of articles
       int storyAmount = 0;
@@ -239,7 +240,17 @@ class StoryPageState extends State<StoryPage> {
   void openLinkInBrowser(String link) async {
     var uri = Uri.parse(link);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+      final resp = await http.head(uri);
+      final data = resp.headers;
+      if (data['content-type'] == 'application/pdf'){
+      Navigator.push(
+          context,
+          MaterialPageRoute( builder: (context) => PDFViewerCachedFromUrl(url: link, ) ),
+      );
+      }
+      else{
+       await launchUrl(uri);
+      }
     } else {
       var snackBar = const SnackBar(
         content: Text("Sorry, could not open the article in browser."),
@@ -248,6 +259,7 @@ class StoryPageState extends State<StoryPage> {
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -277,6 +289,27 @@ class StoryPageState extends State<StoryPage> {
     );
   }
 }
+
+class PDFViewerCachedFromUrl extends StatelessWidget {
+  const PDFViewerCachedFromUrl({Key? key, required this.url}) : super(key: key);
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return
+      SafeArea(child:
+      Scaffold(
+        body: const PDF(pageSnap: false, pageFling: false).cachedFromUrl(
+          url,
+          placeholder: (double progress) => Center(child: Text('$progress %')),
+          errorWidget: (dynamic error) => Center(child: Text(error.toString())),
+        ),
+      )
+    );
+  }
+}
+
 
 class ErrorPage extends StatelessWidget {
   @override
