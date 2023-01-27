@@ -4,6 +4,7 @@ import 'package:pandevita_game/Utility/styles.dart';
 import 'register_page.dart';
 import '../communication/http_communication.dart';
 import '../Utility/user.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /** This page handles the login process. It opens when the user opens
  * the application for the first time. Based heavily on
@@ -114,7 +115,32 @@ class LoginPageState extends State<LoginPage> {
             duration: Duration(seconds: 3),
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          Navigator.pushReplacementNamed(context, '/home');
+          var status = (await Permission.locationWhenInUse.isGranted) && (await Permission.locationAlways.isGranted);
+
+          if(!status) {
+            showDialog(context: context,
+                builder: (BuildContext context) {
+                  // return object of type Dialog
+                  return AlertDialog(
+                      title: const Text('Use of location'),
+                      content: const Text(
+                          'PandeVITA app collects location data to enable contact tracing simulation even when the app is closed or not in use.'),
+                      actions: <Widget>[
+                        // usually buttons at the bottom of the dialog
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.pushReplacementNamed(context, '/home');
+                          },
+                          child: Text('Next'),
+                        ),
+                      ]
+                  );
+                });
+          }
+          else{
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         }
 
       } else {
