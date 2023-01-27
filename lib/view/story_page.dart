@@ -241,6 +241,9 @@ class StoryPageState extends State<StoryPage> {
     var uri = Uri.parse(link);
     if (await canLaunchUrl(uri)) {
       final resp = await http.head(uri);
+      if (resp.statusCode ~/ 100 != 2) {
+        final resp = await http.get(uri);
+      }
       final data = resp.headers;
       if (data['content-type'] == 'application/pdf'){
       Navigator.push(
