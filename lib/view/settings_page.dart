@@ -666,7 +666,7 @@ class SettingsPageState extends State<SettingsPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Padding(
-                                  child: Text("See team mates",
+                                  child: Text("See teammates",
                                       style: settingsTextStyle),
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 0.0, horizontal: 10.0)),

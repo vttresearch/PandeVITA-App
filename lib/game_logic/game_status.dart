@@ -8,8 +8,8 @@ import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import '../communication/http_communication.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+//import 'package:hive/hive.dart';
+//import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /* Singleton class that contains the game data of the user*/
 

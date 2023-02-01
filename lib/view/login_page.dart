@@ -124,7 +124,7 @@ class LoginPageState extends State<LoginPage> {
                   return AlertDialog(
                       title: const Text('Use of location'),
                       content: const Text(
-                          'PandeVITA app collects location data to enable contact tracing simulation even when the app is closed or not in use.'),
+                          'PandeVITA app accesses location data to enable contact tracing simulation even when the app is closed or not in use.'),
                       actions: <Widget>[
                         // usually buttons at the bottom of the dialog
                         TextButton(
