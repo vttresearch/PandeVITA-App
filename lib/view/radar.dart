@@ -56,7 +56,7 @@ class RadarState extends State<Radar>
   int initStateCounter = 0;
 
   //Customize these
-  final int infectionDistance = 10;
+  final int infectionDistance = 20;
 
 
   //Control variables
@@ -282,11 +282,11 @@ class RadarState extends State<Radar>
             userLocation =
                 LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
           });
-          /*  var snackBar = SnackBar(
+            var snackBar = SnackBar(
             content: Text("New location: " + userLocation.toString()),
             duration: const Duration(seconds: 1),
           );
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
       });
       timer = Timer.periodic(
@@ -404,9 +404,9 @@ class RadarState extends State<Radar>
    * Generate random elements for the radar near location
    */
   void initRadarElements() async {
-    generateMasks(10, 500);
-    generateVaccines(10, 500);
-    generateViruses(10, 500);
+    generateMasks(30, 500);
+    generateVaccines(30, 500);
+    generateViruses(15, 500);
   }
 
   /**
@@ -548,9 +548,9 @@ class RadarState extends State<Radar>
 
   //  await getMaskPointsList();
     //Generate elements automatically
-    generateMasks(10, 500);
-    generateVaccines(10, 500);
-    generateViruses(10, 500);
+    generateMasks(30, 500);
+    generateVaccines(30, 500);
+    generateViruses(15, 500);
    // await getVirusPointsList();
    // await getVaccinationPointsList();
     setState(() {});
@@ -576,8 +576,8 @@ class RadarPainter extends CustomPainter {
   final Distance distance = Distance();
 
   //Customize these
-  final int maskDistance = 10;
-  final int vaccinationDistance = 10;
+  final int maskDistance = 20;
+  final int vaccinationDistance = 20;
 
   LatLng userLocation;
   List<LatLng> virusLocations;
