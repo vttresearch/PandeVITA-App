@@ -4,6 +4,9 @@
  */
 
 import 'dart:async';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
+import '../mixpanel.dart';
 
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
@@ -37,14 +40,19 @@ class QuizPageState extends State<QuizPage> {
 
   var questionIndex = 0;
   var totalScore = 0;
+  late final Mixpanel mixpanel;
 
   @override
   void initState() {
     super.initState();
+    initMixpanel();
     getQuizFromServer();
     //Get a new quiz every 60 minutes from the platform
     timer = Timer.periodic(
         const Duration(minutes: 60), (Timer t) => getQuizFromServer());
+  }
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
   @override
@@ -57,6 +65,7 @@ class QuizPageState extends State<QuizPage> {
   void answerQuestion(String questionId, String answer, String correctAnswer) {
     isAnsweringQuiz = true;
     bool answerWasCorrect = false;
+    mixpanel.track("Answered a question");
     if (answer == correctAnswer) {
       totalScore += immunityPerQuestion;
       answerWasCorrect = true;

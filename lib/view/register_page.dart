@@ -1,4 +1,7 @@
 import 'dart:math';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
+import '../mixpanel.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -36,9 +39,20 @@ class RegisterPageState extends State<RegisterPage> {
 
   bool showInfo = false;
   bool agree = false;
+  late final Mixpanel mixpanel;
 
   Future<String> loadPrivacyPolicy() async {
     return await rootBundle.loadString('asset_files/privacy_policy.md');
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    initMixpanel();
+  }
+
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
   //Focus nodes could be used to change text field colors on focus change
@@ -80,6 +94,7 @@ class RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    //initMixpanel();
     final usernameField = TextFormField(
         style: TextStyle(color: Colors.black),
         autofocus: false,
@@ -286,6 +301,7 @@ class RegisterPageState extends State<RegisterPage> {
             //Create a player instance on server
 
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            mixpanel.track("Registered");
             Navigator.pushReplacementNamed(context, '/home');
           }
         } else if (success == 1) {

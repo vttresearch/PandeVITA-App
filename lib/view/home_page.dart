@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
+import '../mixpanel.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pandevita_game/communication/beacon_broadcast.dart';
 import 'package:pandevita_game/view/quiz_page.dart';
 import 'package:pandevita_game/view/scoreboard_page.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 //import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
@@ -33,12 +35,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
  // late TutorialCoachMark tutorialCoachMark;
  // GlobalKey keyBottomNavigation1 = GlobalKey();
 
+  late final Mixpanel mixpanel;
   final controller = Get.find<RequirementStateController>();
   StreamSubscription<BluetoothState>? _streamBluetooth;
   int currentIndex = 0;
   final GameLogic gameLogic = GameLogic();
   final BeaconBroadcastClass beaconBroadcastClass = BeaconBroadcastClass();
   ReceivePort? _receivePort;
+  final pages = ["Scoreboard", "Radar", "Quiz", "Settings"];
 
   BoxDecoration PandeVITABackgroundDecoration = backgroundDecoration;
 
@@ -47,6 +51,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    initMixpanel();
    // createTutorial();
     WidgetsBinding.instance.addObserver(this);
     checkPermissions();
@@ -67,6 +72,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     //gameLogic.initGame();
   }
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
+  }
 
   //Check the permissions - need permission for "always" for location
   void checkPermissions() async {
@@ -76,18 +84,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       Permission.bluetoothScan, //These are possibly needed for newer Android versions
       Permission.bluetoothAdvertise
     ].request();
-    if (statuses[Permission.locationWhenInUse]!.isGranted) {
-      var status = await Permission.locationAlways.request();
-      if (!status.isGranted) {
-        //Snackbar here
-        var snackBar = const SnackBar(
-          content: Text(
-              "Location permission is needed for the app to function correctly"),
-          duration: Duration(seconds: 5),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-    }
+    //if (statuses[Permission.locationWhenInUse]!.isGranted) {
+    //  var status = await Permission.locationAlways.request();
+    //  if (!status.isGranted) {
+    //    //Snackbar here
+    //    var snackBar = const SnackBar(
+    //      content: Text(
+    //          "Location permission is needed for the app to function correctly"),
+    //      duration: Duration(seconds: 5),
+    //    );
+    //    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    //  }
+    //}
   }
 
   /**
@@ -408,6 +416,7 @@ Widget build(BuildContext context) {
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.black,
           onTap: (index) {
+            mixpanel.track("Clicked ${pages[index]}");
             setState(() {
               currentIndex = index;
             });

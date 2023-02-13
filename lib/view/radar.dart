@@ -3,6 +3,8 @@
 /// https://medium.com/@d.panaite92/building-a-radar-chart-with-flutter-and-custom-painter-384c005002f9
 import 'dart:async';
 import 'dart:math';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,6 +14,7 @@ import 'package:latlong2/latlong.dart';
 import '../communication/http_communication.dart';
 import '../game_logic/game_logic.dart';
 import '../game_logic/game_status.dart';
+import '../mixpanel.dart';
 
 import 'package:location/location.dart';
 
@@ -64,10 +67,12 @@ class RadarState extends State<Radar>
   int refreshCounter = 0;
 
   int dataUpdateTimestamp = 0;
+  late final Mixpanel mixpanel;
 
   @override
   void initState() {
     super.initState();
+    initMixpanel();
     WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
@@ -79,6 +84,9 @@ class RadarState extends State<Radar>
     initStateCounter++;
     debugPrint("initStateCounter $initStateCounter");
     initLocationService();
+  }
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
   @override
@@ -144,7 +152,8 @@ class RadarState extends State<Radar>
     bool newMask = await gameStatus.checkMask(maskId);*/
     //if (newMask) {
      // collectedMasks.add(maskId);
-      maskLocations.remove(coordinate);
+    mixpanel.track('Collected a mask');
+    maskLocations.remove(coordinate);
       gameStatus.collectMask();
       var snackBar = SnackBar(
         content: Text("You collected a mask and got 20 immunity for a day"),
@@ -168,6 +177,7 @@ class RadarState extends State<Radar>
     bool newVaccine = await gameStatus.checkVaccination(vaccinationId);
     if (newVaccine) {
       collectedVaccines.add(vaccinationId);*/
+      mixpanel.track('Collected a vaccine');
       vaccinationLocations.remove(coordinate);
       gameStatus.collectVaccination();
       var snackBar = SnackBar(
@@ -282,11 +292,11 @@ class RadarState extends State<Radar>
             userLocation =
                 LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
           });
-            var snackBar = SnackBar(
+          /*  var snackBar = SnackBar(
             content: Text("New location: " + userLocation.toString()),
             duration: const Duration(seconds: 1),
           );
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
         }
       });
       timer = Timer.periodic(
@@ -364,7 +374,7 @@ class RadarState extends State<Radar>
   }
 
   /**
-   *Get the vaccination points to display them on the radar
+   * Get the vaccination points to display them on the radar
    */
   Future<bool> getVaccinationPointsList() async {
     List vaccinationPoints = await httpClient.getVaccinationPoints();
@@ -406,7 +416,7 @@ class RadarState extends State<Radar>
   void initRadarElements() async {
     generateMasks(30, 500);
     generateVaccines(30, 500);
-    generateViruses(15, 500);
+    generateViruses(30, 500);
   }
 
   /**
@@ -550,7 +560,7 @@ class RadarState extends State<Radar>
     //Generate elements automatically
     generateMasks(30, 500);
     generateVaccines(30, 500);
-    generateViruses(15, 500);
+    generateViruses(30, 500);
    // await getVirusPointsList();
    // await getVaccinationPointsList();
     setState(() {});

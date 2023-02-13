@@ -1,3 +1,6 @@
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
+import '../mixpanel.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
@@ -22,6 +25,7 @@ class LoginPageState extends State<LoginPage> {
   late String username, password;
   final PandeVITAHttpClient client = PandeVITAHttpClient();
   final UserStorage storage = UserStorage();
+  late final Mixpanel mixpanel;
 
   TextEditingController _textFieldController = TextEditingController();
 
@@ -33,6 +37,10 @@ class LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    initMixpanel();
+  }
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
   @override
@@ -110,37 +118,38 @@ class LoginPageState extends State<LoginPage> {
         }
         //If login was successful
         else {
+          mixpanel.track("Logged in");
           var snackBar = const SnackBar(
             content: Text("Login successful"),
             duration: Duration(seconds: 3),
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          var status = (await Permission.locationWhenInUse.isGranted) && (await Permission.locationAlways.isGranted);
+          //var status = (await Permission.locationWhenInUse.isGranted) && (await Permission.locationAlways.isGranted);
 
-          if(!status) {
-            showDialog(context: context,
-                builder: (BuildContext context) {
-                  // return object of type Dialog
-                  return AlertDialog(
-                      title: const Text('Use of location'),
-                      content: const Text(
-                          'PandeVITA app accesses location data to enable contact tracing simulation even when the app is closed or not in use.'),
-                      actions: <Widget>[
-                        // usually buttons at the bottom of the dialog
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.pushReplacementNamed(context, '/home');
-                          },
-                          child: Text('Next'),
-                        ),
-                      ]
-                  );
-                });
-          }
-          else{
-            Navigator.pushReplacementNamed(context, '/home');
-          }
+          //if(!status) {
+          //  showDialog(context: context,
+          //      builder: (BuildContext context) {
+          //        // return object of type Dialog
+          //        return AlertDialog(
+          //            title: const Text('Use of location'),
+          //            content: const Text(
+          //                'PandeVITA app collects location data to enable contact tracing simulation even when the app is closed or not in use.'),
+          //            actions: <Widget>[
+          //              // usually buttons at the bottom of the dialog
+          //              TextButton(
+          //                onPressed: () {
+          //                  Navigator.pop(context);
+          //                  Navigator.pushReplacementNamed(context, '/home');
+          //                },
+          //                child: Text('Next'),
+          //              ),
+          //            ]
+          //        );
+          //      });
+          //}
+          //else{
+          Navigator.pushReplacementNamed(context, '/home');
+          //}
         }
 
       } else {

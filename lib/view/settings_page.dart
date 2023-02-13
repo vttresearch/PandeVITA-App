@@ -1,6 +1,9 @@
 /**Settings page for handling account and teams
  * for the PandeVITA application
  */
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
+import '../mixpanel.dart';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +54,7 @@ class SettingsPageState extends State<SettingsPage> {
 
   //timestamp for controlling updates
   int settingsPageUpdated = 0;
+  late final Mixpanel mixpanel;
 
   void toggleBluetooth() {}
 
@@ -70,6 +74,7 @@ class SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
+    initMixpanel();
     initializeSettings();
     controller.playerInfectedStream.listen((flag) {
       if (flag == true) {
@@ -83,6 +88,9 @@ class SettingsPageState extends State<SettingsPage> {
     controller.credentialsExpiredStream.listen((flag) {
       doLogOut();
     });
+  }
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
   void initializeSettings() async {
@@ -163,6 +171,7 @@ class SettingsPageState extends State<SettingsPage> {
       duration: Duration(seconds: 5),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    mixpanel.track("Logged out");
     //Clear local data
     GameStatus gameStatus = GameStatus();
     controller.stopBroadcasting();
@@ -189,6 +198,7 @@ class SettingsPageState extends State<SettingsPage> {
             : null,
         decoration: const InputDecoration(
             icon: Icon(Icons.person), labelText: 'Create a team'));*/
+    //initMixpanel();
 
     doCreateTeam() async {
       if (newTeamName == null || newTeamName == "") {
@@ -207,6 +217,7 @@ class SettingsPageState extends State<SettingsPage> {
         );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       } else {
+        mixpanel.track("Created a team");
         var snackBar = const SnackBar(
           content: Text("Successfully created a team"),
           duration: Duration(seconds: 5),
@@ -233,6 +244,7 @@ class SettingsPageState extends State<SettingsPage> {
           int success = await client.deleteTeam(teamId);
           if (success == 0 || success == 2) {
             //Remove team from local storage
+            mixpanel.track("Deleted team");
             await storage.deleteTeam();
             currentTeamName = "";
             var snackBar = const SnackBar(
@@ -255,6 +267,7 @@ class SettingsPageState extends State<SettingsPage> {
       }
       int success = await client.addToTeam(playerName, teamsMap[joinTeamName]!);
       if (success == 0) {
+        mixpanel.track("Joined a team");
         currentTeamName = joinTeamName!;
         await storage.joinTeam(currentTeamName, teamsMap[joinTeamName]!);
         isNotMemberOfTeam = false;
@@ -274,6 +287,7 @@ class SettingsPageState extends State<SettingsPage> {
       var teamId = await storage.getTeamId();
       int success = await client.removeFromTeam(playerName, teamId!);
       if (success == 0) {
+        mixpanel.track("Left team");
         await storage.deleteTeam();
         currentTeamName = '';
         isNotMemberOfTeam = true;
@@ -317,6 +331,7 @@ class SettingsPageState extends State<SettingsPage> {
         duration: Duration(seconds: 5),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      mixpanel.track("Deleted account");
       //If serverside deletion successful, clear local data
       GameStatus gameStatus = GameStatus();
       controller.stopBroadcasting();

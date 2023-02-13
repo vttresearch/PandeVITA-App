@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:ffi';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
+import '../mixpanel.dart';
 
 import 'package:latlong2/latlong.dart';
 import 'package:pandevita_game/communication/beacon_broadcast.dart';
@@ -13,6 +16,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /* Singleton class that contains the game data of the user*/
 
+late Mixpanel mixpanel;
+
+Future<void> initMixpanel() async {
+  mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
+}
 class GameStatus {
   static final GameStatus _gameStatus = GameStatus._privateConstructor();
   final controller = Get.find<RequirementStateController>();
@@ -24,6 +32,8 @@ class GameStatus {
 
 
   factory GameStatus() {
+    late final Mixpanel mixpanel;
+    initMixpanel();
     return _gameStatus;
   }
 
@@ -31,6 +41,8 @@ class GameStatus {
     //Used for testing purposes
      removeLastQuiz();
   }
+
+
 
 
   //Add or remove points
@@ -70,6 +82,7 @@ class GameStatus {
     int score = prefs.getInt('playerPoints') ?? 0;
     client.updatePlayer(score, status: 1);
     controller.playerInfected();*/
+    mixpanel.track('Player infected');
     await storage.write(key: 'playerInfected', value: 'true');
     var timestamp = DateTime.now().millisecondsSinceEpoch;
     await storage.write(key: 'playerInfectedTimestamp', value: timestamp.toString());

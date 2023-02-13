@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:story_view/story_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../communication/http_communication.dart';
@@ -10,12 +11,15 @@ import '../Utility/styles.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
 import 'package:http/http.dart' as http;
+import '../mixpanel.dart';
 
 class PandeVITAStories extends StatelessWidget {
 
   String topic = "";
+  late final Mixpanel mixpanel;
 
   PandeVITAStories({String? topic}) {
+    initMixpanel(topic);
     if (topic != null) {
       this.topic = topic;
     }
@@ -25,6 +29,10 @@ class PandeVITAStories extends StatelessWidget {
   List<StoryItem> storyList = [];
 
 
+  Future<void> initMixpanel(topic) async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
+    mixpanel.track("Clicked on topic ${topic}");
+  }
 
   /**
    * Get the stories from server side
