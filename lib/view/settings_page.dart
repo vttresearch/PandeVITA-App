@@ -489,9 +489,6 @@ class SettingsPageState extends State<SettingsPage> {
                                           padding: const EdgeInsets.symmetric(
                                               vertical: 10.0, horizontal: 10.0),
                                           child: Text("Team", style: settingsTextStyle)),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
                                           Padding(
                                               padding: const EdgeInsets.symmetric(
                                                   vertical: 10.0, horizontal: 16.0),
@@ -502,8 +499,6 @@ class SettingsPageState extends State<SettingsPage> {
                                                       padding: const EdgeInsets.symmetric(
                                                           vertical: 5.0,
                                                           horizontal: 10.0))))
-                                        ],
-                                      ),
                                     ]),
                             ]),
                         if (isFounderOfTeam == true) deleteTeamRow,

@@ -5,6 +5,7 @@
 
 import 'dart:async';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+import 'package:pandevita_game/view/quiz_history_page.dart';
 
 import '../mixpanel.dart';
 
@@ -41,16 +42,19 @@ class QuizPageState extends State<QuizPage> {
   var questionIndex = 0;
   var totalScore = 0;
   late final Mixpanel mixpanel;
+  //late final Map answeredQuizzedMap;
 
   @override
   void initState() {
     super.initState();
     initMixpanel();
     getQuizFromServer();
+    //answeredQuizzedMap = await client.getAnsweredQuizzes();
     //Get a new quiz every 60 minutes from the platform
     timer = Timer.periodic(
         const Duration(minutes: 60), (Timer t) => getQuizFromServer());
   }
+
   Future<void> initMixpanel() async {
     mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
@@ -139,6 +143,7 @@ class QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
+    //debugPrint(answeredQuizzedMap.toString());
     var quizResult = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -183,7 +188,8 @@ class QuizPageState extends State<QuizPage> {
                           answerQuestion: answerQuestion,
                           questionIndex: questionIndex,
                           questions: currentQuiz,
-                        ))
+                        )
+                  )
                       : Expanded(child: quizResult),
                 //If the newest quiz has already been answered
                 if (isQuestionAvailable && isQuizAlreadyAnswered) quizResult,
@@ -211,9 +217,23 @@ class QuizPageState extends State<QuizPage> {
                           child: Text("questions",
                               style: settingsTextStyle),
                           padding:
-                          const EdgeInsets.symmetric(vertical: 0.0, horizontal: 10.0))
+                          const EdgeInsets.symmetric(vertical: 0.0, horizontal: 10.0)),
                     ],
                   )),
+                // Quiz history button
+                ElevatedButton.icon(
+                  style: quizHistoryButtonStyle,
+                  onPressed: (){
+                    debugPrint('Show quiz history');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) =>
+                          const QuizHistoryPage()),
+                    );
+                  },
+                  label: const Text('Quiz Answers History'),
+                  icon: const Icon(Icons.history),
+                ),
               ],
             )),
       ),

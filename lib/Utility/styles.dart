@@ -101,12 +101,20 @@ var quizTextStyle = const TextStyle(
     color: Colors.white,
     fontSize: 18);
 
+var quizHistoryButtonStyle = ElevatedButton.styleFrom(
+  primary: yellowColor,
+  onPrimary: whiteColor,
+  shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(13.0)
+  ),
+);
+
 var storyTitleStyle = TextStyle(
     fontWeight: FontWeight.bold,
     color: yellowColor,
     fontSize: 25);
 
 var storyTextStyle = const TextStyle(
-    //fontWeight: FontWeight.bold,
+  //fontWeight: FontWeight.bold,
     color: Colors.black,
     fontSize: 14);

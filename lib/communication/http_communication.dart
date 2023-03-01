@@ -23,10 +23,10 @@ class PandeVITAHttpClient {
   PandeVITAHttpClient._privateConstructor();
   final storage = const FlutterSecureStorage();
   final userStorage = UserStorage();
-  //final String _url = "https://pandevita.lst.tfo.upm.es"; // prod
-  final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
-  //final String _urlWithoutHttps = "pandevita.lst.tfo.upm.es"; // prod
-  final String _urlWithoutHttps = "gateway.pandevita.d.lst.tfo.upm.es";
+  final String _url = "https://pandevita.lst.tfo.upm.es"; // prod
+  //final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
+  final String _urlWithoutHttps = "pandevita.lst.tfo.upm.es"; // prod
+  //final String _urlWithoutHttps = "gateway.pandevita.d.lst.tfo.upm.es";
 
   final controller = Get.find<RequirementStateController>();
 
@@ -564,6 +564,11 @@ class PandeVITAHttpClient {
     }
   }
 
+  //Future<Map> getAnsweredQuizzes() async {
+  //  Map? playerData = await getPlayer();
+  //  return playerData!['ansewredQuizzes'];
+  //}
+
   //Update player stats on the server
   Future<int> updatePlayer({int? score, int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId, bool collectedMask = false, bool collectedVaccination = false, String? answeredQuestion}) async {
     debugPrint("updatePlayer in http_comm");
@@ -937,6 +942,57 @@ class PandeVITAHttpClient {
 
   Future<int> postPointLossEvent() async {
     return 0;
+  }
+
+  /**
+   * Get the quiz questions from the server
+   */
+  Future<List?> getQuizHistory() async {
+    var accessToken = await lock.synchronized(getAuthorizationToken);
+    var userId = await userStorage.getUserId();
+    if (accessToken == null) {
+      return null;
+    }
+    try {
+      var player = await getPlayer();
+      Map answeredQuizzesMap = player!["ansewredQuizzes"];
+      if(answeredQuizzesMap.isEmpty){
+        return [];
+      }
+      List answeredQuizIds = [];
+      List answeredMap = [];
+      if (answeredQuizzesMap.isNotEmpty) {
+        answeredQuizIds = answeredQuizzesMap["quizIds"];
+      }
+      var quizUrl = Uri.parse(_url + "/quizzes");
+      var response = await client.get(quizUrl, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      });
+      if (response.statusCode == 200) {
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        List quizQuestionsToReturn = decodedResponse.toList();
+        for (var quizQuestion in quizQuestionsToReturn) {
+          if (answeredQuizIds.contains(quizQuestion["id"])){
+            bool isCorrectAnswer = quizQuestion['correctUsers'].contains(userId);
+            answeredMap.add({'id': quizQuestion['id'],
+                             'answer': '',
+                             'correctAnswer': quizQuestion['correctAnswer'],
+                             'isCorrect': isCorrectAnswer,
+                             'question': quizQuestion['question'],
+                             'answers': quizQuestion['answers'],
+            });
+          }
+        }
+        return answeredMap;
+      }
+      else{
+        return [];
+        }
+      }
+    catch (e) {
+      return [];
+    }
   }
 
 
