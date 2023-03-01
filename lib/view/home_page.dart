@@ -84,18 +84,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       Permission.bluetoothScan, //These are possibly needed for newer Android versions
       Permission.bluetoothAdvertise
     ].request();
-    //if (statuses[Permission.locationWhenInUse]!.isGranted) {
-    //  var status = await Permission.locationAlways.request();
-    //  if (!status.isGranted) {
-    //    //Snackbar here
-    //    var snackBar = const SnackBar(
-    //      content: Text(
-    //          "Location permission is needed for the app to function correctly"),
-    //      duration: Duration(seconds: 5),
-    //    );
-    //    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    //  }
-    //}
+    if (statuses[Permission.locationWhenInUse]!.isGranted) {
+      var status = await Permission.locationAlways.request();
+      if (!status.isGranted) {
+        //Snackbar here
+        var snackBar = const SnackBar(
+          content: Text(
+              "Location permission is needed for the app to function correctly"),
+          duration: Duration(seconds: 5),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
+    }
   }
 
   /**

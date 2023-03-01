@@ -124,32 +124,32 @@ class LoginPageState extends State<LoginPage> {
             duration: Duration(seconds: 3),
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          //var status = (await Permission.locationWhenInUse.isGranted) && (await Permission.locationAlways.isGranted);
+          var status = (await Permission.locationWhenInUse.isGranted) && (await Permission.locationAlways.isGranted);
 
-          //if(!status) {
-          //  showDialog(context: context,
-          //      builder: (BuildContext context) {
-          //        // return object of type Dialog
-          //        return AlertDialog(
-          //            title: const Text('Use of location'),
-          //            content: const Text(
-          //                'PandeVITA app collects location data to enable contact tracing simulation even when the app is closed or not in use.'),
-          //            actions: <Widget>[
-          //              // usually buttons at the bottom of the dialog
-          //              TextButton(
-          //                onPressed: () {
-          //                  Navigator.pop(context);
-          //                  Navigator.pushReplacementNamed(context, '/home');
-          //                },
-          //                child: Text('Next'),
-          //              ),
-          //            ]
-          //        );
-          //      });
-          //}
-          //else{
-          Navigator.pushReplacementNamed(context, '/home');
-          //}
+          if(!status) {
+            showDialog(context: context,
+                builder: (BuildContext context) {
+                  // return object of type Dialog
+                  return AlertDialog(
+                      title: const Text('Use of location'),
+                      content: const Text(
+                          'PandeVITA app accesses location data to enable contact tracing simulation even when the app is closed or not in use.'),
+                      actions: <Widget>[
+                        // usually buttons at the bottom of the dialog
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.pushReplacementNamed(context, '/home');
+                          },
+                          child: Text('Next'),
+                        ),
+                      ]
+                  );
+                });
+          }
+          else{
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         }
 
       } else {
