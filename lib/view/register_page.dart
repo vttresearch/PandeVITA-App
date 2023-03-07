@@ -1,12 +1,16 @@
 import 'dart:math';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
-import 'package:email_validator/email_validator.dart';
+import '../mixpanel.dart';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:pandevita_game/view/terms_page.dart';
-
-import '../Utility/styles.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:email_validator/email_validator.dart';
 import '../communication/http_communication.dart';
+import '../Utility/styles.dart';
 
 /** Handles registering user to the platform server. User inputs their username
  * and email and creates a password. Should be one-time only. Based on
@@ -35,6 +39,21 @@ class RegisterPageState extends State<RegisterPage> {
 
   bool showInfo = false;
   bool agree = false;
+  late final Mixpanel mixpanel;
+
+  Future<String> loadPrivacyPolicy() async {
+    return await rootBundle.loadString('asset_files/privacy_policy.md');
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    initMixpanel();
+  }
+
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
+  }
 
   //Focus nodes could be used to change text field colors on focus change
   /* List<FocusNode> focusNodes = [
@@ -70,10 +89,12 @@ class RegisterPageState extends State<RegisterPage> {
   }*/
 
   /**Generate a random string for the email. https://stackoverflow.com/a/61929967*/
-  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+      length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 
   @override
   Widget build(BuildContext context) {
+    //initMixpanel();
     final usernameField = TextFormField(
         style: TextStyle(color: Colors.black),
         autofocus: false,
@@ -82,7 +103,8 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -110,7 +132,8 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -128,7 +151,8 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -156,7 +180,8 @@ class RegisterPageState extends State<RegisterPage> {
         cursorColor: Colors.black,
         decoration: InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+          border:
+              UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
@@ -166,9 +191,20 @@ class RegisterPageState extends State<RegisterPage> {
         ));
 
     //List of possible roles of the user
-    List<String> rolesList = ["Academy", "Industry", "Public authority", "Other"];
+    List<String> rolesList = [
+      "Academy",
+      "Industry",
+      "Public authority",
+      "Other"
+    ];
     //List of possible countries of the user
-    List<String> countriesList = ["Germany", "Netherlands", "Spain", "Turkey", "Finland"];
+    List<String> countriesList = [
+      "Germany",
+      "Netherlands",
+      "Spain",
+      "Turkey",
+      "Finland"
+    ];
 
     //Role selection dropdown
     final roleDropDown = DropdownButtonFormField<String>(
@@ -177,7 +213,8 @@ class RegisterPageState extends State<RegisterPage> {
         dropdownColor: Colors.white,
         decoration: InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
-            border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+            border: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black)),
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.black),
             )),
@@ -195,7 +232,8 @@ class RegisterPageState extends State<RegisterPage> {
             }
           });
         },
-        hint: Text("Choose your PandeVITA dashboard role", style: TextStyle(color: Colors.black)),
+        hint: Text("Choose your PandeVITA dashboard role",
+            style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: dropdownValue);
 
@@ -206,7 +244,8 @@ class RegisterPageState extends State<RegisterPage> {
         dropdownColor: Colors.white,
         decoration: InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
-            border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+            border: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black)),
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.black),
             )),
@@ -224,13 +263,17 @@ class RegisterPageState extends State<RegisterPage> {
             }
           });
         },
-        hint: Text("Choose your country", style: TextStyle(color: Colors.black)),
+        hint:
+            Text("Choose your country", style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: countryDropdownValue);
 
     var loading = Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [CircularProgressIndicator(), Text(" Registering ... Please wait")],
+      children: const [
+        CircularProgressIndicator(),
+        Text(" Registering ... Please wait")
+      ],
     );
 
     doRegister() async {
@@ -241,7 +284,9 @@ class RegisterPageState extends State<RegisterPage> {
         setState(() {
           registering = true;
         });
-        int success = await client.registerUser(username, password, email, roleSelection, countrySelection!);
+      //  roleSelection = "Other";
+        int success = await client.registerUser(
+            username, password, email, roleSelection, countrySelection!);
         debugPrint("SUCCESS $success");
         setState(() {
           registering = false;
@@ -256,6 +301,7 @@ class RegisterPageState extends State<RegisterPage> {
             //Create a player instance on server
 
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            mixpanel.track("Registered");
             Navigator.pushReplacementNamed(context, '/home');
           }
         } else if (success == 1) {
@@ -299,7 +345,8 @@ class RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 10.0),
                   IconButton(
-                      icon: Icon(Icons.info_outline, color: Colors.white, size: 25),
+                      icon: Icon(Icons.info_outline,
+                          color: Colors.white, size: 25),
                       onPressed: () {
                         showInfo = !showInfo;
                         setState(() {});
@@ -328,7 +375,7 @@ class RegisterPageState extends State<RegisterPage> {
                   // Text("PandeVITA dashboard role"),
                   // const SizedBox(height: 5.0),
                   roleDropDown,
-                  const SizedBox(height: 10.0),
+                //  const SizedBox(height: 10.0),
                   Row(children: [
                     Transform.scale(
                         child: Checkbox(
@@ -341,12 +388,41 @@ class RegisterPageState extends State<RegisterPage> {
                           activeColor: Colors.black,
                         ),
                         scale: 1.3),
-                    const Text("I accept terms", overflow: TextOverflow.ellipsis),
-                    IconButton(
-                      onPressed: () => _showTerms(context),
-                      icon: Icon(Icons.info_outline, color: Colors.white, size: 20.0),
-                    )
+                    RichText(text: TextSpan(
+                      children: [
+                        TextSpan(text: "I accept "),
+                        TextSpan(text: "privacy policy.",
+                        style: TextStyle(color: Colors.black, decoration: TextDecoration.underline),
+                        recognizer: TapGestureRecognizer()..onTap = () async {
+                          String privacyPolicy = await loadPrivacyPolicy();
+                          //Show privacy policy
+                          showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              scrollable: true,
+                              title: const Text('Scroll to see more'),
+                              content: Container(
+                                width: MediaQuery.of(context).size.width,
+                                  height: MediaQuery.of(context).size.height/2,
+                                  child: Markdown(
+                                data: privacyPolicy
+                              )),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, 'Close');
+                                  },
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        )
+                      ]
+                    ))
                   ]),
+
                   registering == true
                       ? loading
                       : ElevatedButton(
@@ -362,7 +438,7 @@ class RegisterPageState extends State<RegisterPage> {
                               fontSize: 25,
                             ),
                           ),
-                          onPressed: agree ? doRegister : null,
+                          onPressed: agree && formKey.currentState!.validate() ? doRegister : null,
                         ),
                   const SizedBox(height: 5.0),
                   ElevatedButton(
@@ -388,9 +464,5 @@ class RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
-  }
-
-  void _showTerms(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => TermsPage()));
   }
 }

@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
+import '../mixpanel.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,12 +45,17 @@ class ScoreboardState extends State<Scoreboard> {
 
   //Timestamp
   var lastUpdatedScoreboard = 0;
+  late final Mixpanel mixpanel;
 
   @override
   void initState() {
     super.initState();
+    initMixpanel();
     getScoreboardFromServer();
     timer = Timer.periodic(const Duration(minutes: 5), (Timer t) => getScoreboardFromServer());
+  }
+  Future<void> initMixpanel() async {
+    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
   @override
@@ -139,6 +147,11 @@ class ScoreboardState extends State<Scoreboard> {
                   )
                 ],
                 onPressed: (int index) {
+                  if(index == 0) {
+                    mixpanel.track("Clicked on individual scoreboard");
+                  } else{
+                    mixpanel.track("Clicked on team scoreboard");
+                  }
                   setState(() {
                     for (int buttonIndex = 0; buttonIndex < isSelectedScoreboard.length; buttonIndex++) {
                       if (buttonIndex == index) {
