@@ -1,12 +1,10 @@
-/** This file contains the game logic of the PandeVITA app. **/
+/// This file contains the game logic of the PandeVITA app.
 import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-import '../communication/beacon_scanner.dart';
-import '../controller/requirement_state_controller.dart';
 import 'game_status.dart';
+import 'package:flutter/material.dart';
+import '../controller/requirement_state_controller.dart';
+import 'package:get/get.dart';
+import '../communication/beacon_scanner.dart';
 
 class GameLogic {
   Timer? timer;
@@ -33,7 +31,7 @@ class GameLogic {
 
   bool isGameInitiated = false;
 
-  var contactsSinceStarted = Set();
+  var contactsSinceStarted = <dynamic>{};
 
   var staticVirusNearby = false;
   var staticExposureTime = 0;
@@ -43,6 +41,7 @@ class GameLogic {
   final controller = Get.find<RequirementStateController>();
 
   static final GameLogic _gameLogic = GameLogic._privateConstructor();
+
 
   factory GameLogic() {
     return _gameLogic;
@@ -56,7 +55,9 @@ class GameLogic {
         infected3days = true;
         //Bug fix: correct timestamps now not overridden
         if (infectedTimestamp == 0) {
-          infectedTimestamp = DateTime.now().millisecondsSinceEpoch;
+          infectedTimestamp = DateTime
+              .now()
+              .millisecondsSinceEpoch;
         }
       } else if (flag == false) {
         infectedTimestamp = 0;
@@ -75,29 +76,36 @@ class GameLogic {
   void initGame() async {
     debugPrint("initGame call");
     if (isGameInitiated) {
-      debugPrint("isgameinitiated true");
+      debugPrint("is game initiated true");
       return;
     }
     isGameInitiated = true;
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
-    timer = Timer.periodic(const Duration(seconds: 60), (Timer t) => gameLogicTick());
+    timer = Timer.periodic(
+        const Duration(seconds: 60), (Timer t) => gameLogicTick());
     DateTime now = DateTime.now();
     DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
     timer2 = Timer(endOfDay.difference(now), immunityReset);
     //_isGameActive = await gameStatus!.isGameActive();
     _isGameActive = true;
 
+
     contactsStartedTimestamp = await gameStatus!.getContactTimestamp();
     if (contactsStartedTimestamp == 0) {
-      contactsStartedTimestamp = DateTime.now().millisecondsSinceEpoch;
+      contactsStartedTimestamp = DateTime
+          .now()
+          .millisecondsSinceEpoch;
       gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
     }
-    var playerInfectedTimestamp = await gameStatus!.getPlayerInfectedTimestamp();
+    var playerInfectedTimestamp = await gameStatus!
+        .getPlayerInfectedTimestamp();
     debugPrint("playerInfectedTimestamp $playerInfectedTimestamp");
     if (playerInfectedTimestamp != 0) {
-      debugPrint("playerinfectedtimestamp is not 0");
-      var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+      debugPrint("playerInfectedTimestamp is not 0");
+      var currentTimestamp = DateTime
+          .now()
+          .millisecondsSinceEpoch;
       //If over 3 days since infection
       if (currentTimestamp - playerInfectedTimestamp >= 259200000) {
         gameStatus!.cureInfectPlayer();
@@ -117,7 +125,9 @@ class GameLogic {
   ///One tick of the game logic. Runs every 60 seconds
   void gameLogicTick() async {
     gameActiveControl++;
-    var timestamp = DateTime.now().millisecondsSinceEpoch;
+    var timestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     var checking = timestamp - lastGameLogicTimestamp;
     debugPrint("time since last game logic tick $checking");
     lastGameLogicTimestamp = timestamp;
@@ -141,8 +151,6 @@ class GameLogic {
 
     ///changed to use then instead of await for optimization
     beaconScanner!.scan().then((scanResults) {
-      debugPrint(scanResults.toString());
-
       if (!infected) {
         //Iterate the map
         for (MapEntry<String, int> me in scanResults.entries) {
@@ -150,10 +158,10 @@ class GameLogic {
           contacts.add(me.key);
           if (me.value == 1) {
             exposureTime += 1;
-            debugPrint("INF PLAYER");
+            debugPrint("INFECTED PLAYER NEARBY");
             safeTime = 0;
             infNearby = true;
-            continue;
+            break;
           }
         }
         if (!infNearby) {
@@ -250,5 +258,6 @@ class GameLogic {
     DateTime now = DateTime.now();
     DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
     timer2 = Timer(endOfDay.difference(now), immunityReset);
+
   }
 }

@@ -1,14 +1,15 @@
-/**This file contains classes to help displaying the correct stats
-    to the player in the PandeVITA app UI*/
+/// This file contains classes to help displaying the correct stats
+/// to the player in the PandeVITA app UI
 import 'package:flutter/material.dart';
+import '../Utility/styles.dart';
+import '../game_logic/game_status.dart';
+import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
-import '../Utility/styles.dart';
-import '../controller/requirement_state_controller.dart';
-import '../game_logic/game_status.dart';
-
 class PlayerPoints extends StatefulWidget {
+  const PlayerPoints({Key? key}) : super(key: key);
+
   @override
   PlayerPointsState createState() => PlayerPointsState();
 }
@@ -30,7 +31,7 @@ class PlayerPointsState extends State<PlayerPoints> {
   @override
   Widget build(BuildContext context) {
     return Text(pointCounter,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
           color: Colors.white,
           fontSize: 25,
@@ -39,7 +40,7 @@ class PlayerPointsState extends State<PlayerPoints> {
 
   //Update points on screen
   void updatePoints() async {
-    debugPrint("EVENT: UPDATEPOINTS");
+    debugPrint("EVENT: UPDATE POINTS");
     String points = await gameStatus.getPoints();
     setState(() {
       pointCounter = points;
@@ -48,6 +49,8 @@ class PlayerPointsState extends State<PlayerPoints> {
 }
 
 class ImmunityLevel extends StatefulWidget {
+  const ImmunityLevel({Key? key}) : super(key: key);
+
   @override
   ImmunityLevelState createState() => ImmunityLevelState();
 }
@@ -71,32 +74,40 @@ class ImmunityLevelState extends State<ImmunityLevel> {
   Widget build(BuildContext context) {
     return Row(children: [
       SizedBox(
-          width: 200,
-          child: Stack(
-            children: [
-              Positioned(
-                child: LinearPercentIndicator(
-                  width: 160.0,
-                  lineHeight: 14.0,
-                  percent: barValue,
-                  animation: false,
-                  barRadius: Radius.circular(7),
-                  backgroundColor: Colors.grey,
-                  progressColor: yellowColor,
-                ),
-                top: 22,
-                left: 30,
+        width: 200,
+        child: Stack(
+          children: [
+            Positioned(
+              child: LinearPercentIndicator(
+                width: 160.0,
+                lineHeight: 14.0,
+                percent: barValue,
+                animation: false,
+                barRadius: const Radius.circular(7),
+                backgroundColor: Colors.grey,
+                progressColor: yellowColor,
               ),
-              Image.asset("images/immunity_status_icon.png", width: 50),
-              Positioned(
-                child: Text("IMMUNITY DEGREE", style: TextStyle(fontWeight: FontWeight.bold, color: yellowColor, fontSize: 11)),
-                top: 40,
-                left: 60,
-              )
-            ],
-          )),
+              top: 22,
+              left: 30,
+            ),
+            Image.asset("images/immunity_status_icon.png", width: 50),
+            Positioned(
+              child: Text(
+                "IMMUNITY DEGREE",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: yellowColor,
+                  fontSize: 11
+                )
+              ),
+              top: 40,
+              left: 60,
+            )
+          ],
+        )
+      ),
       Text(immunityLevel,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.white,
             fontSize: 25,
@@ -115,6 +126,8 @@ class ImmunityLevelState extends State<ImmunityLevel> {
 }
 
 class VaccinationAmount extends StatefulWidget {
+  const VaccinationAmount({Key? key}) : super(key: key);
+
   @override
   VaccinationAmountState createState() => VaccinationAmountState();
 }
@@ -136,7 +149,7 @@ class VaccinationAmountState extends State<VaccinationAmount> {
   @override
   Widget build(BuildContext context) {
     return Text(vaccinationAmount,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
           color: Colors.white,
           fontSize: 25,

@@ -1,10 +1,8 @@
-/**Settings page for handling account and teams
- * for the PandeVITA application
- */
+///Settings page for handling account and teams
+///for the PandeVITA application
+
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
-
 import '../mixpanel.dart';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,15 +14,16 @@ import '../Utility/styles.dart';
 import 'package:get/get.dart';
 import '../controller/requirement_state_controller.dart';
 import '../game_logic/game_status.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+
   @override
   SettingsPageState createState() => SettingsPageState();
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  TextEditingController _textFieldController = TextEditingController();
+  final TextEditingController _textFieldController = TextEditingController();
   PandeVITAHttpClient client = PandeVITAHttpClient();
   UserStorage storage = UserStorage();
   late String newTeamName;
@@ -106,7 +105,7 @@ class SettingsPageState extends State<SettingsPage> {
       //Check if team has been deleted by the team founder
       var teamId = await storage.getTeamId();
       Map team = await client.getTeam(teamId!);
-      if (team.containsKey('notfound_error')) {
+      if (team.containsKey('notFound_error')) {
         currentTeamName = '';
         isNotMemberOfTeam = true;
         isFounderOfTeam = false;
@@ -153,9 +152,9 @@ class SettingsPageState extends State<SettingsPage> {
     if (timestamp - settingsPageUpdated > 300000) {
       initializeSettings();
     } else {
-      var snackBar = SnackBar(
+      var snackBar = const SnackBar(
         content: Text("Settings page was updated recently."),
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
@@ -272,15 +271,11 @@ class SettingsPageState extends State<SettingsPage> {
         await storage.joinTeam(currentTeamName, teamsMap[joinTeamName]!);
         isNotMemberOfTeam = false;
         initializeSettings();
-        var snackBar = const SnackBar(
-          content: Text("Successfully joined a team"),
-          duration: Duration(seconds: 5),
-        );
       }
     }
 
     doLeaveTeam() async {
-      debugPrint("leavingteam");
+      debugPrint("leaving team");
       if (currentTeamName == null) {
         return;
       }
@@ -293,22 +288,6 @@ class SettingsPageState extends State<SettingsPage> {
         isNotMemberOfTeam = true;
         isFounderOfTeam = false;
         initializeSettings();
-      }
-    }
-
-    doChangeTeam() async {
-      if (currentTeamName == null || joinTeamName == null) {
-        return;
-      }
-      int success =
-      await client.removeFromTeam(playerName, teamsMap[currentTeamName]!);
-      if (success == 0) {
-        int success2 =
-        await client.addToTeam(playerName, teamsMap[joinTeamName]!);
-        if (success2 == 0) {
-          currentTeamName = joinTeamName!;
-          updatePage();
-        }
       }
     }
 
@@ -359,8 +338,8 @@ class SettingsPageState extends State<SettingsPage> {
           style: ElevatedButton.styleFrom(
             primary: Colors.white,
             onPrimary: Colors.blue,
-            shape: CircleBorder(),
-            padding: EdgeInsets.all(0.0),
+            shape: const CircleBorder(),
+            padding: const EdgeInsets.all(0.0),
           ),
           onPressed: () => showDialog<String>(
             context: context,
@@ -395,12 +374,12 @@ class SettingsPageState extends State<SettingsPage> {
             children: [
               Text("Settings", style: settingsTextStyle),
               IconButton(
-                icon: Icon(Icons.refresh, color: Colors.white),
+                icon: const Icon(Icons.refresh, color: Colors.white),
                 onPressed: () {
                   refreshSettingsPage();
                 },
               ),
-              Spacer(),
+              const Spacer(),
               Padding(
                   child: Text("Log out", style: settingsTextStyleAlt),
                   padding: const EdgeInsets.symmetric(
@@ -439,7 +418,7 @@ class SettingsPageState extends State<SettingsPage> {
                   // padding: const EdgeInsets.all(20.0),
                   decoration: boxDecorationWhiteBorder,
                   child: Column(
-                    //crossAxisAlignment: CrossAxisAlignment.start,
+                      //crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
                         Table(
@@ -517,8 +496,8 @@ class SettingsPageState extends State<SettingsPage> {
                                 style: ElevatedButton.styleFrom(
                                   primary: Colors.white,
                                   onPrimary: Colors.blue,
-                                  shape: CircleBorder(),
-                                  padding: EdgeInsets.all(0.0),
+                                  shape: const CircleBorder(),
+                                  padding: const EdgeInsets.all(0.0),
                                 ),
                                 onPressed: () => showDialog<String>(
                                   context: context,
@@ -569,8 +548,8 @@ class SettingsPageState extends State<SettingsPage> {
                                 style: ElevatedButton.styleFrom(
                                   primary: Colors.white,
                                   onPrimary: Colors.blue,
-                                  shape: CircleBorder(),
-                                  padding: EdgeInsets.all(0.0),
+                                  shape: const CircleBorder(),
+                                  padding: const EdgeInsets.all(0.0),
                                 ),
                                 onPressed: () => showDialog<String>(
                                   context: context,
@@ -604,12 +583,12 @@ class SettingsPageState extends State<SettingsPage> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Padding(
-                                  child: Text("Choose a team to join ",
+                                  child: Text("Join a team ",
                                       style: settingsTextStyleTeamAct),
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 10.0, horizontal: 15.0)),
                               DropdownButton<String>(
-                                  style: TextStyle(color: Colors.black),
+                                  style: const TextStyle(color: Colors.black),
                                   dropdownColor: Colors.white,
                                   items: teamsList.map((String value) {
                                     return DropdownMenuItem<String>(
@@ -664,8 +643,8 @@ class SettingsPageState extends State<SettingsPage> {
                                   style: ElevatedButton.styleFrom(
                                     primary: Colors.white,
                                     onPrimary: Colors.blue,
-                                    shape: CircleBorder(),
-                                    padding: EdgeInsets.all(5.0),
+                                    shape: const CircleBorder(),
+                                    padding: const EdgeInsets.all(5.0),
                                   ),
                                 )
                             ],
@@ -686,8 +665,8 @@ class SettingsPageState extends State<SettingsPage> {
                                 style: ElevatedButton.styleFrom(
                                   primary: Colors.white,
                                   onPrimary: Colors.blue,
-                                  shape: CircleBorder(),
-                                  padding: EdgeInsets.all(5.0),
+                                  shape: const CircleBorder(),
+                                  padding: const EdgeInsets.all(5.0),
                                 ),
                                 onPressed: () => showDialog<String>(
                                   context: context,
@@ -705,7 +684,7 @@ class SettingsPageState extends State<SettingsPage> {
                                               return Center(
                                                   child: Text(teamMember,
                                                       style:
-                                                      TextStyle(fontSize: 18)));
+                                                      const TextStyle(fontSize: 18)));
                                             })),
                                     actions: <Widget>[
                                       TextButton(
@@ -720,7 +699,7 @@ class SettingsPageState extends State<SettingsPage> {
                               ),
                             ],
                           ),
-                        Spacer(),
+                        const Spacer(),
                         //Privacy policy
                         Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -728,7 +707,7 @@ class SettingsPageState extends State<SettingsPage> {
                               RichText(
                                   text: TextSpan(
                                       text: "Read Privacy Policy",
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                           decoration: TextDecoration.underline,
@@ -763,9 +742,9 @@ class SettingsPageState extends State<SettingsPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Padding(
+                            const Padding(
                                 child: Text("Delete account"),
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                     vertical: 10.0, horizontal: 10.0)),
                             IconButton(
                               icon: const Icon(Icons.delete, size: 25.0),
@@ -799,9 +778,9 @@ class SettingsPageState extends State<SettingsPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               //Icon(Icons.info_outline),
-                              Padding(
+                              const Padding(
                                   child: Icon(Icons.info_outline, color: Colors.white),
-                                  padding: const EdgeInsets.only( bottom: 5.0, left: 10.0)
+                                  padding: EdgeInsets.only( bottom: 5.0, left: 10.0)
                               ),
 
                               Expanded(

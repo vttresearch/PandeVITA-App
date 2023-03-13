@@ -1,14 +1,12 @@
-/**This class handles the continuous beacon broadcasting needed by the
-    application. It is based on the example implementation of flutter_beacon.
-    Changed to a singleton class.*/
-import 'dart:math';
-
+/// This class handles the continuous beacon broadcasting needed by the
+/// application. It is based on the example implementation of flutter_beacon.
+/// Changed to a singleton class.
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_beacon/flutter_beacon.dart';
-import 'package:get/get.dart';
-
-import '../controller/requirement_state_controller.dart';
 import '../game_logic/game_status.dart';
+import 'package:flutter_beacon/flutter_beacon.dart';
+import '../controller/requirement_state_controller.dart';
+import 'package:get/get.dart';
+import 'dart:math';
 
 class BeaconBroadcastClass {
   final controller = Get.find<RequirementStateController>();
@@ -16,17 +14,17 @@ class BeaconBroadcastClass {
   bool broadcasting = false;
   int? major;
   int? minor;
-
-  bool get broadcastReady => controller.authorizationStatusOk == true && controller.locationServiceEnabled == true && controller.bluetoothEnabled == true;
+  bool get broadcastReady =>
+      controller.authorizationStatusOk == true &&
+          controller.locationServiceEnabled == true &&
+          controller.bluetoothEnabled == true;
 
   GameStatus gameStatus = GameStatus();
-
   static final BeaconBroadcastClass _beaconBroadcastClass = BeaconBroadcastClass._privateConstructor();
 
   factory BeaconBroadcastClass() {
     return _beaconBroadcastClass;
   }
-
   BeaconBroadcastClass._privateConstructor() {
     controller.startBroadcastStream.listen((flag) {
       if (flag == true) {
@@ -67,7 +65,8 @@ class BeaconBroadcastClass {
     ));
     final isBroadcasting = await flutterBeacon.isBroadcasting();
     broadcasting = isBroadcasting;
-    debugPrint("ISBROADCASTING " + isBroadcasting.toString());
+    debugPrint("IS BROADCASTING " + isBroadcasting.toString());
+
   }
 
   stopBroadcastBeacon() async {
@@ -86,9 +85,7 @@ class BeaconBroadcastClass {
   }
 
   Future<String> getProximityUUID() async {
-    debugPrint("GOTHERE1");
     String proximityUUID = await gameStatus.getProximityUUID();
-    debugPrint("GOTHERE");
     return proximityUUID;
   }
 }

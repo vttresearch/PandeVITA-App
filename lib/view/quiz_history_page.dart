@@ -1,14 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
-
 import '../Utility/styles.dart';
 import '../mixpanel.dart';
 import '../communication/http_communication.dart';
 
-/** This page handles the quiz history
- */
-
+/// This page handles the quiz history
 class QuizHistoryPage extends StatefulWidget {
   const QuizHistoryPage({Key? key}) : super(key: key);
 
@@ -67,13 +63,14 @@ Widget build(BuildContext context) {
       builder: (BuildContext context, AsyncSnapshot<List?> snapshot) {
         List<Widget> children;
         if (snapshot.hasData) {
-          //answeredMap.add({'id': quizQuestion['id'],
-          //  'answer': quizQuestion['id'],
-          //  'correctAnswer': '',
+            //answeredMap is of a form
+            // {
+            //  'id': quizQuestion['id'],
+            //  'answer': quizQuestion['id'],
+            //  'correctAnswer': '',
             //  'isCorrect': isCorrectAnswer,
-            //});
+            //};
             var questions = snapshot.data;
-            final scrollContr = ScrollController();
             children = <Widget>[
               Expanded( child: Scrollbar(
                   controller: ScrollController(),
@@ -87,7 +84,7 @@ Widget build(BuildContext context) {
                             'icon': Icons.question_mark_rounded,
                             'color': Colors.red
                           };
-                          if (questions![i]['isCorrect'] != null) {
+                          if (questions[i]['isCorrect'] != null) {
                             isCorrectIcon = questions[i]['isCorrect'] == true ?
                             {'icon': Icons.check_circle_rounded, 'color': Colors
                                 .green,} :
@@ -95,7 +92,6 @@ Widget build(BuildContext context) {
                                 .redAccent,};
                           }
                           return ListTile(
-                            //const Icon(Icons.check_circle_rounded, color: Colors.green,),
                             title: Padding(child: ElevatedButton(
                                 onPressed: () {
                                   debugPrint(
@@ -125,7 +121,6 @@ Widget build(BuildContext context) {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  //crossAxisAlignment: CrossAxisAlignment.start,
                                   children: quizAnswers(questions[i]['answers'], i, questions[i]['correctAnswer'])))
                                 : null,
                           );

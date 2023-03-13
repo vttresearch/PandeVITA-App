@@ -1,14 +1,11 @@
-/*** This handles the quiz page of the application. The users answer
- * the quizzes to gain additional points in the game. This is heavily based
- * on this tutorial https://www.geeksforgeeks.org/basic-quiz-app-in-flutter-api/
- */
+/// This handles the quiz page of the application. The users answer
+/// the quizzes to gain additional points in the game. This is heavily based
+/// on this tutorial https://www.geeksforgeeks.org/basic-quiz-app-in-flutter-api/
 
 import 'dart:async';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:pandevita_game/view/quiz_history_page.dart';
-
 import '../mixpanel.dart';
-
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
 import 'ui_stats.dart';
@@ -17,6 +14,8 @@ import '../Utility/user.dart';
 import '../game_logic/game_status.dart';
 
 class QuizPage extends StatefulWidget {
+  const QuizPage({Key? key}) : super(key: key);
+
   @override
   QuizPageState createState() => QuizPageState();
 }
@@ -81,15 +80,14 @@ class QuizPageState extends State<QuizPage> {
     } else {
       var snackBar = SnackBar(
         content: Text("Wrong answer! The correct answer was: " + correctAnswer),
-        duration: Duration(seconds: 5),
+        duration: const Duration(seconds: 5),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
     gameStatus.answeredQuizQuestion(questionId);
     client.updateQuizAnswer(questionId, answerWasCorrect);
-    // setState(() {
+
     questionIndex = questionIndex + 1;
-    //  });
     debugPrint(questionIndex.toString());
     if (questionIndex < currentQuiz.length) {
       debugPrint('We have more questions!');
@@ -100,7 +98,6 @@ class QuizPageState extends State<QuizPage> {
       debugPrint('No more questions!');
       isAnsweringQuiz = false;
     }
-
     //Update UI
     setState(() {});
   }
@@ -123,14 +120,8 @@ class QuizPageState extends State<QuizPage> {
     isQuizAlreadyAnswered = true;
     if (quizFromServer.isNotEmpty) {
       isQuestionAvailable = true;
-      bool newQuestions = false;
       for (Map question in quizFromServer) {
         currentQuizId = question['id'];
-        //Do not display already answered questions
-     /*   if (await gameStatus.isQuizQuestionAnswered(currentQuizId)) {
-          continue;
-        }*/
-        newQuestions = true;
         currentQuiz.add(question);
         isAnsweringQuiz = true;
         isQuizAlreadyAnswered = false;
@@ -143,7 +134,6 @@ class QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    //debugPrint(answeredQuizzedMap.toString());
     var quizResult = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -322,7 +312,7 @@ class Quiz extends StatelessWidget {
                             top: 10.0, bottom: 10.0, right: 8.0, left: 8.0),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(13.0)),
-                      )), padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0));
+                      )), padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0));
             })))
       ],
     ); //Column

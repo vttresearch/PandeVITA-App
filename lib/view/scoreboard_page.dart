@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
@@ -8,16 +6,16 @@ import 'ui_stats.dart';
 import 'scoreboard.dart';
 import 'story_page.dart';
 
-/** Page that shows the individual and team based scoreboards */
-
+/// Page that shows the individual and team based scoreboards */
 class ScoreboardPage extends StatefulWidget {
+  const ScoreboardPage({Key? key}) : super(key: key);
+
   @override
   ScoreboardPageState createState() => ScoreboardPageState();
 }
 
 class ScoreboardPageState extends State<ScoreboardPage> {
   PandeVITAHttpClient client = PandeVITAHttpClient();
-
   bool unwatchedNewsStories = false;
   bool unwatchedMobilityStories = false;
   bool unwatchedInfoStories = false;
@@ -74,10 +72,9 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       style: ElevatedButton.styleFrom(
                         shadowColor: Colors.yellow,
                         side: BorderSide(color: yellowColor, width: 5.0),
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(10.0),
-                        primary: Color.fromARGB(255, 91, 197,
-                            224), // <-- Button color// <-- Splash color
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(10.0),
+                        primary: const Color.fromARGB(255, 91, 197, 224), // <-- Button color// <-- Splash color
                       ),
                     )
                   : OutlinedButton(
@@ -91,11 +88,10 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       child: const Icon(Icons.newspaper,
                           color: Colors.white, size: 50.0),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.white, width: 5.0),
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(10.0),
-                        primary: Color.fromARGB(255, 91, 197,
-                            224), // <-- Button color// <-- Splash color
+                        side: const BorderSide(color: Colors.white, width: 5.0),
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(10.0),
+                        primary: const Color.fromARGB(255, 91, 197, 224), // <-- Button color// <-- Splash color
                       ),
                     ),
               const Text("News",
@@ -119,10 +115,9 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       style: ElevatedButton.styleFrom(
                         shadowColor: Colors.yellow,
                         side: BorderSide(color: yellowColor, width: 5.0),
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(10.0),
-                        primary: Color.fromARGB(255, 91, 197,
-                            224), // <-- Button color// <-- Splash color
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(10.0),
+                        primary: const Color.fromARGB(255, 91, 197, 224), // <-- Button color// <-- Splash color
                       ),
                     )
                   : OutlinedButton(
@@ -136,11 +131,10 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       child: const Icon(Icons.flight_takeoff,
                           color: Colors.white, size: 50.0),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.white, width: 5.0),
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(10.0),
-                        primary: Color.fromARGB(255, 91, 197,
-                            224), // <-- Button color// <-- Splash color
+                        side: const BorderSide(color: Colors.white, width: 5.0),
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(10.0),
+                        primary: const Color.fromARGB(255, 91, 197, 224), // <-- Button color// <-- Splash color
                       ),
                     ),
               //covid info
@@ -164,10 +158,9 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       style: ElevatedButton.styleFrom(
                         shadowColor: Colors.yellow,
                         side: BorderSide(color: yellowColor, width: 5.0),
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(10.0),
-                        primary: Color.fromARGB(255, 91, 197,
-                            224), // <-- Button color// <-- Splash color
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(10.0),
+                        primary: const Color.fromARGB(255, 91, 197, 224), // <-- Button color// <-- Splash color
                       ),
                     )
                   : OutlinedButton(
@@ -181,11 +174,10 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       child: const Icon(Icons.coronavirus,
                           color: Colors.white, size: 50.0),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.white, width: 5.0),
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(10.0),
-                        primary: Color.fromARGB(255, 91, 197,
-                            224), // <-- Button color// <-- Splash color
+                        side: const BorderSide(color: Colors.white, width: 5.0),
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(10.0),
+                        primary: const Color.fromARGB(255, 91, 197, 224), // <-- Button color// <-- Splash color
                       ),
                     ),
               const Text("Covid19 Info",
@@ -196,7 +188,7 @@ class ScoreboardPageState extends State<ScoreboardPage> {
           Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [Text("Scoreboard", style: settingsTextStyle)]),
-          Expanded(child: Row(children: [Expanded(child: Scoreboard())])),
+          Expanded(child: Row(children: const [Expanded(child: Scoreboard())])),
           const SizedBox(height: 20),
           Container(
               height: 200,
@@ -211,12 +203,6 @@ class ScoreboardPageState extends State<ScoreboardPage> {
                       Image.asset("images/xp_star.png", width: 50),
                       const SizedBox(width: 20),
                       PlayerPoints(),
-                      /*const Text("500",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 25,
-                            )),*/
                       //Vaccination
                       const SizedBox(width: 100),
                       Image.asset("images/vaccination_icon.png", width: 50),

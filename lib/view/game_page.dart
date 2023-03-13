@@ -1,9 +1,11 @@
-/** The page with the immunity degree plus points**/
-import 'package:flutter/material.dart';
+/// The page with the immunity degree plus points
 
+import 'package:flutter/material.dart';
 import '../game_logic/game_status.dart';
 
 class GamePage extends StatefulWidget {
+  const GamePage({Key? key}) : super(key: key);
+
   @override
   GamePageState createState() => GamePageState();
 }
@@ -20,14 +22,10 @@ class GamePageState extends State<GamePage> with WidgetsBindingObserver {
         appBar: AppBar(
           title: const Text('PandeVITA game'),
         ),
-        body: Center(child: Text(pointCounter)),
+        body: Center(
+          child: Text(pointCounter)
+        ),
       ),
     );
-  }
-
-  void _updatePoints() {
-    setState(() {
-      pointCounter = gameStatus.getPoints() as String;
-    });
   }
 }

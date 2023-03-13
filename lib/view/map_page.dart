@@ -1,13 +1,16 @@
-/** Map page in the UI of the PandeVITA application */
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:pandevita_game/Utility/styles.dart';
+/// Map page in the UI of the PandeVITA application
 
+import 'package:flutter/material.dart';
+import 'package:pandevita_game/Utility/styles.dart';
 import '../controller/requirement_state_controller.dart';
-import 'radar.dart';
+import 'package:get/get.dart';
 import 'ui_stats.dart';
+import 'radar.dart';
+import '../Utility/styles.dart';
 
 class TabMap extends StatefulWidget {
+  const TabMap({Key? key}) : super(key: key);
+
   @override
   _TabMapState createState() => _TabMapState();
 }
@@ -23,14 +26,17 @@ class _TabMapState extends State<TabMap> {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      Row(children: [Text("Radar", style: settingsTextStyle)]),
+    Row(
+      children: [
+    Text("Radar", style: settingsTextStyle)]),
       Expanded(
           child: Row(children: [
         Expanded(
-            child: Container(
-          decoration: boxDecorationRadar,
-          child: Radar(),
-        ))
+          child: Container(
+            decoration: boxDecorationRadar,
+            child: Radar(),
+          )
+        )
       ])),
       const SizedBox(height: 20),
       Container(
@@ -54,10 +60,12 @@ class _TabMapState extends State<TabMap> {
                 ],
               )),
               Expanded(
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                //Immunity status
-                ImmunityLevel(),
-              ]))
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                    //Immunity status
+                    ImmunityLevel(),
+                  ]))
             ],
           )),
     ]);

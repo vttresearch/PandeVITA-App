@@ -1,23 +1,22 @@
 import 'dart:math';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
-
 import '../mixpanel.dart';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../communication/http_communication.dart';
 import '../Utility/styles.dart';
 
-/** Handles registering user to the platform server. User inputs their username
- * and email and creates a password. Should be one-time only. Based on
- * https://medium.com/@afegbua/flutter-thursday-13-building-a-user-registration-and-login-process-with-provider-and-external-api-1bb87811fd1d
- */
+/// Handles registering user to the platform server. User inputs their username
+/// and email and creates a password. Should be one-time only. Based on
+/// https://medium.com/@afegbua/flutter-thursday-13-building-a-user-registration-and-login-process-with-provider-and-external-api-1bb87811fd1d
 
 class RegisterPage extends StatefulWidget {
+  const RegisterPage({Key? key}) : super(key: key);
+
   @override
   RegisterPageState createState() => RegisterPageState();
 }
@@ -25,7 +24,11 @@ class RegisterPage extends StatefulWidget {
 class RegisterPageState extends State<RegisterPage> {
   var chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
   Random random = Random();
-
+var maskFormatter = MaskTextInputFormatter(
+  mask: '0000-0000-0000-0000',
+  filter: { "0": RegExp(r'[0-9X]') },
+  type: MaskAutoCompletionType.lazy
+);
   String? dropdownValue;
   String? roleSelection;
 
@@ -36,6 +39,7 @@ class RegisterPageState extends State<RegisterPage> {
   final PandeVITAHttpClient client = PandeVITAHttpClient();
   var registering = false;
   late String username, password, confirmPassword, email;
+  String orcid = '';
 
   bool showInfo = false;
   bool agree = false;
@@ -55,53 +59,19 @@ class RegisterPageState extends State<RegisterPage> {
     mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
-  //Focus nodes could be used to change text field colors on focus change
-  /* List<FocusNode> focusNodes = [
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-  ];
-
-
-  @override
-  void initState() {
-    focusNodes.forEach((node){
-      node.addListener(onFocusChange);
-    });
-    super.initState();
-  }
-
-  void onFocusChange() {
-    {
-      setState(() {});
-    }
-  }
-
-  @override
-  void dispose() {
-    focusNodes.forEach((node){
-      node.removeListener(onFocusChange);
-      node.dispose();
-    });
-    debugPrint("registerPage disposed");
-    super.dispose();
-  }*/
-
-  /**Generate a random string for the email. https://stackoverflow.com/a/61929967*/
+  /// Generate a random string for the email. https://stackoverflow.com/a/61929967*/
   String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
       length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 
   @override
   Widget build(BuildContext context) {
-    //initMixpanel();
     final usernameField = TextFormField(
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         autofocus: false,
         onSaved: (value) => username = (value as String).toLowerCase(),
         validator: (value) => value!.isEmpty ? 'Please enter username' : null,
         cursorColor: Colors.black,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
           border:
               UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
@@ -114,7 +84,7 @@ class RegisterPageState extends State<RegisterPage> {
         ));
 
     final emailField = TextFormField(
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         autofocus: false,
         onSaved: (value) => email = value as String,
         //Validate email
@@ -130,7 +100,7 @@ class RegisterPageState extends State<RegisterPage> {
           }
         },
         cursorColor: Colors.black,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
           border:
               UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
@@ -143,13 +113,13 @@ class RegisterPageState extends State<RegisterPage> {
         ));
 
     final passwordField = TextFormField(
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         autofocus: false,
         obscureText: true,
         validator: (value) => value!.isEmpty ? 'Please enter password' : null,
-        onChanged: (value) => password = value as String,
+        onChanged: (value) => password = value,
         cursorColor: Colors.black,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
           border:
               UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
@@ -162,7 +132,7 @@ class RegisterPageState extends State<RegisterPage> {
         ));
 
     final confirmPasswordField = TextFormField(
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         autofocus: false,
         obscureText: true,
         validator: (value) {
@@ -176,9 +146,9 @@ class RegisterPageState extends State<RegisterPage> {
             }
           }
         },
-        onChanged: (value) => confirmPassword = value as String,
+        onChanged: (value) => confirmPassword = value,
         cursorColor: Colors.black,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
           border:
               UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
@@ -188,6 +158,25 @@ class RegisterPageState extends State<RegisterPage> {
           floatingLabelStyle: TextStyle(color: Colors.black),
           icon: Icon(Icons.lock, color: Colors.black),
           labelText: 'Confirm password',
+        ));
+
+    final orcidField = TextFormField(
+          style: const TextStyle(color: Colors.black),
+          autofocus: false,
+          onSaved: (value) => orcid = (value as String).toLowerCase(),
+          validator: (value) => value!.isNotEmpty && value.length != 19 ? 'Please enter valid orcid number' : null,
+          cursorColor: Colors.black,
+          inputFormatters: [maskFormatter],
+          decoration: const InputDecoration(
+            labelStyle: TextStyle(color: Colors.black),
+            border:
+            UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+            ),
+            floatingLabelStyle: TextStyle(color: Colors.black),
+            icon: Icon(Icons.school_rounded, color: Colors.black),
+            labelText: 'ORCID',
         ));
 
     //List of possible roles of the user
@@ -209,9 +198,8 @@ class RegisterPageState extends State<RegisterPage> {
     //Role selection dropdown
     final roleDropDown = DropdownButtonFormField<String>(
         style: const TextStyle(color: Colors.black),
-        // focusColor: Colors.black,
         dropdownColor: Colors.white,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
             border: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.black)),
@@ -232,7 +220,7 @@ class RegisterPageState extends State<RegisterPage> {
             }
           });
         },
-        hint: Text("Choose your PandeVITA dashboard role",
+        hint: const Text("Choose your PandeVITA dashboard role",
             style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: dropdownValue);
@@ -242,7 +230,7 @@ class RegisterPageState extends State<RegisterPage> {
     final countryDropDown = DropdownButtonFormField<String>(
         style: const TextStyle(color: Colors.black),
         dropdownColor: Colors.white,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
             border: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.black)),
@@ -264,7 +252,7 @@ class RegisterPageState extends State<RegisterPage> {
           });
         },
         hint:
-            Text("Choose your country", style: TextStyle(color: Colors.black)),
+            const Text("Choose your country", style: TextStyle(color: Colors.black)),
         validator: (value) => value == null ? "Required" : null,
         value: countryDropdownValue);
 
@@ -284,33 +272,57 @@ class RegisterPageState extends State<RegisterPage> {
         setState(() {
           registering = true;
         });
-      //  roleSelection = "Other";
         int success = await client.registerUser(
-            username, password, email, roleSelection, countrySelection!);
+            username, password, email, roleSelection, countrySelection!, orcid);
         debugPrint("SUCCESS $success");
         setState(() {
           registering = false;
         });
         if (success == 0) {
-          int success = await client.createPlayer(username);
-          if (success == 0) {
-            var snackBar = const SnackBar(
-              content: Text("Registration successful"),
-              duration: Duration(seconds: 5),
-            );
+            showDialog(context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                    title: const Text('Registration successful'),
+                    content: const Text(
+                        'Your account has been successfully created. You will receive a confirmation email with the instructions to activate your account.'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pushReplacementNamed(context, '/login_page');
+                        },
+                        child: const Text('Ok'),
+                      ),
+                    ]
+                );
+            });
             //Create a player instance on server
-
-            ScaffoldMessenger.of(context).showSnackBar(snackBar);
             mixpanel.track("Registered");
-            Navigator.pushReplacementNamed(context, '/home');
-          }
         } else if (success == 1) {
           var snackBar = const SnackBar(
             content: Text("Username is not available"),
             duration: Duration(seconds: 5),
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        } else {
+        } else if(success == 4){
+          showDialog(context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                    title: const Text('Could not register'),
+                    content: const Text(
+                        'The email you have entered is not in the PandeVITA database. If you belong to the Public authority category and wish to use PandeVITA app, please send an email to pandevitaproject@lst.tfo.upm.es indicating your job title. Then, you will receive an email indicating that your email has been included in the PandeVITA database.'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Ok'),
+                      ),
+                    ]
+                );
+              });
+        }
+        else {
           var snackBar = const SnackBar(
             content: Text("Registration Failed"),
             duration: Duration(seconds: 10),
@@ -330,7 +342,7 @@ class RegisterPageState extends State<RegisterPage> {
       child: Scaffold(
         body: Container(
           decoration: backgroundDecoration,
-          padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 40.0),
+          padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 40.0),
           height: double.infinity,
           child: SingleChildScrollView(
             child: Form(
@@ -345,14 +357,14 @@ class RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 10.0),
                   IconButton(
-                      icon: Icon(Icons.info_outline,
+                      icon: const Icon(Icons.info_outline,
                           color: Colors.white, size: 25),
                       onPressed: () {
                         showInfo = !showInfo;
                         setState(() {});
                       }),
                   if (showInfo)
-                    Center(
+                    const Center(
                         child: Padding(
                             child: Text(
                                 "You must include a valid username. Please, make sure you DO NOT USE YOUR REAL NAME, that it only contains LETTERS and NUMBERS and that there are no white spaces.",
@@ -361,7 +373,7 @@ class RegisterPageState extends State<RegisterPage> {
                                   color: Colors.white,
                                   fontSize: 16,
                                 )),
-                            padding: const EdgeInsets.all(12.0))),
+                            padding: EdgeInsets.all(12.0))),
                   usernameField,
                   const SizedBox(height: 10.0),
                   emailField,
@@ -372,10 +384,11 @@ class RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 10.0),
                   countryDropDown,
                   const SizedBox(height: 10.0),
-                  // Text("PandeVITA dashboard role"),
-                  // const SizedBox(height: 5.0),
                   roleDropDown,
-                //  const SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
+                  dropdownValue == 'Academy' ?
+                  orcidField
+                      : const SizedBox(),
                   Row(children: [
                     Transform.scale(
                         child: Checkbox(
@@ -390,9 +403,9 @@ class RegisterPageState extends State<RegisterPage> {
                         scale: 1.3),
                     RichText(text: TextSpan(
                       children: [
-                        TextSpan(text: "I accept "),
+                        const TextSpan(text: "I accept "),
                         TextSpan(text: "privacy policy.",
-                        style: TextStyle(color: Colors.black, decoration: TextDecoration.underline),
+                        style: const TextStyle(color: Colors.black, decoration: TextDecoration.underline),
                         recognizer: TapGestureRecognizer()..onTap = () async {
                           String privacyPolicy = await loadPrivacyPolicy();
                           //Show privacy policy
@@ -401,7 +414,7 @@ class RegisterPageState extends State<RegisterPage> {
                             builder: (BuildContext context) => AlertDialog(
                               scrollable: true,
                               title: const Text('Scroll to see more'),
-                              content: Container(
+                              content: SizedBox(
                                 width: MediaQuery.of(context).size.width,
                                   height: MediaQuery.of(context).size.height/2,
                                   child: Markdown(

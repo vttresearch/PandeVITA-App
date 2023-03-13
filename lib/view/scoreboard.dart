@@ -1,30 +1,24 @@
 import 'dart:async';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
-
 import '../mixpanel.dart';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/communication/http_communication.dart';
 
 import '../Utility/styles.dart';
 
-/** Team and individual scoreboards*/
-
+/// Team and individual scoreboards*/
 class Scoreboard extends StatefulWidget {
+  const Scoreboard({Key? key}) : super(key: key);
+
   @override
   ScoreboardState createState() => ScoreboardState();
 }
 
 class ScoreboardState extends State<Scoreboard> {
   bool showingIndividualStats = true;
-
   Timer? timer;
-
   var showIndividualScoreboard = true;
-
   PandeVITAHttpClient client = PandeVITAHttpClient();
-
   List<bool> isSelectedScoreboard = [true, false];
 
   //2-dimensional list [["playerName", "score"], ["playerName2", "score2"]]
@@ -58,7 +52,6 @@ class ScoreboardState extends State<Scoreboard> {
     mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
   }
 
-  @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       if (timer != null) {
@@ -107,14 +100,13 @@ class ScoreboardState extends State<Scoreboard> {
       var teamName = team["teamName"];
       var teamScore = 0;
       for (var player in team["teamPlayers"]) {
-        var playerScore = playerScores[player];
-        teamScore += playerScore!;
+        teamScore += playerScores[player] ?? 0;
       }
       teamScoreboard.add([teamName, teamScore]);
     }
     teamScoreboard.sort((a, b) => b[1].compareTo(a[1]));
-    debugPrint("individualscoreboard $individualScoreboard");
-    debugPrint("teamscoreboard $teamScoreboard");
+    debugPrint("individual scoreboard $individualScoreboard");
+    debugPrint("team scoreboard $teamScoreboard");
     setState(() {});
   }
 
