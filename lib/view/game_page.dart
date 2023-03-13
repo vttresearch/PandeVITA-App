@@ -1,13 +1,11 @@
-/** The page with the immunity degree plus points**/
+/// The page with the immunity degree plus points
 
 import 'package:flutter/material.dart';
 import '../game_logic/game_status.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_beacon/flutter_beacon.dart';
-import '../controller/requirement_state_controller.dart';
-import 'package:get/get.dart';
 
 class GamePage extends StatefulWidget {
+  const GamePage({Key? key}) : super(key: key);
+
   @override
   GamePageState createState() => GamePageState();
 }
@@ -30,11 +28,4 @@ class GamePageState extends State<GamePage> with WidgetsBindingObserver {
       ),
     );
   }
-
-  void _updatePoints() {
-    setState(() {
-      pointCounter = gameStatus.getPoints() as String;
-    });
-  }
-  
 }

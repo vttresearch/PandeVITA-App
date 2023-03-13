@@ -18,7 +18,7 @@ class PandeVITAStories extends StatelessWidget {
   String topic = "";
   late final Mixpanel mixpanel;
 
-  PandeVITAStories({String? topic}) {
+  PandeVITAStories({Key? key, String? topic}) : super(key: key) {
     initMixpanel(topic);
     if (topic != null) {
       this.topic = topic;
@@ -31,12 +31,10 @@ class PandeVITAStories extends StatelessWidget {
 
   Future<void> initMixpanel(topic) async {
     mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
-    mixpanel.track("Clicked on topic ${topic}");
+    mixpanel.track("Clicked on topic $topic");
   }
 
-  /**
-   * Get the stories from server side
-   */
+  /// Get the stories from server side
   Future<List?> getArticlesFromServer() async {
     //If there is a story topic
     List? articlesFromServer;
@@ -64,13 +62,13 @@ class PandeVITAStories extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("building pandevitastories");
+    debugPrint("building pandevita stories");
     return Scaffold(
       body: FutureBuilder<List?>(
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data == null) {
-              return ErrorPage();
+              return const ErrorPage();
             } else {
               return StoryPage(
                 articles: snapshot.data,
@@ -79,9 +77,9 @@ class PandeVITAStories extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return ErrorPage();
+            return const ErrorPage();
           }
-          return Center(
+          return const Center(
             child: SizedBox(
               width: 40,
               height: 40,
@@ -146,7 +144,7 @@ class StoryPageState extends State<StoryPage> {
   int pos = 0;
   List<String> storyIdList = [];
 
-  /**Create a custom story item. Based on the story_view library views.*/
+  /// Create a custom story item. Based on the story_view library views.
   StoryItem createStoryItem(Map article, int index) {
     String caption = article["title_en"];
     bool shown = false;
@@ -218,7 +216,7 @@ class StoryPageState extends State<StoryPage> {
                               child: Padding(
                                   child: Text(storyText, style: storyTextStyle, overflow: TextOverflow.ellipsis, maxLines: 10),
                                   padding: const EdgeInsets.all(12.0))),
-                          Spacer(),
+                          const Spacer(),
                           const Center(
                               child: Padding(
                                   child: Text("Swipe up to open the article in a browser", style: TextStyle(
@@ -226,7 +224,7 @@ class StoryPageState extends State<StoryPage> {
                                       color: Colors.white
                                   )),
                                   padding: EdgeInsets.all(12.0))),
-                          Spacer(),
+                          const Spacer(),
                         ],
                       ))
             ],
@@ -249,6 +247,7 @@ class StoryPageState extends State<StoryPage> {
     var uri = Uri.parse(link);
     if (await canLaunchUrl(uri)) {
       final resp = await http.head(uri);
+      // if response code for head was not 2**, use with get instead
       if (resp.statusCode ~/ 100 != 2) {
         final resp = await http.get(uri);
       }
@@ -323,18 +322,20 @@ class PDFViewerCachedFromUrl extends StatelessWidget {
 
 
 class ErrorPage extends StatelessWidget {
+  const ErrorPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.grey[100],
           borderRadius: BorderRadius.circular(8),
         ),
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Row(
-          children: <Widget>[
+          children: const <Widget>[
             Icon(
               Icons.cancel,
               color: Colors.red,
@@ -342,7 +343,7 @@ class ErrorPage extends StatelessWidget {
             SizedBox(
               width: 16,
             ),
-            Text("An error occured while loading stories.")
+            Text("An error occurred while loading stories.")
           ],
         ),
       ),

@@ -1,6 +1,5 @@
-/** This file contains the logic necessary to communicate with the platform
- * Julius Hekkala VTT 2022
- */
+/// This file contains the logic necessary to communicate with the platform
+/// Julius Hekkala VTT 2022
 
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as client;
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:http/retry.dart';
 import 'package:synchronized/synchronized.dart';
 import '../Utility/user.dart';
 import '../game_logic/game_status.dart';
@@ -17,16 +15,16 @@ import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
 
 
-/**Singleton class that communicates with the platform server*/
+/// Singleton class that communicates with the platform server
 class PandeVITAHttpClient {
   static final PandeVITAHttpClient _pandeVITAHttpClient =
   PandeVITAHttpClient._privateConstructor();
   final storage = const FlutterSecureStorage();
   final userStorage = UserStorage();
-  final String _url = "https://pandevita.lst.tfo.upm.es"; // prod
-  //final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
-  final String _urlWithoutHttps = "pandevita.lst.tfo.upm.es"; // prod
-  //final String _urlWithoutHttps = "gateway.pandevita.d.lst.tfo.upm.es";
+  //final String _url = "https://pandevita.lst.tfo.upm.es"; // prod
+  final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
+  //final String _urlWithoutHttps = "pandevita.lst.tfo.upm.es"; // prod
+  final String _urlWithoutHttps = "gateway.pandevita.d.lst.tfo.upm.es";
 
   final controller = Get.find<RequirementStateController>();
 
@@ -45,11 +43,7 @@ class PandeVITAHttpClient {
 
   //Get authorization token from the server
   Future<String?>  getAuthorizationToken() async {
-    // String credentials = await loadCredentials();
-    // var credentialList = credentials.split(",");
-    var currentTimeStamp = DateTime
-        .now()
-        .millisecondsSinceEpoch;
+    var currentTimeStamp = DateTime.now().millisecondsSinceEpoch;
     var accessToken = await storage.read(key: 'access_token');
     var accessTimeStamp = await storage.read(key: 'expires');
     if (accessToken != null && accessTimeStamp != null) {
@@ -64,18 +58,8 @@ class PandeVITAHttpClient {
     }
     debugPrint("username ${user.name}");
     debugPrint("password ${user.password}");
-    debugPrint("getauthorizationtoken");
+    debugPrint("get authorization token");
     var authUrl = Uri.parse(_url + "/auth");
-    var authData =
-        'client_id=pandevita-dev&grant_type=password&username=${user
-        .name}&password=${user.password}';
-    /*var authData = {
-      'client_id': 'pandevita-dev',
-      'grant_type': 'password',
-      'username': user.name,
-      'password': user.password
-    };*/
-    //var body = json.encode(authData);
     try {
       var response = await client.post(authUrl, body: {
         'client_id': 'pandevita-dev',
@@ -91,8 +75,8 @@ class PandeVITAHttpClient {
       if (response.statusCode == 200) {
         var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         String accessToken = decodedResponse['access_token'];
-        int expires_in = decodedResponse['expires_in'];
-        int accessTimeStamp = currentTimeStamp + expires_in * 1000;
+        int expiresIn = decodedResponse['expires_in'];
+        int accessTimeStamp = currentTimeStamp + expiresIn * 1000;
         await storage.write(key: 'access_token', value: accessToken);
         await storage.write(key: 'expires', value: accessTimeStamp.toString());
         return accessToken;
@@ -115,7 +99,7 @@ class PandeVITAHttpClient {
 
   //Get mask GPS points from the server
   Future<List> getMaskPoints() async {
-    debugPrint("MASK: GETMASKPOINTS in http_comm");
+    debugPrint("MASK: getMaskPoints in http_comm");
     var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == null) {
       return [];
@@ -131,13 +115,13 @@ class PandeVITAHttpClient {
       try {
         List decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (decodedResponse.isNotEmpty) {
-          debugPrint("maskarray not empty $decodedResponse");
+          debugPrint("mask array not empty $decodedResponse");
           var maskArray = decodedResponse;
           debugPrint("maskArray $maskArray");
           return maskArray;
         }
       } catch (error) {
-        debugPrint("Error in getmaskpoints " + error.toString());
+        debugPrint("Error in getMaskPoints " + error.toString());
         // await storage.delete(key: 'access_token');
       }
     }
@@ -161,7 +145,7 @@ class PandeVITAHttpClient {
     int newAmount = amountTaken + 1;
     var maskData = {"amountTaken": newAmount};
     var body = json.encode(maskData);
-    var response2 = await client.patch(maskUrl, body: body, headers: {
+    await client.patch(maskUrl, body: body, headers: {
       'accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json'
@@ -185,7 +169,7 @@ class PandeVITAHttpClient {
     int newAmount = amountTaken + 1;
     var vaccinationData = {"amountTaken": newAmount};
     var body = json.encode(vaccinationData);
-    var response2 = await client.patch(vaccinationUrl, body: body, headers: {
+    await client.patch(vaccinationUrl, body: body, headers: {
       'accept': 'application/json',
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json'
@@ -194,7 +178,7 @@ class PandeVITAHttpClient {
 
   //Get vaccination GPS points from the server
   Future<List> getVaccinationPoints() async {
-    debugPrint("GETVACCINATIONPOINTS in http_comm");
+    debugPrint("getVaccinationPoints in http_comm");
     var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == null) {
       return [];
@@ -210,13 +194,13 @@ class PandeVITAHttpClient {
       try {
         List decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (decodedResponse.isNotEmpty) {
-          debugPrint("vaccinationarray not empty $decodedResponse");
+          debugPrint("vaccination array not empty $decodedResponse");
           var vaccinationArray = decodedResponse;
           debugPrint("vaccinationArray $vaccinationArray");
           return vaccinationArray;
         }
       } catch (error) {
-        debugPrint("Error in getvaccinationpoints " + error.toString());
+        debugPrint("Error in getVaccinationPoints " + error.toString());
         // await storage.delete(key: 'access_token');
       }
     }
@@ -225,7 +209,7 @@ class PandeVITAHttpClient {
 
   //Get virus points as GPS from server
   Future<List> getVirusPoints() async {
-    debugPrint("GETVIRUSPOINTS in http_comm");
+    debugPrint("getVirusPoints in http_comm");
     var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == null) {
       return [];
@@ -241,13 +225,13 @@ class PandeVITAHttpClient {
       try {
         List decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (decodedResponse.isNotEmpty) {
-          debugPrint("virusarray not empty $decodedResponse");
+          debugPrint("virus array not empty $decodedResponse");
           var virusArray = decodedResponse[0]["viruses"][0];
-          debugPrint("VIRUSARRAY $virusArray");
+          debugPrint("VIRUS ARRAY $virusArray");
           return virusArray;
         }
       } catch (error) {
-        debugPrint("Error in getviruspoints " + error.toString());
+        debugPrint("Error in getVirusPoints " + error.toString());
         // await storage.delete(key: 'access_token');
       }
     }
@@ -256,12 +240,12 @@ class PandeVITAHttpClient {
 
   //Returns gameStatus as string
   Future<Map> getGameStatus() async {
-    debugPrint("GETGAMESTATUS in http_comm");
+    debugPrint("GET GAME STATUS in http_comm");
     var accessToken = await lock.synchronized(getAuthorizationToken);
     if (accessToken == null) {
       return {};
     }
-    debugPrint("ACCESSTOKEN IS $accessToken");
+    debugPrint("ACCESS TOKEN IS $accessToken");
     var gameStatusUrl = Uri.parse(_url + "/game-status");
     var response = await client.get(gameStatusUrl, headers: {
       'accept': 'application/json',
@@ -274,10 +258,10 @@ class PandeVITAHttpClient {
         List decodedResponse = json.decode(utf8.decode(response.bodyBytes));
         if (decodedResponse.isNotEmpty) {
           var gameStatus = decodedResponse[0];
-          debugPrint("GAMESTATUS $gameStatus");
+          debugPrint("GAME STATUS $gameStatus");
           return gameStatus;
         }
-        debugPrint("gamestatus was empty");
+        debugPrint("game status was empty");
       } catch (error) {
         debugPrint("Error in getGameStatus " + error.toString());
         await storage.delete(key: 'access_token');
@@ -318,7 +302,7 @@ class PandeVITAHttpClient {
 
 
   Future<int> registerUser(String userName, String password, String email,
-      String? roleSelection, String countrySelection) async {
+      String? roleSelection, String countrySelection, String orcid) async {
     try {
       var registerUrl = Uri.parse(_url + "/users");
       //Check first that the username is available
@@ -381,8 +365,11 @@ class PandeVITAHttpClient {
       };
       if (selectedRole != null) {
         registrationData['role'] = selectedRole;
-        debugPrint(registrationData.toString());
       }
+      if(orcid != ''){
+        registrationData['orcid'] = orcid;
+      }
+      debugPrint(registrationData.toString());
       var body = json.encode(registrationData);
       //If the username does not exist, register user
       var response2 = await client.post(registerUrl,
@@ -391,11 +378,14 @@ class PandeVITAHttpClient {
       debugPrint('Response status: ${response2.statusCode}');
       debugPrint('Response body: ${response2.body}');
       var decodedResponse2 = jsonDecode(utf8.decode(response2.bodyBytes));
+      if (response2.statusCode == 403 && decodedResponse2['reason'] == 'Email is not valid for registration as Public Authority') {
+        debugPrint("error registering user: Email is not valid for registration as Public Authority");
+        return 4;
+      }
       if (decodedResponse2["created"] == false || response2.statusCode != 201) {
         debugPrint("error registering user: something went wrong");
         return 2;
       }
-
 
       //Everything went ok, save the user
       var userId = decodedResponse2['user_id'];
@@ -409,12 +399,9 @@ class PandeVITAHttpClient {
     }
   }
 
-  /**
-   * Try logging in to the service. Returns true if successful, false if not.
-   */
-  Future<bool> tryLogin(String userName, String password) async {
+  /// Try logging in to the service. Returns true if successful, false if not.
+  Future<int> tryLogin(String userName, String password) async {
     try {
-      var registerUrl = Uri.parse(_url + "/users");
       //Check first that the username is real
       var checkUserNameAvailabilityUrl =
       Uri.parse(_url + "/users?username=" + userName.toLowerCase());
@@ -424,7 +411,7 @@ class PandeVITAHttpClient {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       if (decodedResponse["userExists"] == false) {
         debugPrint("error logging in: username does not exist");
-        return false;
+        return 1;
       }
 
       //"Log in" by getting the access token
@@ -444,28 +431,31 @@ class PandeVITAHttpClient {
           'Content-Type': 'application/x-www-form-urlencoded'
         });
         debugPrint('auth Response status: ${response.statusCode}');
-        //debugPrint('auth Response body: ${response.body}');
+        debugPrint('auth Response body: ${response.body}');
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
         if (response.statusCode == 200) {
-          var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
           accessToken = decodedResponse['access_token'];
-          int expires_in = decodedResponse['expires_in'];
-          int accessTimeStamp = currentTimeStamp + expires_in * 1000;
+          int expiresIn = decodedResponse['expires_in'];
+          int accessTimeStamp = currentTimeStamp + expiresIn * 1000;
           await storage.write(key: 'access_token', value: accessToken);
           await storage.write(key: 'expires', value: accessTimeStamp.toString());
-        } else {
-          return false;
+        } else if(response.statusCode == 400 && decodedResponse['error_description'] == 'Account is not fully set up'){
+          return 2;
+        }
+        else {
+          return 1;
         }
       } catch (error) {
-        return false;
+        return 1;
       }
       if (accessToken == null) {
-        return false;
+        return 1;
       }
 
       var jwtTokenParts = accessToken.split(".");
       if (jwtTokenParts.length !=3) {
         debugPrint("Invalid access token");
-        return false;
+        return 1;
       }
       var accessTokenData = jwtTokenParts[1];
       //JWT access token decoding
@@ -481,7 +471,7 @@ class PandeVITAHttpClient {
       //If unable to retrieve player data
       if (playerData == null) {
         userStorage.deleteUser();
-        return false;
+        return 1;
       }
       //If the user has registered for the dashboard
       //and starts the application the first time
@@ -495,7 +485,7 @@ class PandeVITAHttpClient {
             'status': 0,
             'collected_masks': [],
             'collected_vaccines': [],
-            'ansewredQuizzes': {}
+            'answeredQuizzes': {}
           };
         }
       }
@@ -505,7 +495,6 @@ class PandeVITAHttpClient {
       gameStatus.modifyPoints(score);
 
       List teams = await getTeams();
-      debugPrint("gothere");
       if (teams != []) {
         for (var team in teams) {
           var teamName = team["teamName"];
@@ -524,11 +513,11 @@ class PandeVITAHttpClient {
           }
         }
       }
-      return true;
+      return 0;
 
     } catch (error) {
       debugPrint("tryLogin error $error");
-      return false;
+      return 1;
     }
   }
 
@@ -547,7 +536,7 @@ class PandeVITAHttpClient {
       'status': 0,
       'collected_masks': [],
       'collected_vaccines': [],
-      'ansewredQuizzes': {}
+      'answeredQuizzes': {}
     };
     var body = json.encode(playerData);
     var response = await client.post(playerUrl, body: body, headers: {
@@ -563,11 +552,6 @@ class PandeVITAHttpClient {
       return 1;
     }
   }
-
-  //Future<Map> getAnsweredQuizzes() async {
-  //  Map? playerData = await getPlayer();
-  //  return playerData!['ansewredQuizzes'];
-  //}
 
   //Update player stats on the server
   Future<int> updatePlayer({int? score, int? recentContacts, int? status, String? collectedMaskId, String? collectedVaccineId, bool collectedMask = false, bool collectedVaccination = false, String? answeredQuestion}) async {
@@ -629,7 +613,7 @@ class PandeVITAHttpClient {
     //If the user has answered a quiz question, add quiz question id
     //to the array
     if (answeredQuestion != null) {
-      Map answeredQuizzesMap = playerData['ansewredQuizzes'];
+      Map answeredQuizzesMap = playerData['answeredQuizzes'];
       DateTime date = DateTime.now();
       var dateString = "${date.year}-${date.month}-${date.day}";
       debugPrint("date is $dateString");
@@ -654,7 +638,7 @@ class PandeVITAHttpClient {
       } else {
         answeredQuizzesMap = {"quizIds": [answeredQuestion], "dates": [{"date": dateString, "amount": 1}]};
       }
-      playerData['ansewredQuizzes'] = answeredQuizzesMap;
+      playerData['answeredQuizzes'] = answeredQuizzesMap;
     }
 
 
@@ -666,7 +650,7 @@ class PandeVITAHttpClient {
       return 3;
     }
     var playerName = await userStorage.getUserName();
-    debugPrint("playername is $playerName");
+    debugPrint("player name is $playerName");
     var playerUrl = Uri.parse(_url + "/players/" + playerName);
     var body = json.encode(playerData);
     var response = await client.patch(playerUrl, body: body, headers: {
@@ -809,11 +793,11 @@ class PandeVITAHttpClient {
     debugPrint('Response code: + ${response.statusCode}');
     if (response.statusCode == 200) {
       var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-      debugPrint("players team response decoded succsefully");
+      debugPrint("players team response decoded successfully");
       return decodedResponse;
     }
     if (response.statusCode == 404) {
-      return {'notfound_error': 'notFound'};
+      return {'notFound_error': 'notFound'};
     }
     return {};
   }
@@ -835,7 +819,7 @@ class PandeVITAHttpClient {
       // var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
       return 0;
     } else if (response.statusCode == 404) {
-      var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      jsonDecode(utf8.decode(response.bodyBytes));
       return 2;
     }
     return 1;
@@ -911,9 +895,7 @@ class PandeVITAHttpClient {
     return 1;
   }
 
-  /**
-   * Get the player data from the backend
-   */
+  /// Get the player data from the backend
   Future<Map?> getPlayer() async {
     debugPrint("getPlayer() in http_communication");
     var accessToken = await lock.synchronized(getAuthorizationToken);
@@ -921,7 +903,7 @@ class PandeVITAHttpClient {
       return null;
     }
     var playerName = await userStorage.getUserName();
-    debugPrint("playername is $playerName");
+    debugPrint("player name is $playerName");
     var playerUrl = Uri.parse(_url + "/players/" + playerName);
     var response = await client.get(playerUrl, headers: {
       'accept': 'application/json',
@@ -944,9 +926,7 @@ class PandeVITAHttpClient {
     return 0;
   }
 
-  /**
-   * Get the quiz questions from the server
-   */
+  /// Get the quiz questions from the server
   Future<List?> getQuizHistory() async {
     var accessToken = await lock.synchronized(getAuthorizationToken);
     var userId = await userStorage.getUserId();
@@ -955,7 +935,7 @@ class PandeVITAHttpClient {
     }
     try {
       var player = await getPlayer();
-      Map answeredQuizzesMap = player!["ansewredQuizzes"];
+      Map answeredQuizzesMap = player!["answeredQuizzes"];
       if(answeredQuizzesMap.isEmpty){
         return [];
       }
@@ -987,18 +967,18 @@ class PandeVITAHttpClient {
         return answeredMap;
       }
       else{
+        debugPrint(response.statusCode.toString());
         return [];
         }
       }
     catch (e) {
+      debugPrint(e.toString());
       return [];
     }
   }
 
 
-  /**
-   * Get the quiz questions from the server
-   */
+  /// Get the quiz questions from the server
   Future<List?> getQuiz() async {
     debugPrint("getQuiz() in http_comm");
     var accessToken = await lock.synchronized(getAuthorizationToken);
@@ -1012,7 +992,7 @@ class PandeVITAHttpClient {
       var dateTodayString = "${dateToday.year}-${dateToday.month}-${dateToday.day}";
       debugPrint("date is $dateTodayString");
       var player = await getPlayer();
-      Map answeredQuizzesMap = player!["ansewredQuizzes"];
+      Map answeredQuizzesMap = player!["answeredQuizzes"];
       List answeredQuizIds = [];
       List dates = [];
       if (answeredQuizzesMap.isNotEmpty) {
@@ -1041,13 +1021,13 @@ class PandeVITAHttpClient {
         //Remove the answered questions, then return amountOfQuestionsToGive
         //amount of questions
         List quizQuestionsToReturn = decodedResponse.toList();
-        debugPrint("quizquestions1 $quizQuestionsToReturn");
+        debugPrint("quiz questions1 $quizQuestionsToReturn");
         for (var quizQuestion in quizQuestionsToReturn) {
           if (answeredQuizIds.contains(quizQuestion["id"])) {
             decodedResponse.remove(quizQuestion);
           }
         }
-        debugPrint("quizquestions2 $quizQuestionsToReturn");
+        debugPrint("quiz questions2 $quizQuestionsToReturn");
         debugPrint("decodedResponse now $decodedResponse");
         quizQuestionsToReturn = [];
         for (int i=0; i < amountOfQuestionsToGive; i++) {
@@ -1057,7 +1037,7 @@ class PandeVITAHttpClient {
             break;
           }
         }
-        debugPrint("quizquestions3 $quizQuestionsToReturn");
+        debugPrint("quiz questions3 $quizQuestionsToReturn");
         return quizQuestionsToReturn;
       }
       if (response.statusCode == 404) {
@@ -1067,6 +1047,7 @@ class PandeVITAHttpClient {
     catch (e) {
       return null;
     }
+    return null;
   }
 
   void updateQuizAnswer(String quizId, bool correctAnswer) async {
@@ -1087,7 +1068,7 @@ class PandeVITAHttpClient {
       correctUsers.add(await userStorage.getUserId());
       var quizAnswerData = {'correctUsers': correctUsers};
       var body = json.encode(quizAnswerData);
-      var response2 = await client.patch(quizUrl, body: body, headers: {
+      await client.patch(quizUrl, body: body, headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer $accessToken',
         'Content-type': 'application/json'
@@ -1097,7 +1078,7 @@ class PandeVITAHttpClient {
       wrongUsers.add(await userStorage.getUserId());
       var quizAnswerData = {'wrongUsers': wrongUsers};
       var body = json.encode(quizAnswerData);
-      var response2 = await client.patch(quizUrl, body: body, headers: {
+      await client.patch(quizUrl, body: body, headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer $accessToken',
         'Content-type': 'application/json'
@@ -1115,7 +1096,7 @@ class PandeVITAHttpClient {
       return 3;
     }
     var playerName = await userStorage.getUserName();
-    debugPrint("playername is $playerName");
+    debugPrint("player name is $playerName");
     var playerUrl = Uri.parse(_url + "/players/" + playerName);
     var response = await client.delete(playerUrl, headers: {
       'accept': 'application/json',
@@ -1183,7 +1164,6 @@ class PandeVITAHttpClient {
         }
         for (var watchedStoryId in watchedStoryIds) {
           var watchedStoryUrl = Uri.parse(_url + "/article-views/" + watchedStoryId);
-        //  debugPrint("deleting watched story $watchedStoryUrl");
           try {
             var response = await client.delete(
                 watchedStoryUrl, headers: {
@@ -1201,18 +1181,6 @@ class PandeVITAHttpClient {
         return 6;
       }
     }
-    //Delete the user
-    /*var usersUrl =
-    Uri.parse(_url + "/users/" + userId);
-    var deletionResponse = await client.delete(usersUrl, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    });
-    debugPrint('Response body: + ${response.body}');
-    debugPrint('Response code: + ${response.statusCode}');
-    if (deletionResponse.statusCode != 204) {
-      return 1;
-    }*/
 
     //Use the newer delete-user endpoint
     var deleteUserUrl = Uri.parse(_url + "/delete-user");
@@ -1228,9 +1196,7 @@ class PandeVITAHttpClient {
     return 0;
   }
 
-  /**
-   * Get the list of articles from backend
-   */
+  /// Get the list of articles from backend
   Future<List?> getArticles({String? topic}) async {
     debugPrint("getArticles() in http_comm");
     var accessToken = await lock.synchronized(getAuthorizationToken);
@@ -1273,7 +1239,6 @@ class PandeVITAHttpClient {
         debugPrint("error in getArticles(): $error");
         return null;
       }
-
     }
    return null;
   }
@@ -1324,16 +1289,11 @@ class PandeVITAHttpClient {
         }
         debugPrint("NEW ARTICLES AVAILABLE: $newArticlesAvailable");
         return newArticlesAvailable;
-
-
       } catch (error) {
         debugPrint("error in checkNewStories(): $error");
         return false;
       }
     }
-
-
-
     return false;
   }
 
@@ -1374,7 +1334,6 @@ class PandeVITAHttpClient {
      }
    }
 
-
     for (var watchedStoryId in watchedStoriesIds) {
       try {
         var watchData = {
@@ -1383,7 +1342,7 @@ class PandeVITAHttpClient {
           'tool': 'app'
         };
         var body = json.encode(watchData);
-        var response = await client.post(articleViewsUrl, body: body, headers: {
+        await client.post(articleViewsUrl, body: body, headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
           'Content-type': 'application/json'
@@ -1392,7 +1351,6 @@ class PandeVITAHttpClient {
         debugPrint("error in storiesWatched(): $error");
       }
     }
-
   }
 
   //Sends a message to the backend to reset the password for the account
@@ -1406,55 +1364,5 @@ class PandeVITAHttpClient {
     });
     return;
   }
-
-/**  Future<Map> getQuizHistory() async {
-    debugPrint("getQuiz() in http_comm");
-    var accessToken = await lock.synchronized(getAuthorizationToken);
-    if (accessToken == null) {
-      return null;
-    }
-    try {
-      Map quizHistory = {};
-      var player = await getPlayer();
-      Map answeredQuizzesMap = player!["ansewredQuizzes"];
-      quizHistory["answered"] = answeredQuizzesMap;
-      List answeredQuizIds = [];
-      List dates = [];
-      if (answeredQuizzesMap.isNotEmpty) {
-        answeredQuizIds = answeredQuizzesMap["quizIds"];
-        dates = answeredQuizzesMap["dates"];
-      }
-      var quizUrl = Uri.parse(_url + "/quizzes");
-      var response = await client.get(quizUrl, headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      });
-      debugPrint('Response body: + ${response.body}');
-      debugPrint('Response code: + ${response.statusCode}');
-      if (response.statusCode == 200) {
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        debugPrint("quiz response decoded successfully");
-        //Remove the non-answered questions
-        List quizQuestionsToReturn = [];
-        debugPrint("quizquestions1 $quizQuestionsToReturn");
-        for (var quizQuestion in decodedResponse) {
-          if (answeredQuizIds.contains(quizQuestion["id"])) {
-            quizQuestionsToReturn.add(quizQuestion);
-          }
-        }
-        debugPrint("quizquestions2 $quizQuestionsToReturn");
-        debugPrint("decodedResponse now $decodedResponse");
-        quizHistory["quizHistory"] = quizQuestionsToReturn;
-        debugPrint("quizquestions3 $quizQuestionsToReturn");
-        return quizHistory;
-      }
-      if (response.statusCode == 404) {
-        return {};
-      }
-    }
-    catch (e) {
-      return {};
-    }
-  }*/
 
 }

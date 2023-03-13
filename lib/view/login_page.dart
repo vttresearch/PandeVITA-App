@@ -1,21 +1,21 @@
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
-
 import '../mixpanel.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:pandevita_game/Utility/styles.dart';
-import 'register_page.dart';
 import '../communication/http_communication.dart';
 import '../Utility/user.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-/** This page handles the login process. It opens when the user opens
- * the application for the first time. Based heavily on
-    https://medium.com/@afegbua/flutter-thursday-13-building-a-user-registration-and-login-process-with-provider-and-external-api-1bb87811fd1d
-    https://github.com/shubie/flutter-thursday-login-registration
- */
+/// This page handles the login process. It opens when the user opens
+/// the application for the first time. Based heavily on
+/// https://medium.com/@afegbua/flutter-thursday-13-building-a-user-registration-and-login-process-with-provider-and-external-api-1bb87811fd1d
+/// https://github.com/shubie/flutter-thursday-login-registration
+///
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
   @override
   LoginPageState createState() => LoginPageState();
 }
@@ -27,7 +27,7 @@ class LoginPageState extends State<LoginPage> {
   final UserStorage storage = UserStorage();
   late final Mixpanel mixpanel;
 
-  TextEditingController _textFieldController = TextEditingController();
+  final TextEditingController _textFieldController = TextEditingController();
 
   bool loggingIn = false;
   bool showInfo = false;
@@ -46,12 +46,12 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final usernameField = TextFormField(
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         autofocus: false,
         onSaved: (value) => username = value as String,
         validator: (value)   => value!.isEmpty ? 'Please enter username' : null,
         cursorColor: Colors.black,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelStyle: TextStyle(color: Colors.black),
           border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
           focusedBorder: UnderlineInputBorder(
@@ -60,13 +60,13 @@ class LoginPageState extends State<LoginPage> {
           icon: Icon(Icons.person, color: Colors.black), labelText: 'Enter username'));
 
     final passwordField = TextFormField(
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         autofocus: false,
         obscureText: true,
         validator: (value) => value!.isEmpty ? 'Please enter password' : null,
         onSaved: (value) => password = value as String,
         cursorColor: Colors.black,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
             labelStyle: TextStyle(color: Colors.black),
             border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black)),
             focusedBorder: UnderlineInputBorder(
@@ -82,18 +82,6 @@ class LoginPageState extends State<LoginPage> {
       ],
     );
 
-    final registerLabel = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        TextButton(
-          child: const Text("Sign up", style: TextStyle(fontWeight: FontWeight.w300)),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/register');
-          },
-        ),
-      ],
-    );
-
     doLogin() async {
       final form = formKey.currentState;
 
@@ -105,11 +93,32 @@ class LoginPageState extends State<LoginPage> {
         form.save();
 
         //bool succession = true;
-        bool succession = await client.tryLogin(username, password);
+        int succession = await client.tryLogin(username, password);
         setState(() {loggingIn = false;});
 
+        if(succession == 2) {
+          // show this to tell the user that the account needs to be activated
+          showDialog(context: context,
+              builder: (BuildContext context) {
+                // return object of type Dialog
+                return AlertDialog(
+                    title: const Text('Error while logging in'),
+                    content: const Text(
+                        'Your account needs to be activated. Please, sign in to your email where you will find the confirmation email with the instructions to activate your account.'),
+                    actions: <Widget>[
+                      // usually buttons at the bottom of the dialog
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Next'),
+                      ),
+                    ]
+                );
+            });
+        }
         //If login was unsuccessful
-        if (succession == false) {
+        if (succession == 1) {
           var snackBar = const SnackBar(
             content: Text("Login failed"),
             duration: Duration(seconds: 3),
@@ -117,7 +126,8 @@ class LoginPageState extends State<LoginPage> {
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
         //If login was successful
-        else {
+        else if(succession == 0){
+          await client.createPlayer(username);
           mixpanel.track("Logged in");
           var snackBar = const SnackBar(
             content: Text("Login successful"),
@@ -141,7 +151,7 @@ class LoginPageState extends State<LoginPage> {
                             Navigator.pop(context);
                             Navigator.pushReplacementNamed(context, '/home');
                           },
-                          child: Text('Next'),
+                          child: const Text('Next'),
                         ),
                       ]
                   );
@@ -151,7 +161,6 @@ class LoginPageState extends State<LoginPage> {
             Navigator.pushReplacementNamed(context, '/home');
           }
         }
-
       } else {
         var snackBar = const SnackBar(
           content: Text("Complete the login form"),
@@ -165,7 +174,7 @@ class LoginPageState extends State<LoginPage> {
       child: Scaffold(
         body: Container(
           decoration: backgroundDecoration,
-          padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 40.0),
+          padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 40.0),
           height: double.infinity,
           child: SingleChildScrollView(
 
@@ -177,9 +186,9 @@ class LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 20),
                   Image.asset('images/pandevita_logo_large.png', height: 200, ),
                   const SizedBox(height: 20.0),
-                  IconButton(icon: Icon(Icons.info_outline, color: Colors.white, size: 25),
+                  IconButton(icon: const Icon(Icons.info_outline, color: Colors.white, size: 25),
                       onPressed: () {showInfo = !showInfo; setState(() {});}),
-                  if (showInfo) Center(
+                  if (showInfo) const Center(
                       child: Padding(
                           child: Text("The PandeVITA account you create is the same for the dashboard and the application."
                               "You can log in with an account created on the dashboard. If you create an account in the application,"
@@ -188,7 +197,7 @@ class LoginPageState extends State<LoginPage> {
                             color: Colors.white,
                             fontSize: 16,
                           )),
-                          padding: const EdgeInsets.all(12.0))),
+                          padding: EdgeInsets.all(12.0))),
                   usernameField,
                   const SizedBox(height: 20.0),
                   passwordField,
@@ -211,7 +220,7 @@ class LoginPageState extends State<LoginPage> {
                     style: ElevatedButton.styleFrom(
                       primary: Colors.white,
                       onPrimary: Colors.grey,
-                      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0)
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0)
                     ),
                     child: Text("Don't have a PandeVITA account yet? Create an account", style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -223,9 +232,9 @@ class LoginPageState extends State<LoginPage> {
                     style: ElevatedButton.styleFrom(
                         primary: Colors.grey,
                         onPrimary: Colors.blueGrey,
-                        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0)
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0)
                     ),
-                    child: Text("Forgot password?", style: TextStyle(
+                    child: const Text("Forgot password?", style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                       fontSize: 20,
@@ -285,8 +294,5 @@ class LoginPageState extends State<LoginPage> {
         ),
       ),
     );
-
-
   }
-
 }

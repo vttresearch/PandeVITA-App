@@ -7,564 +7,501 @@ import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 import '../communication/http_communication.dart';
-import '../game_logic/game_logic.dart';
 import '../game_logic/game_status.dart';
 import '../mixpanel.dart';
-
 import 'package:location/location.dart';
 
 class Radar extends StatefulWidget {
+  const Radar({Key? key}) : super(key: key);
+
   @override
   RadarState createState() => RadarState();
 }
 
 class RadarState extends State<Radar>
-    with TickerProviderStateMixin, WidgetsBindingObserver {
-  LocationData? currentLocation;
-  final httpClient = PandeVITAHttpClient();
-  final Location locationService = Location();
+  with TickerProviderStateMixin, WidgetsBindingObserver {
+    LocationData? currentLocation;
+    final httpClient = PandeVITAHttpClient();
+    final Location locationService = Location();
 
-  final GameStatus gameStatus = GameStatus();
-  Timer? timer;
+    final GameStatus gameStatus = GameStatus();
+    Timer? timer;
 
-  final statusController = Get.find<RequirementStateController>();
+    final statusController = Get.find<RequirementStateController>();
+    late AnimationController _controller;
 
-  //bool _permission = false;
-  String? _serviceError = '';
-  late AnimationController _controller;
+    //User location for drawing the radar
+    LatLng userLocation = LatLng(0, 0);
 
-  //User location for drawing the radar
-  LatLng userLocation = LatLng(0, 0);
+    StreamSubscription<LocationData>? locationSubscription;
+    bool locationSubscriptionCancelled = false;
 
-  StreamSubscription<LocationData>? locationSubscription;
-  bool locationSubscriptionCancelled = false;
+    List masks = [];
+    List vaccinations = [];
 
-  List masks = [];
-  List vaccinations = [];
+    //Virus locations for drawing the radar
+    List<LatLng> virusLocations = [];
+    List<LatLng> maskLocations = [];
+    List<LatLng> vaccinationLocations = [];
 
+    List<String> collectedMasks = [];
+    List<String> collectedVaccines = [];
 
-  //Virus locations for drawing the radar
-  List<LatLng> virusLocations = [];
-  List<LatLng> maskLocations = [];
-  List<LatLng> vaccinationLocations = [];
+    int initStateCounter = 0;
 
-  List<String> collectedMasks = [];
-  List<String> collectedVaccines = [];
+    //Customize these
+    final int infectionDistance = 20;
 
-  int initStateCounter = 0;
+    //Control variables
+    int ticksNearStaticVirus = 0;
+    int refreshCounter = 0;
 
-  //Customize these
-  final int infectionDistance = 20;
+    int dataUpdateTimestamp = 0;
+    late final Mixpanel mixpanel;
 
+    @override
+    void initState() {
+      super.initState();
+      initMixpanel();
+      WidgetsBinding.instance.addObserver(this);
+      _controller = AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 1),
+      )..repeat();
+      // getVirusPointsList();
+      // getMaskPointsList();
+      // getVaccinationPointsList();
+      initStateCounter++;
+      debugPrint("initStateCounter $initStateCounter");
+      initLocationService();
+    }
+    Future<void> initMixpanel() async {
+      mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
+    }
 
-  //Control variables
-  int ticksNearStaticVirus = 0;
-  int refreshCounter = 0;
-
-  int dataUpdateTimestamp = 0;
-  late final Mixpanel mixpanel;
-
-  @override
-  void initState() {
-    super.initState();
-    initMixpanel();
-    WidgetsBinding.instance.addObserver(this);
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
-   // getVirusPointsList();
-   // getMaskPointsList();
-   // getVaccinationPointsList();
-    initStateCounter++;
-    debugPrint("initStateCounter $initStateCounter");
-    initLocationService();
-  }
-  Future<void> initMixpanel() async {
-    mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    locationSubscription?.cancel();
-    timer?.cancel();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    debugPrint('AppLifecycleState radar = $state');
-    if (state == AppLifecycleState.resumed) {
-      if (locationSubscription != null) {
-        if (locationSubscription!.isPaused) {
-          locationSubscription?.resume();
-        }
-        if (locationSubscriptionCancelled) {
-          locationSubscriptionCancelled = false;
-          locationSubscription = locationService.onLocationChanged
-              .listen((LocationData result) async {
-            debugPrint("newlocation ${result.latitude}");
-            if (mounted) {
-              setState(() {
-                currentLocation = result;
-                userLocation = LatLng(
-                    currentLocation!.latitude!, currentLocation!.longitude!);
-              });
-              /*var snackBar = SnackBar(
-                  content: Text("New location: " + userLocation.toString()),
-                  duration: const Duration(seconds: 1),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
-            }
-          });
-        }
-      }
+    @override
+    void dispose() {
+      _controller.dispose();
+      locationSubscription?.cancel();
       timer?.cancel();
-      timer = Timer.periodic(
-            const Duration(seconds: 20), (Timer t) => radarLogicTick());
-    } else if (state == AppLifecycleState.paused) {
-      locationSubscription?.cancel().then((_) {
-        locationSubscriptionCancelled = true;
-      });
-      timer?.cancel();
+      WidgetsBinding.instance.removeObserver(this);
+      super.dispose();
     }
-  }
 
-  ///When the user collects a mask
-  void onMaskCollected(LatLng coordinate) async {
-   /* String coordinateString =
-        coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
-    //Get the ID of the mask
-    String maskId = "";
-    for (Map maskMap in masks) {
-      if (maskMap['maskCoordinate'] == coordinateString) {
-        maskId = maskMap['id'];
-      }
-    }
-    debugPrint("onMaskCollected, maskId $maskId");
-    bool newMask = await gameStatus.checkMask(maskId);*/
-    //if (newMask) {
-     // collectedMasks.add(maskId);
-    mixpanel.track('Collected a mask');
-    maskLocations.remove(coordinate);
-      gameStatus.collectMask();
-      var snackBar = SnackBar(
-        content: Text("You collected a mask and got 20 immunity for a day"),
-        duration: Duration(seconds: 5),
-      );
-      Timer(const Duration(seconds: 5), () => ScaffoldMessenger.of(context).showSnackBar(snackBar));
-  //  }
-  }
-
-  ///When the user collects a vaccine
-  void onVaccineCollected(LatLng coordinate) async {
- /*   String coordinateString =
-        coordinate.latitude.toString() + ", " + coordinate.longitude.toString();
-    //Get the ID of the vaccine
-    String vaccinationId = "";
-    for (Map vaccinationMap in vaccinations) {
-      if (vaccinationMap['vaccinationCoordinate'] == coordinateString) {
-        vaccinationId = vaccinationMap['id'];
-      }
-    }
-    bool newVaccine = await gameStatus.checkVaccination(vaccinationId);
-    if (newVaccine) {
-      collectedVaccines.add(vaccinationId);*/
-      mixpanel.track('Collected a vaccine');
-      vaccinationLocations.remove(coordinate);
-      gameStatus.collectVaccination();
-      var snackBar = SnackBar(
-        content:
-            Text("You collected a vaccine and got 50 immunity for two days"),
-        duration: Duration(seconds: 5),
-      );
-      Timer(const Duration(seconds: 5), () => ScaffoldMessenger.of(context).showSnackBar(snackBar));
-   // }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(children: [
-      AnimatedBuilder(
-          animation: _controller,
-          builder: (_, __) {
-            return CustomPaint(
-              size: const Size(double.infinity, double.infinity),
-              painter: RadarPainter(userLocation, virusLocations, maskLocations,
-                  vaccinationLocations, onMaskCollected, onVaccineCollected),
-            );
-          }),
-      Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
-            SizedBox(width: 10),
-            CircleAvatar(
-              radius: 8,
-              backgroundColor: Colors.green,
-            ),
-            SizedBox(width: 5),
-            Text("You", style: TextStyle(color: Colors.white, fontSize: 15))
-          ]),
-          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
-            SizedBox(width: 10),
-            CircleAvatar(
-              radius: 8,
-              backgroundColor: Colors.red,
-            ),
-            SizedBox(width: 5),
-            Text("Stationary virus",
-                style: TextStyle(color: Colors.white, fontSize: 15)),
-          ]),
-          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
-            SizedBox(width: 10),
-            CircleAvatar(
-              radius: 8,
-              backgroundColor: Colors.lightBlueAccent,
-            ),
-            SizedBox(width: 5),
-            Text("Mask", style: TextStyle(color: Colors.white, fontSize: 15)),
-          ]),
-          Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
-            SizedBox(width: 10),
-            CircleAvatar(
-              radius: 8,
-              backgroundColor: Colors.limeAccent,
-            ),
-            SizedBox(width: 5),
-            Text("Vaccine",
-                style: TextStyle(color: Colors.white, fontSize: 15)),
-          ]),
-          const SizedBox(height: 3)
-        ],
-      )
-    ]);
-  }
-
-  /// Initialize the location service for tracking the user.
-  void initLocationService() async {
-    LocationData? location;
-    bool serviceEnabled;
-    // bool serviceRequestResult;
-    try {
-      serviceEnabled = await locationService.serviceEnabled();
-      if (!serviceEnabled) {
-        serviceEnabled = await locationService.requestService();
-        if (!serviceEnabled) {
-          debugPrint("SERVICE NOT ENABLED RETURN LOCATION");
-          return;
-        }
-      }
-
-      PermissionStatus permissionGranted;
-
-      permissionGranted = await locationService.hasPermission();
-      if (permissionGranted == PermissionStatus.denied) {
-        permissionGranted = await locationService.requestPermission();
-        if (permissionGranted != PermissionStatus.granted) {
-          debugPrint("PERMISSION RETURN LOCATION");
-          return;
-        }
-      }
-      await locationService.changeSettings(
-          accuracy: LocationAccuracy.high, interval: 3000, distanceFilter: 1);
-
-      debugPrint("ALL GOOD LOCATION");
-
-      location = await locationService.getLocation();
-      var bk = locationService.isBackgroundModeEnabled();
-      debugPrint('locationisbackgroundmodeenabled $bk');
-      debugPrint('currentlocation is $location');
-      currentLocation = location;
-      locationSubscription =
-          locationService.onLocationChanged.listen((LocationData result) async {
-        debugPrint("newlocation ${result.latitude}");
-        if (mounted) {
-          setState(() {
-            currentLocation = result;
-            userLocation =
-                LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
-          });
-          /*  var snackBar = SnackBar(
-            content: Text("New location: " + userLocation.toString()),
-            duration: const Duration(seconds: 1),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
-        }
-      });
-      timer = Timer.periodic(
-          const Duration(seconds: 20), (Timer t) => radarLogicTick());
-      Timer(const Duration(seconds: 5), () => initRadarElements());
-    } on PlatformException catch (e) {
-      debugPrint(e.toString());
-      if (e.code == 'PERMISSION_DENIED') {
-        _serviceError = e.message;
-      } else if (e.code == 'SERVICE_STATUS_ERROR') {
-        _serviceError = e.message;
-      }
-      location = null;
-    }
-  }
-
-  /// Get the stationary virus locations from the platform.
-  Future<bool> getVirusPointsList() async {
-    List virusPoints = await httpClient.getVirusPoints();
-    if (virusPoints.isEmpty) {
-      debugPrint("VIRUS: EMPTY");
-      return false;
-    } else {
-      debugPrint("VIRUS: $virusPoints");
-      //Add the virus points to the list supplied to the CustomPainter
-      for (Map virusPoint in virusPoints) {
-        try {
-          var coordinate = virusPoint['coordinate'];
-          var splitted = coordinate.split(", ");
-          LatLng latLngTemp =
-              LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
-          virusLocations.add(latLngTemp);
-        } catch (e) {
-          debugPrint(e.toString());
-        }
-      }
-      return true;
-    }
-  }
-
-  /**
-      Get the mask points to display them on the radar
-   */
-  Future<bool> getMaskPointsList() async {
-    List maskPoints = await httpClient.getMaskPoints();
-    if (maskPoints.isEmpty) {
-      debugPrint("Mask: EMPTY");
-      return false;
-    } else {
-      masks = maskPoints;
-      //Get already collected masks from local memory
-      List collectedMasksIds = await gameStatus.getCollectedMasks();
-      for (String collectedMaskId in collectedMasksIds) {
-        collectedMasks.add(collectedMaskId);
-      }
-      debugPrint("Mask: $maskPoints");
-      for (Map maskPoint in maskPoints) {
-        try {
-          String maskId = maskPoint["id"];
-          //Do not display collected masks to user
-          if (collectedMasks.contains(maskId)) {
-            continue;
+    @override
+    void didChangeAppLifecycleState(AppLifecycleState state) async {
+      debugPrint('AppLifecycleState radar = $state');
+      if (state == AppLifecycleState.resumed) {
+        if (locationSubscription != null) {
+          if (locationSubscription!.isPaused) {
+            locationSubscription?.resume();
           }
-          String maskCoordinate = maskPoint['maskCoordinate'];
-          var splitted = maskCoordinate.split(", ");
-          LatLng latLngTemp =
-              LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
-          maskLocations.add(latLngTemp);
-        } catch (e) {
-          debugPrint(e.toString());
-        }
-      }
-      return true;
-    }
-  }
-
-  /**
-   * Get the vaccination points to display them on the radar
-   */
-  Future<bool> getVaccinationPointsList() async {
-    List vaccinationPoints = await httpClient.getVaccinationPoints();
-    if (vaccinationPoints.isEmpty) {
-      debugPrint("Vaccination: EMPTY");
-      return false;
-    } else {
-      debugPrint("Vaccination: $vaccinationPoints");
-      vaccinations = vaccinationPoints;
-      //Get already collected vaccinations from local memory
-      List collectedVaccinationIds = await gameStatus.getCollectedVaccinations();
-      for (String collectedVaccinationId in collectedVaccinationIds) {
-        collectedVaccines.add(collectedVaccinationId);
-      }
-      for (Map vaccinationPoint in vaccinationPoints) {
-        try {
-          String vaccinationId = vaccinationPoint['id'];
-          //Do not display collected vaccines to user
-          if (collectedVaccines.contains(vaccinationId)) {
-            continue;
+          if (locationSubscriptionCancelled) {
+            locationSubscriptionCancelled = false;
+            locationSubscription = locationService.onLocationChanged
+                .listen((LocationData result) async {
+              debugPrint("new location ${result.latitude}");
+              if (mounted) {
+                setState(() {
+                  currentLocation = result;
+                  userLocation = LatLng(
+                      currentLocation!.latitude!, currentLocation!.longitude!);
+                });
+              }
+            });
           }
-          String vaccinationCoordinate = vaccinationPoint['vaccinationCoordinate'];
-          var splitted = vaccinationCoordinate.split(", ");
-          LatLng latLngTemp =
-              LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
-          vaccinationLocations.add(latLngTemp);
-        } catch (e) {
-          debugPrint(e.toString());
         }
+        timer?.cancel();
+        timer = Timer.periodic(
+              const Duration(seconds: 20), (Timer t) => radarLogicTick());
+      } else if (state == AppLifecycleState.paused) {
+        locationSubscription?.cancel().then((_) {
+          locationSubscriptionCancelled = true;
+        });
+        timer?.cancel();
       }
-      return true;
-    }
-  }
-
-
-  /**
-   * Generate random elements for the radar near location
-   */
-  void initRadarElements() async {
-    generateMasks(30, 500);
-    generateVaccines(30, 500);
-    generateViruses(30, 500);
-  }
-
-  /**
-   * Generate amount number of masks inside the range (in meters) from the users current location.
-   */
-  void generateMasks(int amount, int range) async {
-    //Remove the old masks
-    maskLocations.clear();
-    LatLng initialLocation = userLocation;
-    Random random = Random();
-    Distance distance = const Distance();
-
-    List<LatLng> maskLocationsTemp = [];
-
-    for (int i=0; i < amount; i++) {
-      //Randomness for direction and distance from starting location
-      double dirRandom = random.nextDouble();
-      double disRandom = random.nextDouble();
-
-      double direction = 360 * dirRandom;
-      double dist = range * (disRandom + 0.1);
-
-      LatLng newMaskLocation = distance.offset(initialLocation, dist, direction);
-      maskLocationsTemp.add(newMaskLocation);
     }
 
-    maskLocations = maskLocationsTemp;
-  }
-
-  /**
-   * Generate amount number of vaccines inside the range (in meters) from the users current location.
-   */
-  void generateVaccines(int amount, int range) async {
-    //Remove the old vaccination locations
-    vaccinationLocations.clear();
-    LatLng initialLocation = userLocation;
-    Random random = Random();
-    Distance distance = const Distance();
-
-    List<LatLng> vaccinationLocationsTemp = [];
-
-    for (int i=0; i < amount; i++) {
-      //Randomness for direction and distance from starting location
-      double dirRandom = random.nextDouble();
-      double disRandom = random.nextDouble();
-
-      double direction = 360 * dirRandom;
-      double dist = range * (disRandom + 0.1);
-
-      LatLng newVaccinationLocation = distance.offset(initialLocation, dist, direction);
-      vaccinationLocationsTemp.add(newVaccinationLocation);
-    }
-
-    vaccinationLocations = vaccinationLocationsTemp;
-  }
-
-  /**
-   * Generate amount number of masks inside the range (in meters) from the users current location.
-   */
-  void generateViruses(int amount, int range) async {
-    //Remove the old viruses
-    virusLocations.clear();
-    LatLng initialLocation = userLocation;
-    Random random = Random();
-    Distance distance = const Distance();
-
-    List<LatLng> virusLocationsTemp = [];
-    for (int i=0; i < amount; i++) {
-      //Randomness for direction and distance from starting location
-      double dirRandom = random.nextDouble();
-      double disRandom = random.nextDouble();
-
-      double direction = 360 * dirRandom;
-      double dist = range * (disRandom + 0.1);
-
-      LatLng newVirusLocation = distance.offset(initialLocation, dist, direction);
-      virusLocationsTemp.add(newVirusLocation);
-    }
-
-    virusLocations = virusLocationsTemp;
-  }
-
-  ///Radar logic tick. Runs every 20 seconds when radar is active.
-  ///
-  void radarLogicTick() {
-    debugPrint("radarLogicTick");
-    const Distance distance = Distance();
-    //Virus coordinate logic
-    int ticksNearStaticVirusLast = ticksNearStaticVirus;
-    for (LatLng virusCoordinate in virusLocations) {
-      //distance from the user
-      double distanceFromUser = distance(userLocation, virusCoordinate);
-
-      //Player infected if too close to a static virus point for a minute
-      if (distanceFromUser < infectionDistance) {
-        ticksNearStaticVirus += 1;
-       /* var snackBar = SnackBar(
-          content: Text("Ticks near static virus $ticksNearStaticVirus"),
-          duration: const Duration(seconds: 5),
+    ///When the user collects a mask
+    void onMaskCollected(LatLng coordinate) async {
+      mixpanel.track('Collected a mask');
+      maskLocations.remove(coordinate);
+        gameStatus.collectMask();
+        var snackBar = const SnackBar(
+          content: Text("You collected a mask and got 20 immunity for a day"),
+          duration: Duration(seconds: 5),
         );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
-        if (ticksNearStaticVirus > 3) {
-          statusController.staticVirusNearby();
-          ticksNearStaticVirus = 0;
+        Timer(const Duration(seconds: 5), () => ScaffoldMessenger.of(context).showSnackBar(snackBar));
+    }
+
+    ///When the user collects a vaccine
+    void onVaccineCollected(LatLng coordinate) async {
+        mixpanel.track('Collected a vaccine');
+        vaccinationLocations.remove(coordinate);
+        gameStatus.collectVaccination();
+        var snackBar = const SnackBar(
+          content:
+              Text("You collected a vaccine and got 50 immunity for two days"),
+          duration: Duration(seconds: 5),
+        );
+        Timer(const Duration(seconds: 5), () => ScaffoldMessenger.of(context).showSnackBar(snackBar));
+     // }
+    }
+
+    @override
+    Widget build(BuildContext context) {
+      return Stack(children: [
+        AnimatedBuilder(
+            animation: _controller,
+            builder: (_, __) {
+              return CustomPaint(
+                size: const Size(double.infinity, double.infinity),
+                painter: RadarPainter(userLocation, virusLocations, maskLocations,
+                    vaccinationLocations, onMaskCollected, onVaccineCollected),
+              );
+            }),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+              SizedBox(width: 10),
+              CircleAvatar(
+                radius: 8,
+                backgroundColor: Colors.green,
+              ),
+              SizedBox(width: 5),
+              Text("You", style: TextStyle(color: Colors.white, fontSize: 15))
+            ]),
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+              SizedBox(width: 10),
+              CircleAvatar(
+                radius: 8,
+                backgroundColor: Colors.red,
+              ),
+              SizedBox(width: 5),
+              Text("Stationary virus",
+                  style: TextStyle(color: Colors.white, fontSize: 15)),
+            ]),
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+              SizedBox(width: 10),
+              CircleAvatar(
+                radius: 8,
+                backgroundColor: Colors.lightBlueAccent,
+              ),
+              SizedBox(width: 5),
+              Text("Mask", style: TextStyle(color: Colors.white, fontSize: 15)),
+            ]),
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: const [
+              SizedBox(width: 10),
+              CircleAvatar(
+                radius: 8,
+                backgroundColor: Colors.limeAccent,
+              ),
+              SizedBox(width: 5),
+              Text("Vaccine",
+                  style: TextStyle(color: Colors.white, fontSize: 15)),
+            ]),
+            const SizedBox(height: 3)
+          ],
+        )
+      ]);
+    }
+
+    /// Initialize the location service for tracking the user.
+    void initLocationService() async {
+      String? _serviceError = '';
+      LocationData? location;
+      bool serviceEnabled;
+      // bool serviceRequestResult;
+      try {
+        serviceEnabled = await locationService.serviceEnabled();
+        if (!serviceEnabled) {
+          serviceEnabled = await locationService.requestService();
+          if (!serviceEnabled) {
+            debugPrint("SERVICE NOT ENABLED RETURN LOCATION");
+            return;
+          }
         }
+        PermissionStatus permissionGranted;
+
+        permissionGranted = await locationService.hasPermission();
+        if (permissionGranted == PermissionStatus.denied) {
+          permissionGranted = await locationService.requestPermission();
+          if (permissionGranted != PermissionStatus.granted) {
+            debugPrint("PERMISSION RETURN LOCATION");
+            return;
+          }
+        }
+        await locationService.changeSettings(
+            accuracy: LocationAccuracy.high, interval: 3000, distanceFilter: 1);
+
+        debugPrint("ALL GOOD LOCATION");
+
+        location = await locationService.getLocation();
+        var bk = locationService.isBackgroundModeEnabled();
+        debugPrint('location is background mode enabled $bk');
+        debugPrint('current location is $location');
+        currentLocation = location;
+        locationSubscription =
+            locationService.onLocationChanged.listen((LocationData result) async {
+          debugPrint("new location ${result.latitude}");
+          if (mounted) {
+            setState(() {
+              currentLocation = result;
+              userLocation =
+                  LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
+            });
+          }
+        });
+        timer = Timer.periodic(
+            const Duration(seconds: 20), (Timer t) => radarLogicTick());
+        Timer(const Duration(seconds: 5), () => initRadarElements());
+      } on PlatformException catch (e) {
+        debugPrint(e.toString());
+        if (e.code == 'PERMISSION_DENIED') {
+          _serviceError = e.message;
+        } else if (e.code == 'SERVICE_STATUS_ERROR') {
+          _serviceError = e.message;
+        }
+        location = null;
       }
     }
-    //If not near a static virus anymore
-    if (ticksNearStaticVirusLast == ticksNearStaticVirus) {
-      ticksNearStaticVirus = 0;
+
+    /// Get the stationary virus locations from the platform.
+    Future<bool> getVirusPointsList() async {
+      List virusPoints = await httpClient.getVirusPoints();
+      if (virusPoints.isEmpty) {
+        debugPrint("VIRUS: EMPTY");
+        return false;
+      } else {
+        debugPrint("VIRUS: $virusPoints");
+        //Add the virus points to the list supplied to the CustomPainter
+        for (Map virusPoint in virusPoints) {
+          try {
+            var coordinate = virusPoint['coordinate'];
+            var splitted = coordinate.split(", ");
+            LatLng latLngTemp =
+                LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
+            virusLocations.add(latLngTemp);
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+        }
+        return true;
+      }
     }
 
-    refreshCounter++;
-    //Update the viruses, masks and vaccinations locations every 20 minutes
-    if (refreshCounter > 60) {
-      refreshCounter = 0;
-      getMostRecentData();
-      var snackBar = const SnackBar(
-        content: Text("Virus, mask and vaccine locations updated"),
-        duration: Duration(seconds: 3),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    /// Get the mask points to display them on the radar
+    Future<bool> getMaskPointsList() async {
+      List maskPoints = await httpClient.getMaskPoints();
+      if (maskPoints.isEmpty) {
+        debugPrint("Mask: EMPTY");
+        return false;
+      } else {
+        masks = maskPoints;
+        //Get already collected masks from local memory
+        List collectedMasksIds = await gameStatus.getCollectedMasks();
+        for (String collectedMaskId in collectedMasksIds) {
+          collectedMasks.add(collectedMaskId);
+        }
+        debugPrint("Mask: $maskPoints");
+        for (Map maskPoint in maskPoints) {
+          try {
+            String maskId = maskPoint["id"];
+            //Do not display collected masks to user
+            if (collectedMasks.contains(maskId)) {
+              continue;
+            }
+            String maskCoordinate = maskPoint['maskCoordinate'];
+            var splitted = maskCoordinate.split(", ");
+            LatLng latLngTemp =
+                LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
+            maskLocations.add(latLngTemp);
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+        }
+        return true;
+      }
     }
-    debugPrint("radarLogicTick end");
-  }
 
-  //Get most recent data from the API
-  getMostRecentData() async {
-    //Prevent spam changing the locations
-    int timestamp = DateTime.now().millisecondsSinceEpoch;
-    if (timestamp - dataUpdateTimestamp < 300000) {
-      return;
+    /// Get the vaccination points to display them on the radar
+    Future<bool> getVaccinationPointsList() async {
+      List vaccinationPoints = await httpClient.getVaccinationPoints();
+      if (vaccinationPoints.isEmpty) {
+        debugPrint("Vaccination: EMPTY");
+        return false;
+      } else {
+        debugPrint("Vaccination: $vaccinationPoints");
+        vaccinations = vaccinationPoints;
+        //Get already collected vaccinations from local memory
+        List collectedVaccinationIds = await gameStatus.getCollectedVaccinations();
+        for (String collectedVaccinationId in collectedVaccinationIds) {
+          collectedVaccines.add(collectedVaccinationId);
+        }
+        for (Map vaccinationPoint in vaccinationPoints) {
+          try {
+            String vaccinationId = vaccinationPoint['id'];
+            //Do not display collected vaccines to user
+            if (collectedVaccines.contains(vaccinationId)) {
+              continue;
+            }
+            String vaccinationCoordinate = vaccinationPoint['vaccinationCoordinate'];
+            var splitted = vaccinationCoordinate.split(", ");
+            LatLng latLngTemp =
+                LatLng(double.parse(splitted[0]), double.parse(splitted[1]));
+            vaccinationLocations.add(latLngTemp);
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+        }
+        return true;
+      }
     }
-    dataUpdateTimestamp = timestamp;
-    //Remove old data
-    maskLocations.clear();
-    virusLocations.clear();
-    vaccinationLocations.clear();
 
-  //  await getMaskPointsList();
-    //Generate elements automatically
-    generateMasks(30, 500);
-    generateVaccines(30, 500);
-    generateViruses(30, 500);
-   // await getVirusPointsList();
-   // await getVaccinationPointsList();
-    setState(() {});
-  }
+
+    /// Generate random elements for the radar near location
+    void initRadarElements() async {
+      generateMasks(30, 500);
+      generateVaccines(30, 500);
+      generateViruses(30, 500);
+    }
+
+    /// Generate amount number of masks inside the range (in meters) from the users current location.
+    void generateMasks(int amount, int range) async {
+      //Remove the old masks
+      maskLocations.clear();
+      LatLng initialLocation = userLocation;
+      Random random = Random();
+      Distance distance = const Distance();
+
+      List<LatLng> maskLocationsTemp = [];
+
+      for (int i=0; i < amount; i++) {
+        //Randomness for direction and distance from starting location
+        double dirRandom = random.nextDouble();
+        double disRandom = random.nextDouble();
+
+        double direction = 360 * dirRandom;
+        double dist = range * (disRandom + 0.1);
+
+        LatLng newMaskLocation = distance.offset(initialLocation, dist, direction);
+        maskLocationsTemp.add(newMaskLocation);
+      }
+
+      maskLocations = maskLocationsTemp;
+    }
+
+    /// Generate amount number of vaccines inside the range (in meters) from the users current location.
+    void generateVaccines(int amount, int range) async {
+      //Remove the old vaccination locations
+      vaccinationLocations.clear();
+      LatLng initialLocation = userLocation;
+      Random random = Random();
+      Distance distance = const Distance();
+
+      List<LatLng> vaccinationLocationsTemp = [];
+
+      for (int i=0; i < amount; i++) {
+        //Randomness for direction and distance from starting location
+        double dirRandom = random.nextDouble();
+        double disRandom = random.nextDouble();
+
+        double direction = 360 * dirRandom;
+        double dist = range * (disRandom + 0.1);
+
+        LatLng newVaccinationLocation = distance.offset(initialLocation, dist, direction);
+        vaccinationLocationsTemp.add(newVaccinationLocation);
+      }
+
+      vaccinationLocations = vaccinationLocationsTemp;
+    }
+
+    /// Generate amount number of masks inside the range (in meters) from the users current location.
+    void generateViruses(int amount, int range) async {
+      //Remove the old viruses
+      virusLocations.clear();
+      LatLng initialLocation = userLocation;
+      Random random = Random();
+      Distance distance = const Distance();
+
+      List<LatLng> virusLocationsTemp = [];
+      for (int i=0; i < amount; i++) {
+        //Randomness for direction and distance from starting location
+        double dirRandom = random.nextDouble();
+        double disRandom = random.nextDouble();
+
+        double direction = 360 * dirRandom;
+        double dist = range * (disRandom + 0.1);
+
+        LatLng newVirusLocation = distance.offset(initialLocation, dist, direction);
+        virusLocationsTemp.add(newVirusLocation);
+      }
+
+      virusLocations = virusLocationsTemp;
+    }
+
+    ///Radar logic tick. Runs every 20 seconds when radar is active.
+    void radarLogicTick() {
+      debugPrint("radarLogicTick");
+      const Distance distance = Distance();
+      //Virus coordinate logic
+      int ticksNearStaticVirusLast = ticksNearStaticVirus;
+      for (LatLng virusCoordinate in virusLocations) {
+        //distance from the user
+        double distanceFromUser = distance(userLocation, virusCoordinate);
+
+        //Player infected if too close to a static virus point for a minute
+        if (distanceFromUser < infectionDistance) {
+          ticksNearStaticVirus += 1;
+          if (ticksNearStaticVirus > 3) {
+            statusController.staticVirusNearby();
+            ticksNearStaticVirus = 0;
+          }
+        }
+      }
+      //If not near a static virus anymore
+      if (ticksNearStaticVirusLast == ticksNearStaticVirus) {
+        ticksNearStaticVirus = 0;
+      }
+
+      refreshCounter++;
+      //Update the viruses, masks and vaccinations locations every 20 minutes
+      if (refreshCounter > 60) {
+        refreshCounter = 0;
+        getMostRecentData();
+        var snackBar = const SnackBar(
+          content: Text("Virus, mask and vaccine locations updated"),
+          duration: Duration(seconds: 3),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
+      debugPrint("radarLogicTick end");
+    }
+
+    //Get most recent data from the API
+    getMostRecentData() async {
+      //Prevent spam changing the locations
+      int timestamp = DateTime.now().millisecondsSinceEpoch;
+      if (timestamp - dataUpdateTimestamp < 300000) {
+        return;
+      }
+      dataUpdateTimestamp = timestamp;
+      //Remove old data
+      maskLocations.clear();
+      virusLocations.clear();
+      vaccinationLocations.clear();
+
+      //Generate elements automatically
+      generateMasks(30, 500);
+      generateVaccines(30, 500);
+      generateViruses(30, 500);
+      setState(() {});
+    }
 }
 
 /// Draws the radar and the virus points near enough the user to be
@@ -583,7 +520,7 @@ class RadarPainter extends CustomPainter {
       this.vaccinationLocations, this.onMaskCollected, this.onVaccineCollected);
 
   //For calculating distance between two coordinates
-  final Distance distance = Distance();
+  final Distance distance = const Distance();
 
   //Customize these
   final int maskDistance = 20;

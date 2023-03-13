@@ -1,6 +1,5 @@
-/** This file contains the game logic of the PandeVITA app. **/
+/// This file contains the game logic of the PandeVITA app.
 import 'dart:async';
-
 import 'game_status.dart';
 import 'package:flutter/material.dart';
 import '../controller/requirement_state_controller.dart';
@@ -32,7 +31,7 @@ class GameLogic {
 
   bool isGameInitiated = false;
 
-  var contactsSinceStarted = Set();
+  var contactsSinceStarted = <dynamic>{};
 
   var staticVirusNearby = false;
   var staticExposureTime = 0;
@@ -77,7 +76,7 @@ class GameLogic {
   void initGame() async {
     debugPrint("initGame call");
     if (isGameInitiated) {
-      debugPrint("isgameinitiated true");
+      debugPrint("is game initiated true");
       return;
     }
     isGameInitiated = true;
@@ -103,7 +102,7 @@ class GameLogic {
         .getPlayerInfectedTimestamp();
     debugPrint("playerInfectedTimestamp $playerInfectedTimestamp");
     if (playerInfectedTimestamp != 0) {
-      debugPrint("playerinfectedtimestamp is not 0");
+      debugPrint("playerInfectedTimestamp is not 0");
       var currentTimestamp = DateTime
           .now()
           .millisecondsSinceEpoch;
@@ -152,8 +151,6 @@ class GameLogic {
 
     ///changed to use then instead of await for optimization
     beaconScanner!.scan().then((scanResults) {
-      debugPrint(scanResults.toString());
-
       if (!infected) {
         //Iterate the map
         for (MapEntry<String, int> me in scanResults.entries) {
@@ -161,10 +158,10 @@ class GameLogic {
           contacts.add(me.key);
           if (me.value == 1) {
             exposureTime += 1;
-            debugPrint("INF PLAYER");
+            debugPrint("INFECTED PLAYER NEARBY");
             safeTime = 0;
             infNearby = true;
-            continue;
+            break;
           }
         }
         if (!infNearby) {

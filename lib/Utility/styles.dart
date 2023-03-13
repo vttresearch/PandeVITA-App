@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/** Utility file for styling up the UI.*/
+/// Utility file for styling up the UI.
 
 var backgroundBlue = const Color.fromARGB(255, 36, 128, 198);
 var yellowColor = const Color.fromARGB(255, 238, 170, 0);

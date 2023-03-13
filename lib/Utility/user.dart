@@ -1,4 +1,4 @@
-/** This file takes care of all the user related things in the application */
+/// This file takes care of all the user related things in the application
 
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class User {
   String userId;
   String name;
- // String email;
+  // String email;
   String password;
   String? token;
   String? renewalToken;
@@ -28,9 +28,8 @@ class UserStorage {
     const storage = FlutterSecureStorage();
     await storage.write(key: "userId", value: user.userId);
     await storage.write(key: "username", value: user.name);
-   // await storage.write(key: "email", value: user.email);
+    // await storage.write(key: "email", value: user.email);
     await storage.write(key: "password", value: user.password);
-
     return true;
   }
 
@@ -39,7 +38,7 @@ class UserStorage {
 
     var userId = await storage.read(key: "userId");
     var name = await storage.read(key: "username");
-   // var email = await storage.read(key: "email");
+    // var email = await storage.read(key: "email");
     var password = await storage.read(key: "password");
     if (userId == null || name == null || password == null) {
       return null;
@@ -48,7 +47,6 @@ class UserStorage {
         userId: userId,
         name: name,
         password: password);
-
   }
 
   Future<void> deleteUser() async {
