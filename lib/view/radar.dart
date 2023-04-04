@@ -36,6 +36,7 @@ class RadarState extends State<Radar>
 
     //User location for drawing the radar
     LatLng userLocation = LatLng(0, 0);
+    late int asd = 0;
 
     StreamSubscription<LocationData>? locationSubscription;
     bool locationSubscriptionCancelled = false;
@@ -205,6 +206,9 @@ class RadarState extends State<Radar>
               Text("Vaccine",
                   style: TextStyle(color: Colors.white, fontSize: 15)),
             ]),
+            //Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            //  TextButton(onPressed: (){asd=1;}, child: const Text('asd')),
+            //]),
             const SizedBox(height: 3)
           ],
         )
@@ -384,10 +388,10 @@ class RadarState extends State<Radar>
       for (int i=0; i < amount; i++) {
         //Randomness for direction and distance from starting location
         double dirRandom = random.nextDouble();
-        double disRandom = random.nextDouble();
+        double disRandom = sqrt(0.99*random.nextDouble()+0.01);
 
         double direction = 360 * dirRandom;
-        double dist = range * (disRandom + 0.1);
+        double dist = range * disRandom;
 
         LatLng newMaskLocation = distance.offset(initialLocation, dist, direction);
         maskLocationsTemp.add(newMaskLocation);
@@ -409,10 +413,10 @@ class RadarState extends State<Radar>
       for (int i=0; i < amount; i++) {
         //Randomness for direction and distance from starting location
         double dirRandom = random.nextDouble();
-        double disRandom = random.nextDouble();
+        double disRandom = sqrt(0.99*random.nextDouble()+0.01);
 
         double direction = 360 * dirRandom;
-        double dist = range * (disRandom + 0.1);
+        double dist = range * disRandom;
 
         LatLng newVaccinationLocation = distance.offset(initialLocation, dist, direction);
         vaccinationLocationsTemp.add(newVaccinationLocation);
@@ -433,10 +437,10 @@ class RadarState extends State<Radar>
       for (int i=0; i < amount; i++) {
         //Randomness for direction and distance from starting location
         double dirRandom = random.nextDouble();
-        double disRandom = random.nextDouble();
+        double disRandom = sqrt(0.99*random.nextDouble()+0.01);
 
         double direction = 360 * dirRandom;
-        double dist = range * (disRandom + 0.1);
+        double dist = range * disRandom;
 
         LatLng newVirusLocation = distance.offset(initialLocation, dist, direction);
         virusLocationsTemp.add(newVirusLocation);
@@ -444,10 +448,20 @@ class RadarState extends State<Radar>
 
       virusLocations = virusLocationsTemp;
     }
-
+/*
+    void generateVirusOnTop() async {
+      if(asd ==1) {
+        List<LatLng> virusLocationsTemp = virusLocations;
+        virusLocationsTemp.add(userLocation);
+        virusLocations = virusLocationsTemp;
+        setState(() {});
+      }
+    }
+*/
     ///Radar logic tick. Runs every 20 seconds when radar is active.
     void radarLogicTick() {
       debugPrint("radarLogicTick");
+      // generateVirusOnTop();
       const Distance distance = Distance();
       //Virus coordinate logic
       int ticksNearStaticVirusLast = ticksNearStaticVirus;

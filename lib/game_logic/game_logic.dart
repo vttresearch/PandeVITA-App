@@ -159,6 +159,7 @@ class GameLogic {
           if (me.value == 1) {
             exposureTime += 1;
             debugPrint("INFECTED PLAYER NEARBY");
+            debugPrint('exposure: '+exposureTime.toString());
             safeTime = 0;
             infNearby = true;
             break;
@@ -171,7 +172,8 @@ class GameLogic {
         }
         //Point logic
         //If exposure to infected player has been longer than 10 minutes
-        if (exposureTime >= 10) {
+        // Reduced to 1 minute for now
+        if (exposureTime >= 1) {
           gameStatus!.checkInfection(100);
           exposureTime = 0;
         }

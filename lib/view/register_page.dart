@@ -25,8 +25,8 @@ class RegisterPageState extends State<RegisterPage> {
   var chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
   Random random = Random();
 var maskFormatter = MaskTextInputFormatter(
-  mask: '0000-0000-0000-0000',
-  filter: { "0": RegExp(r'[0-9X]') },
+  mask: '0000-0000-0000-0001',
+  filter: { "0": RegExp(r'[0-9]'), "1": RegExp(r'[0-9X]')},
   type: MaskAutoCompletionType.lazy
 );
   String? dropdownValue;
@@ -164,7 +164,7 @@ var maskFormatter = MaskTextInputFormatter(
           style: const TextStyle(color: Colors.black),
           autofocus: false,
           onSaved: (value) => orcid = (value as String).toLowerCase(),
-          validator: (value) => value!.isNotEmpty && value.length != 19 ? 'Please enter valid orcid number' : null,
+          validator: (value) => !value!.isNotEmpty || value!.isNotEmpty && value.length != 19 ? 'Please enter valid orcid number' : null,
           cursorColor: Colors.black,
           inputFormatters: [maskFormatter],
           decoration: const InputDecoration(
