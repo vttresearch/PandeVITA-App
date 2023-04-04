@@ -85,18 +85,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       //These are possibly needed for newer Android versions
       Permission.bluetoothAdvertise
     ].request();
-    if (statuses[Permission.locationWhenInUse]!.isGranted) {
-      var status = await Permission.locationAlways.request();
-      if (!status.isGranted) {
-        //SnackBar here
-        var snackBar = const SnackBar(
-          content: Text(
-              "Location permission is needed for the app to function correctly"),
-          duration: Duration(seconds: 5),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-    }
+    //if (statuses[Permission.locationWhenInUse]!.isGranted) {
+    //  var status = await Permission.locationAlways.request();
+    //  if (!status.isGranted) {
+    //    //SnackBar here
+    //    var snackBar = const SnackBar(
+    //      content: Text(
+    //          "Location permission is needed for the app to function correctly"),
+    //      duration: Duration(seconds: 5),
+    //    );
+    //    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    //  }
+    //}
   }
 
   /// Create a tutorial when the user opens the application for the first time
@@ -315,21 +315,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               decoration: pandeVITABackgroundDecoration,
               child: IndexedStack(
                 index: currentIndex,
-                children: [
+                children: const [
                   Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     child: ScoreboardPage(),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     child: TabMap(),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     child: QuizPage(),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     child: SettingsPage(),
                   )
                 ],

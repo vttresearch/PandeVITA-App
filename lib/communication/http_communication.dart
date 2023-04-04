@@ -21,10 +21,11 @@ class PandeVITAHttpClient {
   PandeVITAHttpClient._privateConstructor();
   final storage = const FlutterSecureStorage();
   final userStorage = UserStorage();
-  //final String _url = "https://pandevita.lst.tfo.upm.es"; // prod
-  final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
-  //final String _urlWithoutHttps = "pandevita.lst.tfo.upm.es"; // prod
-  final String _urlWithoutHttps = "gateway.pandevita.d.lst.tfo.upm.es";
+
+  final String _url = "https://pandevita.lst.tfo.upm.es"; // prod
+  //final String _url = "https://gateway.pandevita.d.lst.tfo.upm.es";
+  final String _urlWithoutHttps = "pandevita.lst.tfo.upm.es"; // prod
+  //final String _urlWithoutHttps = "gateway.pandevita.d.lst.tfo.upm.es";
 
   final controller = Get.find<RequirementStateController>();
 
