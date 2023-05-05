@@ -21,7 +21,7 @@ class RequirementStateController extends GetxController {
 
   bool get bluetoothEnabled => bluetoothState.value == BluetoothState.stateOn;
 
-  bool get authorizationStatusOk => authorizationStatus.value == AuthorizationStatus.allowed || authorizationStatus.value == AuthorizationStatus.always;
+  bool get authorizationStatusOk => authorizationStatus.value == AuthorizationStatus.allowed || authorizationStatus.value == AuthorizationStatus.always || authorizationStatus.value == AuthorizationStatus.whenInUse;
 
   bool get locationServiceEnabled => locationService.value;
 

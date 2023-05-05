@@ -9,8 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 late Mixpanel mixpanel;
+
 Future<void> initMixpanel() async {
-  mixpanel = await Mixpanel.init(token,trackAutomaticEvents: true );
+  mixpanel = await Mixpanel.init(token, trackAutomaticEvents: true);
 }
 
 /// Singleton class that contains the game data of the user
@@ -29,7 +30,7 @@ class GameStatus {
 
   GameStatus._privateConstructor() {
     //Used for testing purposes
-     removeLastQuiz();
+    removeLastQuiz();
   }
 
   //Add or remove points
@@ -166,12 +167,12 @@ class GameStatus {
 
   /// Save the ID of the answered quiz to the list of answered quizzes
   /// and save the score of the last answered quiz
-  void  saveQuizScore(String quizId, int score) async {
+  void saveQuizScore(String quizId, int score) async {
     String answeredQuizzesList = await storage.read(key: 'quizzes') ?? "[]";
     List answeredQuizzes = jsonDecode(answeredQuizzesList);
     answeredQuizzes.add(quizId);
     await storage.write(key: 'quizzes', value: jsonEncode(answeredQuizzes));
-    await storage.write(key:'lastQuizScore', value: score.toString());
+    await storage.write(key: 'lastQuizScore', value: score.toString());
   }
 
   /// Check if the quiz is already answered. Returns true, if quiz is already
@@ -193,12 +194,16 @@ class GameStatus {
 
   /// For testing purposes
   void removeLastQuiz() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('lastQuizScore');
-    prefs.remove('quizzes');
-    prefs.remove('answered_questions');
-    //prefs.remove('collectedVaccines');
-    //prefs.remove('collectedMasks');
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.remove('lastQuizScore');
+      prefs.remove('quizzes');
+      prefs.remove('answered_questions');
+      //prefs.remove('collectedVaccines');
+      //prefs.remove('collectedMasks');
+    } on Exception catch (e) {
+      debugPrint("Error in removeLastQuiz() in GameStatus: $e");
+    }
   }
 
   void answeredQuizQuestion(String quizId) async {
@@ -337,7 +342,7 @@ class GameStatus {
     String vaccineTimestampsList = await storage.read(key: 'vaccineTimestamps') ?? '[]';
     List vaccineTimestamps = jsonDecode(vaccineTimestampsList);
     vaccineTimestamps.remove(timestamp);
-    await storage.write(key: 'vaccineTimestamps',value: jsonEncode(vaccineTimestamps));
+    await storage.write(key: 'vaccineTimestamps', value: jsonEncode(vaccineTimestamps));
     controller.eventVaccinationAmountChanged();
   }
 }

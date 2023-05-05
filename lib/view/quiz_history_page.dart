@@ -72,60 +72,55 @@ Widget build(BuildContext context) {
             //};
             var questions = snapshot.data;
             children = <Widget>[
-              Expanded( child: Scrollbar(
-                  controller: ScrollController(),
-                  thumbVisibility: true,
-                  trackVisibility: true,
-                  child: ListView.builder(
-                        itemCount: questions?.length,
-                        itemBuilder: (context, i) {
-                          var question = questions![i]['question'];
-                          Map isCorrectIcon = {
-                            'icon': Icons.question_mark_rounded,
-                            'color': Colors.red
-                          };
-                          if (questions[i]['isCorrect'] != null) {
-                            isCorrectIcon = questions[i]['isCorrect'] == true ?
-                            {'icon': Icons.check_circle_rounded, 'color': Colors
-                                .green,} :
-                            {'icon': Icons.cancel_rounded, 'color': Colors
-                                .redAccent,};
-                          }
-                          return ListTile(
-                            title: Padding(child: ElevatedButton(
-                                onPressed: () {
-                                  debugPrint(
-                                      'Pressed question ${questions[i]}');
-                                  chosenQuiz = questions[i]['id'];
-                                  setState(() {});
-                                },
-                                child: Text( question as String, style: quizTextStyle),
-                                style: ElevatedButton.styleFrom(
-                                  primary: chosenQuiz == questions[i]['id']
-                                      ? Colors.orangeAccent//Color.fromARGB(255, 207, 160, 30)
-                                      : yellowColor,
-                                  onPrimary: Colors.orange,
-                                  padding: const EdgeInsets.only(top: 10.0, bottom: 10.0, right: 8.0, left: 8.0),
-                                  shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular( 13.0)),
-                                )
-                            ),
-                                padding: const EdgeInsets.symmetric( vertical: 10.0,) //horizontal: 10.0)
-                            ),
-                            trailing: Padding(child: Icon(isCorrectIcon['icon'],
-                              color: isCorrectIcon['color'], size: 30,),
-                              padding: const EdgeInsets.symmetric( vertical: 10.0),),
-                            subtitle: chosenQuiz == questions[i]['id'] ?
-                              Container(
-                                decoration: boxDecorationWhiteBorder,
-                                width: double.infinity,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: quizAnswers(questions[i]['answers'], i, questions[i]['correctAnswer'])))
-                                : null,
-                          );
-                        })
-                  )
+              Expanded( child: ListView.builder(
+                    itemCount: questions?.length,
+                    itemBuilder: (context, i) {
+                      var question = questions![i]['question'];
+                      Map isCorrectIcon = {
+                        'icon': Icons.question_mark_rounded,
+                        'color': Colors.red
+                      };
+                      if (questions[i]['isCorrect'] != null) {
+                        isCorrectIcon = questions[i]['isCorrect'] == true ?
+                        {'icon': Icons.check_circle_rounded, 'color': Colors
+                            .green,} :
+                        {'icon': Icons.cancel_rounded, 'color': Colors
+                            .redAccent,};
+                      }
+                      return ListTile(
+                        title: Padding(child: ElevatedButton(
+                            onPressed: () {
+                              debugPrint(
+                                  'Pressed question ${questions[i]}');
+                              chosenQuiz = questions[i]['id'];
+                              setState(() {});
+                            },
+                            child: Text( question as String, style: quizTextStyle),
+                            style: ElevatedButton.styleFrom(
+                              primary: chosenQuiz == questions[i]['id']
+                                  ? Colors.orangeAccent//Color.fromARGB(255, 207, 160, 30)
+                                  : yellowColor,
+                              onPrimary: Colors.orange,
+                              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0, right: 8.0, left: 8.0),
+                              shape: RoundedRectangleBorder( borderRadius: BorderRadius.circular( 13.0)),
+                            )
+                        ),
+                            padding: const EdgeInsets.symmetric( vertical: 10.0,) //horizontal: 10.0)
+                        ),
+                        trailing: Padding(child: Icon(isCorrectIcon['icon'],
+                          color: isCorrectIcon['color'], size: 30,),
+                          padding: const EdgeInsets.symmetric( vertical: 10.0),),
+                        subtitle: chosenQuiz == questions[i]['id'] ?
+                          Container(
+                            decoration: boxDecorationWhiteBorder,
+                            width: double.infinity,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: quizAnswers(questions[i]['answers'], i, questions[i]['correctAnswer'])))
+                            : null,
+                      );
+                    })
                 )
               ];
           } else if (snapshot.hasError) {

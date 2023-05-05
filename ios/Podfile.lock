@@ -1,15 +1,11 @@
 PODS:
-  - Alamofire (5.6.4)
   - Flutter (1.0.0)
   - flutter_beacon (0.3.0):
     - Flutter
   - flutter_foreground_task (0.0.1):
     - Flutter
-  - flutter_osm_plugin (0.0.1):
-    - Alamofire
+  - flutter_pdfview (1.0.2):
     - Flutter
-    - Polyline
-    - Tangram-es
   - flutter_secure_storage (3.3.1):
     - Flutter
   - FMDB (2.7.5):
@@ -17,19 +13,25 @@ PODS:
   - FMDB/standard (2.7.5)
   - location (0.0.1):
     - Flutter
-  - path_provider_ios (0.0.1):
+  - Mixpanel-swift (4.1.0):
+    - Mixpanel-swift/Complete (= 4.1.0)
+  - Mixpanel-swift/Complete (4.1.0)
+  - mixpanel_flutter (2.1.1):
     - Flutter
+    - Mixpanel-swift (= 4.1.0)
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - permission_handler_apple (9.0.4):
     - Flutter
-  - Polyline (5.1.0)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - shared_preferences_ios (0.0.1):
     - Flutter
   - sqflite (0.0.2):
     - Flutter
     - FMDB (>= 2.7.5)
-  - syncfusion_flutter_pdfviewer (0.0.1):
-    - Flutter
-  - Tangram-es (0.17.1)
   - url_launcher_ios (0.0.1):
     - Flutter
   - video_player_avfoundation (0.0.1):
@@ -39,23 +41,22 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_beacon (from `.symlinks/plugins/flutter_beacon/ios`)
   - flutter_foreground_task (from `.symlinks/plugins/flutter_foreground_task/ios`)
-  - flutter_osm_plugin (from `.symlinks/plugins/flutter_osm_plugin/ios`)
+  - flutter_pdfview (from `.symlinks/plugins/flutter_pdfview/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - location (from `.symlinks/plugins/location/ios`)
-  - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
+  - mixpanel_flutter (from `.symlinks/plugins/mixpanel_flutter/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
   - shared_preferences_ios (from `.symlinks/plugins/shared_preferences_ios/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
-  - syncfusion_flutter_pdfviewer (from `.symlinks/plugins/syncfusion_flutter_pdfviewer/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
 
 SPEC REPOS:
   trunk:
-    - Alamofire
     - FMDB
-    - Polyline
-    - Tangram-es
+    - Mixpanel-swift
 
 EXTERNAL SOURCES:
   Flutter:
@@ -64,46 +65,47 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_beacon/ios"
   flutter_foreground_task:
     :path: ".symlinks/plugins/flutter_foreground_task/ios"
-  flutter_osm_plugin:
-    :path: ".symlinks/plugins/flutter_osm_plugin/ios"
+  flutter_pdfview:
+    :path: ".symlinks/plugins/flutter_pdfview/ios"
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
   location:
     :path: ".symlinks/plugins/location/ios"
-  path_provider_ios:
-    :path: ".symlinks/plugins/path_provider_ios/ios"
+  mixpanel_flutter:
+    :path: ".symlinks/plugins/mixpanel_flutter/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/ios"
   shared_preferences_ios:
     :path: ".symlinks/plugins/shared_preferences_ios/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
-  syncfusion_flutter_pdfviewer:
-    :path: ".symlinks/plugins/syncfusion_flutter_pdfviewer/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   video_player_avfoundation:
     :path: ".symlinks/plugins/video_player_avfoundation/ios"
 
 SPEC CHECKSUMS:
-  Alamofire: 4e95d97098eacb88856099c4fc79b526a299e48c
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_beacon: 2525df9d96b904623f325968a73bac805e648119
   flutter_foreground_task: 21ef182ab0a29a3005cc72cd70e5f45cb7f7f817
-  flutter_osm_plugin: f06ae1e854af57270c61ae27bdb8a386cfd4afa5
+  flutter_pdfview: 25f53dd6097661e6395b17de506e6060585946bd
   flutter_secure_storage: 7953c38a04c3fdbb00571bcd87d8e3b5ceb9daec
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   location: 3a2eed4dd2fab25e7b7baf2a9efefe82b512d740
-  path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
+  Mixpanel-swift: 7b46c63259dec8398a7df9f8a1298fd00b6b3cb3
+  mixpanel_flutter: a530f9f27534f3c96a074e483ee425387f524e1c
+  path_provider_foundation: c68054786f1b4f3343858c1e1d0caaded73f0be9
   permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
-  Polyline: 2a1f29f87f8d9b7de868940f4f76deb8c678a5b1
+  shared_preferences_foundation: 986fc17f3d3251412d18b0265f9c64113a8c2472
   shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
-  syncfusion_flutter_pdfviewer: bb9998884b864cfedf72628df3503bdf57e397c0
-  Tangram-es: 628b634f7fc09d2217469b9914de00d9de49ff9d
-  url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
-  video_player_avfoundation: e489aac24ef5cf7af82702979ed16f2a5ef84cff
+  url_launcher_ios: 08a3dfac5fb39e8759aeb0abbd5d9480f30fc8b4
+  video_player_avfoundation: 81e49bb3d9fb63dccf9fa0f6d877dc3ddbeac126
 
-PODFILE CHECKSUM: 4e8f8b2be68aeea4c0d5beb6ff1e79fface1d048
+PODFILE CHECKSUM: 7368163408c647b7eb699d0d788ba6718e18fb8d
 
 COCOAPODS: 1.11.3

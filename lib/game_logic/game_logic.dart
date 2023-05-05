@@ -42,7 +42,6 @@ class GameLogic {
 
   static final GameLogic _gameLogic = GameLogic._privateConstructor();
 
-
   factory GameLogic() {
     return _gameLogic;
   }
@@ -55,9 +54,7 @@ class GameLogic {
         infected3days = true;
         //Bug fix: correct timestamps now not overridden
         if (infectedTimestamp == 0) {
-          infectedTimestamp = DateTime
-              .now()
-              .millisecondsSinceEpoch;
+          infectedTimestamp = DateTime.now().millisecondsSinceEpoch;
         }
       } else if (flag == false) {
         infectedTimestamp = 0;
@@ -73,7 +70,7 @@ class GameLogic {
     });
   }
 
-  void initGame() async {
+  Future<void> initGame() async {
     debugPrint("initGame call");
     if (isGameInitiated) {
       debugPrint("is game initiated true");
@@ -82,30 +79,23 @@ class GameLogic {
     isGameInitiated = true;
     gameStatus = GameStatus();
     beaconScanner = BeaconScanner();
-    timer = Timer.periodic(
-        const Duration(seconds: 60), (Timer t) => gameLogicTick());
+    timer = Timer.periodic(const Duration(seconds: 60), (Timer t) => gameLogicTick());
     DateTime now = DateTime.now();
     DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
     timer2 = Timer(endOfDay.difference(now), immunityReset);
     //_isGameActive = await gameStatus!.isGameActive();
     _isGameActive = true;
 
-
     contactsStartedTimestamp = await gameStatus!.getContactTimestamp();
     if (contactsStartedTimestamp == 0) {
-      contactsStartedTimestamp = DateTime
-          .now()
-          .millisecondsSinceEpoch;
+      contactsStartedTimestamp = DateTime.now().millisecondsSinceEpoch;
       gameStatus!.saveContactTimestamp(contactsStartedTimestamp);
     }
-    var playerInfectedTimestamp = await gameStatus!
-        .getPlayerInfectedTimestamp();
+    var playerInfectedTimestamp = await gameStatus!.getPlayerInfectedTimestamp();
     debugPrint("playerInfectedTimestamp $playerInfectedTimestamp");
     if (playerInfectedTimestamp != 0) {
       debugPrint("playerInfectedTimestamp is not 0");
-      var currentTimestamp = DateTime
-          .now()
-          .millisecondsSinceEpoch;
+      var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
       //If over 3 days since infection
       if (currentTimestamp - playerInfectedTimestamp >= 259200000) {
         gameStatus!.cureInfectPlayer();
@@ -125,9 +115,7 @@ class GameLogic {
   ///One tick of the game logic. Runs every 60 seconds
   void gameLogicTick() async {
     gameActiveControl++;
-    var timestamp = DateTime
-        .now()
-        .millisecondsSinceEpoch;
+    var timestamp = DateTime.now().millisecondsSinceEpoch;
     var checking = timestamp - lastGameLogicTimestamp;
     debugPrint("time since last game logic tick $checking");
     lastGameLogicTimestamp = timestamp;
@@ -159,7 +147,7 @@ class GameLogic {
           if (me.value == 1) {
             exposureTime += 1;
             debugPrint("INFECTED PLAYER NEARBY");
-            debugPrint('exposure: '+exposureTime.toString());
+            debugPrint('exposure: ' + exposureTime.toString());
             safeTime = 0;
             infNearby = true;
             break;
@@ -260,6 +248,5 @@ class GameLogic {
     DateTime now = DateTime.now();
     DateTime endOfDay = DateTime(now.year, now.month, now.day + 1);
     timer2 = Timer(endOfDay.difference(now), immunityReset);
-
   }
 }

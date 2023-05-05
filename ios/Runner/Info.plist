@@ -1,59 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>pandeVITA Game </string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>fi.vtt.pandevitaGame</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Bluetooth connection is required to track your interaction with other players. When its turned of you wont gain any points.</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Bluetooth connection is required to track your interaction with other players. When its turned of you wont gain any points.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This game requires access to your location to hold off you from the infection. Your location won&apos;t be shared.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This game requires access to your location to hold off you from the infection. Your location won&apos;t be shared.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This game requires access to your location to hold off you from the infection. Your location won&apos;t be shared.</string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-</dict>
+    <dict>
+        <key>NSAppTransportSecurity</key>
+        <dict>
+            <key>NSAllowsArbitraryLoads</key>
+            <true/>
+        </dict>
+        <key>CADisableMinimumFrameDurationOnPhone</key>
+        <true/>
+        <key>CFBundleDevelopmentRegion</key>
+        <string>$(DEVELOPMENT_LANGUAGE)</string>
+        <key>CFBundleDisplayName</key>
+        <string>PVITA</string>
+        <key>CFBundleExecutable</key>
+        <string>$(EXECUTABLE_NAME)</string>
+        <key>CFBundleIdentifier</key>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+        <key>CFBundleInfoDictionaryVersion</key>
+        <string>6.0</string>
+        <key>CFBundleName</key>
+        <string>fi.vtt.pvita</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleShortVersionString</key>
+        <string>$(FLUTTER_BUILD_NAME)</string>
+        <key>CFBundleSignature</key>
+        <string>????</string>
+        <key>CFBundleVersion</key>
+        <string>$(FLUTTER_BUILD_NUMBER)</string>
+        <key>LSRequiresIPhoneOS</key>
+        <true/>
+        <key>NSBluetoothAlwaysUsageDescription</key>
+        <string>Bluetooth connection is required to track your interaction with other players. When its turned of you wont gain any points.</string>
+        <key>NSBluetoothPeripheralUsageDescription</key>
+        <string>Bluetooth connection is required to track your interaction with other players. When its turned of you wont gain any points.</string>
+        <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+        <string>To provide you with the best experience, PVITA needs your location. Please allow us to access your location even when you&apos;re not using the app. You can manage this setting in your device&apos;s settings at any time. Enable location services now?</string>
+        <key>NSLocationAlwaysUsageDescription</key>
+        <string>To provide you with the best experience, PVITA needs your location. Please allow us to access your location even when you&apos;re not using the app. You can manage this setting in your device&apos;s settings at any time. Enable location services now?</string>
+        <key>NSLocationWhenInUseUsageDescription</key>
+        <string>To provide you with the best experience, PVITA needs your location. Please allow us to access your location while using the app. You can manage this setting in your device&apos;s settings at any time. Enable location services now?</string>
+        <key>LSApplicationCategoryType</key>
+        <string></string>
+        <key>UIApplicationSupportsIndirectInputEvents</key>
+        <true/>
+        <key>UILaunchStoryboardName</key>
+        <string>LaunchScreen</string>
+        <key>UIMainStoryboardFile</key>
+        <string>Main</string>
+        <key>UISupportedInterfaceOrientations</key>
+        <array>
+            <string>UIInterfaceOrientationPortrait</string>
+            <string>UIInterfaceOrientationLandscapeLeft</string>
+            <string>UIInterfaceOrientationLandscapeRight</string>
+        </array>
+        <key>UISupportedInterfaceOrientations~ipad</key>
+        <array>
+            <string>UIInterfaceOrientationPortrait</string>
+            <string>UIInterfaceOrientationPortraitUpsideDown</string>
+            <string>UIInterfaceOrientationLandscapeLeft</string>
+            <string>UIInterfaceOrientationLandscapeRight</string>
+        </array>
+        <key>UIViewControllerBasedStatusBarAppearance</key>
+        <false/>
+         <key>UIApplicationSceneManifest</key>
+            <dict>
+                <key>UISceneConfigurations</key>
+                <dict/>
+            </dict>
+    </dict>
 </plist>

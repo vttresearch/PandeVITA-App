@@ -43,7 +43,7 @@ dependencies:
   get: ^4.6.5
 
   # License: BSD-3-Clause
-  shared_preferences: ^2.0.13
+  shared_preferences: ^2.1.0
 
   #Needed for Android 8+
   # License: MIT

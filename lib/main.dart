@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'view/register_page.dart';
 import 'view/login_page.dart';
 
-void main() async {
+void main() {
   const bool isProduction = bool.fromEnvironment('dart.vm.product');
   if (isProduction) {
     // analyser does not like empty function body
@@ -14,6 +14,7 @@ void main() async {
     // so i changed it to this:
     debugPrint = (String? message, {int? wrapWidth}) => null;
   }
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
 }
 
@@ -23,15 +24,11 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Get.put(RequirementStateController());
-    return GetMaterialApp(
-        title: 'PandeVITA game application',
-      home: const LandingPage(),
-      routes: {
-        '/home': (context) => const HomePage(),
-        '/register': (context) => const RegisterPage(),
-        '/login': (context) => const LoginPage(),
-        '/landing': (context) => const LandingPage(),
-      }
-    );
+    return GetMaterialApp(title: 'PandeVITA game application', home: const LandingPage(), routes: {
+      '/home': (context) => const HomePage(),
+      '/register': (context) => const RegisterPage(),
+      '/login': (context) => const LoginPage(),
+      '/landing': (context) => const LandingPage(),
+    });
   }
 }

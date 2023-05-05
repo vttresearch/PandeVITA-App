@@ -8,6 +8,7 @@ import 'package:pandevita_game/communication/beacon_broadcast.dart';
 import 'package:pandevita_game/view/quiz_page.dart';
 import 'package:pandevita_game/view/scoreboard_page.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+
 //import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../controller/requirement_state_controller.dart';
 import 'package:get/get.dart';
@@ -30,7 +31,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
-
   // late TutorialCoachMark tutorialCoachMark;
   // GlobalKey keyBottomNavigation1 = GlobalKey();
 
@@ -61,11 +61,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       } else if (flag == false) {
         infected = false;
       }
-      setState(() {
-
-      });
+      setState(() {});
     });
-
 
     initForegroundTask();
 
@@ -162,9 +159,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   listeningState() async {
     debugPrint('Listening to bluetooth state');
-    _streamBluetooth = flutterBeacon
-        .bluetoothStateChanged()
-        .listen((BluetoothState state) async {
+    _streamBluetooth = flutterBeacon.bluetoothStateChanged().listen((BluetoothState state) async {
       controller.updateBluetoothState(state);
       await checkAllRequirements();
     });
@@ -179,24 +174,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     controller.updateAuthorizationStatus(authorizationStatus);
     debugPrint('AUTHORIZATION $authorizationStatus');
 
-    final locationServiceEnabled =
-    await flutterBeacon.checkLocationServicesIfEnabled;
+    final locationServiceEnabled = await flutterBeacon.checkLocationServicesIfEnabled;
     controller.updateLocationService(locationServiceEnabled);
     debugPrint('LOCATION SERVICE $locationServiceEnabled');
 
-    if (controller.bluetoothEnabled &&
-        controller.authorizationStatusOk &&
-        controller.locationServiceEnabled) {
+    if (controller.bluetoothEnabled && controller.authorizationStatusOk && controller.locationServiceEnabled) {
       debugPrint('STATE READY');
       debugPrint('INITIATING SCANNING');
       controller.startScanning();
       debugPrint("INITIATING BROADCAST");
       controller.startBroadcasting();
       debugPrint('INITIATING GAME');
-      gameLogic.initGame();
-    }
-
-    else {
+      await gameLogic.initGame();
+    } else {
       debugPrint('STATE NOT READY');
       controller.pauseScanning();
       controller.stopBroadcasting();
@@ -236,8 +226,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       androidNotificationOptions: AndroidNotificationOptions(
         channelId: 'notification_channel_id',
         channelName: 'Foreground Notification',
-        channelDescription:
-        'This notification appears when the foreground service is running.',
+        channelDescription: 'This notification appears when the foreground service is running.',
         channelImportance: NotificationChannelImportance.LOW,
         priority: NotificationPriority.LOW,
         isSticky: false,
@@ -247,8 +236,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           name: 'pandevita_logo_small',
         ),
         buttons: [
-          const NotificationButton(
-              id: 'stopButton', text: 'Stop foreground task'),
+          const NotificationButton(id: 'stopButton', text: 'Stop foreground task'),
         ],
       ),
       iosNotificationOptions: const IOSNotificationOptions(
@@ -305,70 +293,69 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return WithForegroundTask(
         child: Scaffold(
-          appBar: AppBar(
-            title: Image.asset("images/white_logo.png",
-                height: AppBar().preferredSize.height - 5.0),
-            centerTitle: false,
-          ),
-          backgroundColor: backgroundBlue,
-          body: Container(
-              decoration: pandeVITABackgroundDecoration,
-              child: IndexedStack(
-                index: currentIndex,
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(8),
-                    child: ScoreboardPage(),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8),
-                    child: TabMap(),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8),
-                    child: QuizPage(),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8),
-                    child: SettingsPage(),
-                  )
-                ],
-              )),
-          bottomNavigationBar: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-            currentIndex: currentIndex,
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.black,
-            onTap: (index) {
-              mixpanel.track("Clicked ${pages[index]}");
-              setState(() {
-                currentIndex = index;
-              });
-            },
-            items: [
-              BottomNavigationBarItem(
-                //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-                  icon: Image.asset('images/league_icon.png', width: 25),
-                  label: 'Scoreboard'),
-              BottomNavigationBarItem(
-                //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-                icon: Image.asset('images/map_icon.png', width: 25),
-                label: 'Radar',
+      appBar: AppBar(
+        title: Image.asset("images/white_logo.png", height: AppBar().preferredSize.height - 5.0),
+        centerTitle: false,
+      ),
+      backgroundColor: backgroundBlue,
+      body: Container(
+          decoration: pandeVITABackgroundDecoration,
+          child: IndexedStack(
+            index: currentIndex,
+            children: const [
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: ScoreboardPage(),
               ),
-              BottomNavigationBarItem(
-                //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-                icon: Image.asset('images/quiz_icon.png', width: 25),
-                label: 'Quiz',
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: TabMap(),
               ),
-              BottomNavigationBarItem(
-                // backgroundColor: const Color.fromARGB(255, 36, 128, 198),
-                icon: Image.asset('images/settings_icon.png', width: 25),
-                label: 'Settings',
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: QuizPage(),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: SettingsPage(),
               )
             ],
+          )),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+        currentIndex: currentIndex,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.black,
+        onTap: (index) {
+          mixpanel.track("Clicked ${pages[index]}");
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        items: [
+          BottomNavigationBarItem(
+              //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+              icon: Image.asset('images/league_icon.png', width: 25),
+              label: 'Scoreboard'),
+          BottomNavigationBarItem(
+            //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+            icon: Image.asset('images/map_icon.png', width: 25),
+            label: 'Radar',
           ),
-        ));
+          BottomNavigationBarItem(
+            //backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+            icon: Image.asset('images/quiz_icon.png', width: 25),
+            label: 'Quiz',
+          ),
+          BottomNavigationBarItem(
+            // backgroundColor: const Color.fromARGB(255, 36, 128, 198),
+            icon: Image.asset('images/settings_icon.png', width: 25),
+            label: 'Settings',
+          )
+        ],
+      ),
+    ));
   }
 }
 
@@ -376,8 +363,7 @@ class NotifTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, SendPort? sendPort) async {
     // You can use the getData function to get the data you saved.
-    final customData =
-    await FlutterForegroundTask.getData<String>(key: 'customData');
+    final customData = await FlutterForegroundTask.getData<String>(key: 'customData');
   }
 
   @override

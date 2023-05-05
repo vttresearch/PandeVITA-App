@@ -289,31 +289,27 @@ class Quiz extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0)),
         //Question
-        Expanded(child: Scrollbar(
-            thumbVisibility: true,
-            trackVisibility: true,
-            controller: ScrollController(),
-            child: ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: (questions[questionIndex]['answers'] as List).length,
+        Expanded(child: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: (questions[questionIndex]['answers'] as List).length,
 
-            itemBuilder: (context, i) {
-              var answer = (questions[questionIndex]['answers'] as List)[i];
-              return Padding(child: ElevatedButton(
-                      onPressed: () => answerQuestion(
-                          questions[questionIndex]['id'],
-                          answer,
-                          questions[questionIndex]['correctAnswer']),
-                      child: Text(answer as String, style: quizTextStyle),
-                      style: ElevatedButton.styleFrom(
-                        primary: yellowColor,
-                        onPrimary: Colors.orange,
-                        padding: const EdgeInsets.only(
-                            top: 10.0, bottom: 10.0, right: 8.0, left: 8.0),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13.0)),
-                      )), padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0));
-            })))
+        itemBuilder: (context, i) {
+          var answer = (questions[questionIndex]['answers'] as List)[i];
+          return Padding(child: ElevatedButton(
+                  onPressed: () => answerQuestion(
+                      questions[questionIndex]['id'],
+                      answer,
+                      questions[questionIndex]['correctAnswer']),
+                  child: Text(answer as String, style: quizTextStyle),
+                  style: ElevatedButton.styleFrom(
+                    primary: yellowColor,
+                    onPrimary: Colors.orange,
+                    padding: const EdgeInsets.only(
+                        top: 10.0, bottom: 10.0, right: 8.0, left: 8.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(13.0)),
+                  )), padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0));
+        }))
       ],
     ); //Column
   }
